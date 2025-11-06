@@ -128,9 +128,11 @@
             var highlightLayer = new ol.layer.Vector({
                 source: highlightSource, style: highlightStyle, zIndex: 1
             });
+            
             var map = new ol.Map({
-                target: 'map', layers: [baseLayer, cadastralLayer, highlightLayer], view: view
+                target: 'map', layers: [baseLayer, cadastralLayer], view: view
             });
+            map.addLayer(highlightLayer);
 
             var container = document.getElementById('popup');
             var content = document.getElementById('popup-content');
