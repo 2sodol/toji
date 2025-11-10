@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.toji.toji.mapper.RegionInfoMapper">
+
+    <resultMap id="RegionInfoResultMap" type="RegionInfo">
+        <id property="id" column="ID"/>
+        <result property="address" column="ADDRESS"/>
+        <result property="roadAddress" column="ROAD_ADDRESS"/>
+        <result property="jibunAddress" column="JIBUN_ADDRESS"/>
+        <result property="pnu" column="PNU"/>
+        <result property="sido" column="SIDO"/>
+        <result property="sigungu" column="SIGUNGU"/>
+        <result property="eupmyeondong" column="EUPMYEONDONG"/>
+        <result property="ri" column="RI"/>
+        <result property="latitude" column="LATITUDE"/>
+        <result property="longitude" column="LONGITUDE"/>
+        <result property="memo" column="MEMO"/>
+        <result property="createdAt" column="CREATED_AT"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="RegionInfo">
+        <selectKey keyProperty="id" order="BEFORE" resultType="long">
+            SELECT REGION_INFO_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        <![CDATA[
+        INSERT INTO REGION_INFO (
+            ID,
+            ADDRESS,
+            ROAD_ADDRESS,
+            JIBUN_ADDRESS,
+            PNU,
+            SIDO,
+            SIGUNGU,
+            EUPMYEONDONG,
+            RI,
+            LATITUDE,
+            LONGITUDE,
+            MEMO,
+            CREATED_AT
+        ) VALUES (
+            #{id},
+            #{address},
+            #{roadAddress},
+            #{jibunAddress},
+            #{pnu},
+            #{sido},
+            #{sigungu},
+            #{eupmyeondong},
+            #{ri},
+            #{latitude},
+            #{longitude},
+            #{memo},
+            #{createdAt}
+        )
+        ]]>
+    </insert>
+
+    <select id="selectRecent" parameterType="int" resultMap="RegionInfoResultMap">
+        <![CDATA[
+        SELECT
+            ID,
+            ADDRESS,
+            ROAD_ADDRESS,
+            JIBUN_ADDRESS,
+            PNU,
+            SIDO,
+            SIGUNGU,
+            EUPMYEONDONG,
+            RI,
+            LATITUDE,
+            LONGITUDE,
+            MEMO,
+            CREATED_AT
+        FROM (
+            SELECT
+                ID,
+                ADDRESS,
+                ROAD_ADDRESS,
+                JIBUN_ADDRESS,
+                PNU,
+                SIDO,
+                SIGUNGU,
+                EUPMYEONDONG,
+                RI,
+                LATITUDE,
+                LONGITUDE,
+                MEMO,
+                CREATED_AT,
+                ROW_NUMBER() OVER (ORDER BY CREATED_AT DESC, ID DESC) AS RN
+            FROM REGION_INFO
+        )
+        WHERE RN <= #{limit}
+        ORDER BY CREATED_AT DESC, ID DESC
+        ]]>
+    </select>
+
+</mapper>
+
