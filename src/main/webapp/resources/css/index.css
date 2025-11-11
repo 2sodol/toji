@@ -1,0 +1,249 @@
+/* 전체 레이아웃 및 지도 표시 영역 */
+html,
+body {
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    font-family: 'Malgun Gothic', sans-serif;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+}
+
+/* 팝업(오버레이)의 외형 설정 */
+.ol-popup {
+    position: absolute;
+    background-color: white;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #cccccc;
+    bottom: 12px;
+    left: -50px;
+    min-width: 280px;
+    user-select: none;
+}
+
+.ol-popup:after,
+.ol-popup:before {
+    top: 100%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+}
+
+.ol-popup:after {
+    border-top-color: white;
+    border-width: 10px;
+    left: 48px;
+    margin-left: -10px;
+}
+
+.ol-popup:before {
+    border-top-color: #cccccc;
+    border-width: 11px;
+    left: 48px;
+    margin-left: -11px;
+}
+
+.ol-popup-closer {
+    text-decoration: none;
+    position: absolute;
+    top: 2px;
+    right: 8px;
+    color: #1a73e8;
+    font-weight: bold;
+    transition: color 0.2s;
+}
+
+.ol-popup-closer:hover {
+    color: #1557b0;
+}
+
+.ol-popup-closer:focus,
+.ol-popup-closer:active {
+    color: #1557b0;
+    outline: none;
+    box-shadow: none;
+}
+
+.ol-popup-closer:after {
+    content: "✖";
+}
+
+#popup-content {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+/* 팝업 내 등록 버튼 스타일 */
+.map-register-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #1a73e8;
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.map-register-btn:hover {
+    background-color: #f8f9fa;
+}
+
+.map-register-btn:focus,
+.map-register-btn:active {
+    background-color: #e8f0fe;
+    border-color: #1a73e8;
+    color: #1557b0;
+    outline: none;
+    box-shadow: none;
+}
+
+.map-register-btn .fas {
+    margin-right: 6px;
+}
+
+/* 불법 점용 등록 모달 스타일 */
+.illegal-occupancy-modal .modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.illegal-occupancy-modal .modal-header {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.illegal-occupancy-modal .modal-title {
+    font-weight: 700;
+}
+
+.illegal-occupancy-modal .illegal-occupancy-submit {
+    border-radius: 8px;
+    font-weight: bold;
+    background-color: #1a73e8;
+    border-color: #1a73e8;
+}
+
+.illegal-occupancy-modal .illegal-occupancy-submit[disabled] {
+    cursor: not-allowed;
+    opacity: 0.75;
+}
+
+.illegal-occupancy-modal .illegal-occupancy-readonly {
+    background-color: #f8f9fa;
+}
+
+.illegal-occupancy-modal .illegal-occupancy-section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #202124;
+    letter-spacing: 0.15px;
+    text-transform: none;
+    margin-bottom: 12px;
+}
+
+.illegal-occupancy-modal .illegal-occupancy-recent-table {
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+}
+
+.illegal-occupancy-modal .illegal-occupancy-alert {
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.illegal-occupancy-modal .illegal-occupancy-toggle-option:hover,
+.illegal-occupancy-modal .illegal-occupancy-toggle-option:focus {
+    background-color: #e3f2fd;
+    color: #1a73e8;
+    border-color: #1a73e8;
+}
+
+.illegal-occupancy-modal .illegal-occupancy-toggle-option.active,
+.illegal-occupancy-modal .illegal-occupancy-toggle-option.active:hover {
+    background-color: #1a73e8;
+    border-color: #1a73e8;
+    color: #ffffff;
+}
+
+.illegal-occupancy-form .action-history-group {
+    margin-top: 8px;
+}
+
+.illegal-occupancy-form .action-history-header {
+    gap: 12px;
+}
+
+.illegal-occupancy-form .action-history-add-btn {
+    border-radius: 6px;
+    font-weight: 600;
+    padding: 6px 16px;
+}
+
+.illegal-occupancy-form .action-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.illegal-occupancy-form .action-history-item {
+    margin: 0;
+}
+
+.illegal-occupancy-form .action-history-item .form-group {
+    margin-bottom: 0;
+}
+
+.illegal-occupancy-form .remove-action-history-btn {
+    color: #e53935;
+}
+
+/* ✅ 토스트 메시지 스타일 */
+.toast-message {
+    display: none;
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1002;
+    background-color: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+}
+
+.toast-message .fas {
+    margin-right: 8px;
+}
+
+.illegal-occupancy-form .illegal-occupancy-control:focus {
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.25);
+    outline: none;
+}
+
+.illegal-occupancy-form .illegal-occupancy-label:focus {
+    outline: none;
+    box-shadow: none;
+}
+

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.toji.toji.mapper.RegionMapper">
+
+  <insert id="insertBasicInfo" parameterType="BasicInfo" useGeneratedKeys="true" keyProperty="id"
+      keyColumn="basic_info_id">
+    INSERT INTO basic_info (
+      hq_name,
+      branch_name,
+      route_name,
+      driving_direction,
+      milestone,
+      category,
+      occurrence_date,
+      manager_name,
+      actor_name,
+      related_person,
+      actor_address,
+      related_address,
+      occupancy_rate,
+      occupancy_area,
+      action_status,
+      pnu,
+      latitude,
+      longitude,
+      created_at,
+      updated_at
+    ) VALUES (
+      #{hqName},
+      #{branchName},
+      #{routeName},
+      #{drivingDirection},
+      #{milestone},
+      #{category},
+      #{occurrenceDate},
+      #{managerName},
+      #{actorName},
+      #{relatedPerson},
+      #{actorAddress},
+      #{relatedAddress},
+      #{occupancyRate},
+      #{occupancyArea},
+      #{actionStatus},
+      #{pnu},
+      #{latitude},
+      #{longitude},
+      #{createdAt},
+      #{updatedAt}
+    )
+  </insert>
+
+  <insert id="insertActionHistory" parameterType="ActionHistory" useGeneratedKeys="true" keyProperty="id"
+      keyColumn="action_id">
+    INSERT INTO action_history (
+      basic_info_id,
+      action_year_month,
+      description,
+      created_at
+    ) VALUES (
+      #{basicInfoId},
+      #{actionYearMonth},
+      #{description},
+      #{createdAt}
+    )
+  </insert>
+
+  <insert id="insertPhotoMetadata" parameterType="PhotoMetadata" useGeneratedKeys="true" keyProperty="id"
+      keyColumn="photo_id">
+    INSERT INTO photo_metadata (
+      basic_info_id,
+      file_name,
+      file_path,
+      content_type,
+      file_size,
+      shot_datetime,
+      description,
+      created_at
+    ) VALUES (
+      #{basicInfoId},
+      #{fileName},
+      #{filePath},
+      #{contentType},
+      #{fileSize},
+      #{shotDatetime},
+      #{description},
+      #{createdAt}
+    )
+  </insert>
+</mapper>
+
