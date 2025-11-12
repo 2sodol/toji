@@ -13,7 +13,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -55,16 +54,16 @@ public class RegionService {
    */
   private BasicInfo buildBasicInfo(RegionRegisterRequest request, LocalDateTime now) {
     BasicInfo basicInfo = new BasicInfo();
-    basicInfo.setHqName(request.getHeadOffice());
-    basicInfo.setBranchName(request.getBranchOffice());
+    basicInfo.setHqName(request.getHqName());
+    basicInfo.setBranchName(request.getBranchName());
     basicInfo.setRouteName(request.getRouteName());
     basicInfo.setDrivingDirection(request.getDrivingDirection());
-    basicInfo.setMilestone(request.getDistanceMark());
+    basicInfo.setMilestone(request.getMilestone());
     basicInfo.setCategory(request.getCategory());
-    basicInfo.setOccurrenceDate(request.getIncidentDate());
+    basicInfo.setOccurrenceDate(request.getOccurrenceDate());
     basicInfo.setManagerName(request.getManagerName());
     basicInfo.setActorName(request.getActorName());
-    basicInfo.setRelatedPerson(request.getRelatedPersonName());
+    basicInfo.setRelatedPerson(request.getRelatedPerson());
     basicInfo.setActorAddress(request.getActorAddress());
     basicInfo.setRelatedAddress(request.getRelatedAddress());
     basicInfo.setOccupancyRate(normalizeDecimal(request.getOccupancyRate()));
@@ -87,20 +86,20 @@ public class RegionService {
    */
   private void insertActionHistories(Long basicInfoId, List<RegionRegisterRequest.ActionHistoryRequest> histories,
       LocalDateTime now) {
-    if (basicInfoId == null || CollectionUtils.isEmpty(histories)) {
+    if (basicInfoId == null || histories == null || histories.isEmpty()) {
       return;
     }
 
-    histories.stream()
-        .filter(history -> history.getActionDate() != null && StringUtils.hasText(history.getDescription()))
-        .forEach(history -> {
-          ActionHistory actionHistory = new ActionHistory();
-          actionHistory.setBasicInfoId(basicInfoId);
-          actionHistory.setActionYearMonth(formatYearMonth(history.getActionDate()));
-          actionHistory.setDescription(history.getDescription());
-          actionHistory.setCreatedAt(now);
-          regionMapper.insertActionHistory(actionHistory);
-        });
+    for (RegionRegisterRequest.ActionHistoryRequest history : histories) {
+      if (history.getActionYearMonth() != null && StringUtils.hasText(history.getDescription())) {
+        ActionHistory actionHistory = new ActionHistory();
+        actionHistory.setBasicInfoId(basicInfoId);
+        actionHistory.setActionYearMonth(formatYearMonth(history.getActionYearMonth()));
+        actionHistory.setDescription(history.getDescription());
+        actionHistory.setCreatedAt(now);
+        regionMapper.insertActionHistory(actionHistory);
+      }
+    }
   }
 
   /**
@@ -112,24 +111,24 @@ public class RegionService {
    */
   private void insertPhotoMetadata(Long basicInfoId, List<RegionRegisterRequest.PhotoRequest> photos,
       LocalDateTime now) {
-    if (basicInfoId == null || CollectionUtils.isEmpty(photos)) {
+    if (basicInfoId == null || photos == null || photos.isEmpty()) {
       return;
     }
 
-    photos.stream()
-        .filter(photo -> StringUtils.hasText(photo.getFileName()))
-        .forEach(photo -> {
-          PhotoMetadata metadata = new PhotoMetadata();
-          metadata.setBasicInfoId(basicInfoId);
-          metadata.setFileName(photo.getFileName());
-          metadata.setFilePath(photo.getFilePath());
-          metadata.setContentType(photo.getContentType());
-          metadata.setFileSize(photo.getFileSize());
-          metadata.setShotDatetime(toLocalDateTime(photo.getPhotoDate()));
-          metadata.setDescription(photo.getDescription());
-          metadata.setCreatedAt(now);
-          regionMapper.insertPhotoMetadata(metadata);
-        });
+    for (RegionRegisterRequest.PhotoRequest photo : photos) {
+      if (StringUtils.hasText(photo.getFileName())) {
+        PhotoMetadata metadata = new PhotoMetadata();
+        metadata.setBasicInfoId(basicInfoId);
+        metadata.setFileName(photo.getFileName());
+        metadata.setFilePath(photo.getFilePath());
+        metadata.setContentType(photo.getContentType());
+        metadata.setFileSize(photo.getFileSize());
+        metadata.setShotDatetime(toLocalDateTime(photo.getShotDatetime()));
+        metadata.setDescription(photo.getDescription());
+        metadata.setCreatedAt(now);
+        regionMapper.insertPhotoMetadata(metadata);
+      }
+    }
   }
 
   /**

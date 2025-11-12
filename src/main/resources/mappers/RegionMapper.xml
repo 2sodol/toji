@@ -88,5 +88,127 @@
       #{createdAt}
     )
   </insert>
+
+  <select id="findById" parameterType="Long" resultType="BasicInfo">
+    SELECT
+      basic_info_id as id,
+      hq_name as hqName,
+      branch_name as branchName,
+      route_name as routeName,
+      driving_direction as drivingDirection,
+      milestone,
+      category,
+      occurrence_date as occurrenceDate,
+      manager_name as managerName,
+      actor_name as actorName,
+      related_person as relatedPerson,
+      actor_address as actorAddress,
+      related_address as relatedAddress,
+      occupancy_rate as occupancyRate,
+      occupancy_area as occupancyArea,
+      action_status as actionStatus,
+      pnu,
+      latitude,
+      longitude,
+      created_at as createdAt,
+      updated_at as updatedAt
+    FROM basic_info
+    WHERE basic_info_id = #{id}
+  </select>
+
+  <select id="findAll" resultType="BasicInfo">
+    SELECT
+      basic_info_id as id,
+      hq_name as hqName,
+      branch_name as branchName,
+      route_name as routeName,
+      driving_direction as drivingDirection,
+      milestone,
+      category,
+      occurrence_date as occurrenceDate,
+      manager_name as managerName,
+      actor_name as actorName,
+      related_person as relatedPerson,
+      actor_address as actorAddress,
+      related_address as relatedAddress,
+      occupancy_rate as occupancyRate,
+      occupancy_area as occupancyArea,
+      action_status as actionStatus,
+      pnu,
+      latitude,
+      longitude,
+      created_at as createdAt,
+      updated_at as updatedAt
+    FROM basic_info
+    ORDER BY created_at DESC
+  </select>
+
+  <update id="updateBasicInfo" parameterType="BasicInfo">
+    UPDATE basic_info
+    SET
+      hq_name = #{hqName},
+      branch_name = #{branchName},
+      route_name = #{routeName},
+      driving_direction = #{drivingDirection},
+      milestone = #{milestone},
+      category = #{category},
+      occurrence_date = #{occurrenceDate},
+      manager_name = #{managerName},
+      actor_name = #{actorName},
+      related_person = #{relatedPerson},
+      actor_address = #{actorAddress},
+      related_address = #{relatedAddress},
+      occupancy_rate = #{occupancyRate},
+      occupancy_area = #{occupancyArea},
+      action_status = #{actionStatus},
+      pnu = #{pnu},
+      latitude = #{latitude},
+      longitude = #{longitude},
+      updated_at = #{updatedAt}
+    WHERE basic_info_id = #{id}
+  </update>
+
+  <delete id="deleteBasicInfo" parameterType="Long">
+    DELETE FROM basic_info
+    WHERE basic_info_id = #{id}
+  </delete>
+
+  <select id="findActionHistoriesByBasicInfoId" parameterType="Long" resultType="ActionHistory">
+    SELECT
+      action_id as id,
+      basic_info_id as basicInfoId,
+      action_year_month as actionYearMonth,
+      description,
+      created_at as createdAt
+    FROM action_history
+    WHERE basic_info_id = #{basicInfoId}
+    ORDER BY action_year_month DESC
+  </select>
+
+  <select id="findPhotoMetadataByBasicInfoId" parameterType="Long" resultType="PhotoMetadata">
+    SELECT
+      photo_id as id,
+      basic_info_id as basicInfoId,
+      file_name as fileName,
+      file_path as filePath,
+      content_type as contentType,
+      file_size as fileSize,
+      shot_datetime as shotDatetime,
+      description,
+      created_at as createdAt
+    FROM photo_metadata
+    WHERE basic_info_id = #{basicInfoId}
+    ORDER BY created_at DESC
+  </select>
+
+  <delete id="deleteActionHistoriesByBasicInfoId" parameterType="Long">
+    DELETE FROM action_history
+    WHERE basic_info_id = #{basicInfoId}
+  </delete>
+
+  <delete id="deletePhotoMetadataByBasicInfoId" parameterType="Long">
+    DELETE FROM photo_metadata
+    WHERE basic_info_id = #{basicInfoId}
+  </delete>
 </mapper>
 
