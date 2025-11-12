@@ -8,10 +8,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-@RestController
+@Controller
 @RequestMapping("/regions")
 @RequiredArgsConstructor
 public class RegionController {
@@ -19,6 +20,7 @@ public class RegionController {
   private final RegionService regionService;
 
   @RequestMapping(method = RequestMethod.POST)
+  @ResponseBody
   public ResponseEntity<Map<String, Object>> registerRegion(@RequestBody RegionRegisterRequest request) {
     try {
       Long id = regionService.registerRegion(request);
