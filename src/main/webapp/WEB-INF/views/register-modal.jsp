@@ -411,7 +411,6 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
                   class="illegal-register-button illegal-register-button--outline"
                   id="illegalPhotoUploadBtn"
                 >
-                  <i class="fas fa-camera"></i>
                   <span class="illegal-register-button__text">사진 추가</span>
                 </button>
                 <div class="illegal-register-photo__list-wrapper">
@@ -727,14 +726,9 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     font-size: 15px;
     font-weight: 600;
     padding: 10px 18px;
-    min-width: 65px;
+    min-width: 70px;
     cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease,
-      border-color 0.2s ease, box-shadow 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    justify-content: center;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   }
 
   .illegal-register-button--primary {
@@ -839,8 +833,8 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
   }
 
   .illegal-register-history__remove {
-    background-color: transparent;
-    border: none;
+    background-color: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(220, 38, 38, 0.18);
     color: #dc2626;
     cursor: pointer;
     display: inline-flex;
@@ -850,7 +844,8 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     height: 32px;
     border-radius: 6px;
     font-size: 16px;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease,
+      box-shadow 0.2s ease, border-color 0.2s ease;
   }
 
   .illegal-register-history__remove i {
@@ -859,8 +854,10 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
 
   .illegal-register-history__remove:hover,
   .illegal-register-history__remove:focus-visible {
-    background-color: rgba(220, 38, 38, 0.1);
+    background-color: rgba(220, 38, 38, 0.18);
+    border-color: rgba(220, 38, 38, 0.28);
     color: #b91c1c;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
   }
 
   .illegal-register-photo {
