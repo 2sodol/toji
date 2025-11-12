@@ -930,54 +930,49 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
 </style>
 
 <script>
-  (function (window, document) {
-    var modal = document.getElementById("illegalRegisterModal");
-    if (!modal) {
+  (function (window, $) {
+    var $modal = $("#illegalRegisterModal");
+    if (!$modal.length) {
       return;
     }
 
-    var closeButtons = modal.querySelectorAll("[data-register-modal-close]");
+    var $body = $("body");
+    var $closeButtons = $modal.find("[data-register-modal-close]");
+
+    function triggerEvent(eventName) {
+      $modal.trigger($.Event(eventName, { bubbles: true }));
+    }
 
     function openModal() {
-      if (modal.classList.contains("is-open")) {
+      if ($modal.hasClass("is-open")) {
         return;
       }
-      modal.classList.add("is-open");
-      modal.setAttribute("aria-hidden", "false");
-      document.body.classList.add("illegal-register-modal-open");
-      var event = new CustomEvent("illegalRegisterModal:open", {
-        bubbles: true,
-      });
-      modal.dispatchEvent(event);
+      $modal.addClass("is-open").attr("aria-hidden", "false");
+      $body.addClass("illegal-register-modal-open");
+      triggerEvent("illegalRegisterModal:open");
     }
 
     function closeModal() {
-      if (!modal.classList.contains("is-open")) {
+      if (!$modal.hasClass("is-open")) {
         return;
       }
-      modal.classList.remove("is-open");
-      modal.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("illegal-register-modal-open");
-      var event = new CustomEvent("illegalRegisterModal:close", {
-        bubbles: true,
-      });
-      modal.dispatchEvent(event);
+      $modal.removeClass("is-open").attr("aria-hidden", "true");
+      $body.removeClass("illegal-register-modal-open");
+      triggerEvent("illegalRegisterModal:close");
     }
 
-    modal.addEventListener("click", function (event) {
-      if (event.target === modal) {
+    $modal.on("click", function (event) {
+      if (event.target === $modal[0]) {
         closeModal();
       }
     });
 
-    closeButtons.forEach(function (button) {
-      button.addEventListener("click", function () {
-        closeModal();
-      });
+    $closeButtons.on("click", function () {
+      closeModal();
     });
 
-    document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape" && modal.classList.contains("is-open")) {
+    $(document).on("keydown", function (event) {
+      if (event.key === "Escape" && $modal.hasClass("is-open")) {
         closeModal();
       }
     });
@@ -990,13 +985,13 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
           force ? openModal() : closeModal();
           return;
         }
-        if (modal.classList.contains("is-open")) {
+        if ($modal.hasClass("is-open")) {
           closeModal();
         } else {
           openModal();
         }
       },
-      element: modal,
+      element: $modal[0],
     };
-  })(window, document);
+  })(window, window.jQuery);
 </script>
