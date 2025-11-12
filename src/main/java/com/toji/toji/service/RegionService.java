@@ -16,6 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+/**
+ * 지역 기본 정보와 이력, 사진 메타데이터를 등록하는 서비스.
+ */
 @Service
 @RequiredArgsConstructor
 public class RegionService {
@@ -24,6 +27,12 @@ public class RegionService {
 
   private final RegionMapper regionMapper;
 
+  /**
+   * 지역 등록 요청을 받아 기본 정보 및 관련 이력, 사진 메타데이터를 저장한다.
+   *
+   * @param request 등록 요청 DTO
+   * @return 생성된 기본 정보의 식별자
+   */
   @Transactional
   public Long registerRegion(RegionRegisterRequest request) {
     LocalDateTime now = LocalDateTime.now();
@@ -37,6 +46,13 @@ public class RegionService {
     return basicInfo.getId();
   }
 
+  /**
+   * 등록 요청으로부터 기본 정보를 구성한다.
+   *
+   * @param request 등록 요청 DTO
+   * @param now     생성/수정 시각
+   * @return 구성된 기본 정보 엔티티
+   */
   private BasicInfo buildBasicInfo(RegionRegisterRequest request, LocalDateTime now) {
     BasicInfo basicInfo = new BasicInfo();
     basicInfo.setHqName(request.getHeadOffice());
@@ -62,6 +78,13 @@ public class RegionService {
     return basicInfo;
   }
 
+  /**
+   * 유효한 조치 이력만 추려 기본 정보와 매핑하여 저장한다.
+   *
+   * @param basicInfoId 기본 정보 식별자
+   * @param histories   조치 이력 요청 목록
+   * @param now         생성 시각
+   */
   private void insertActionHistories(Long basicInfoId, List<RegionRegisterRequest.ActionHistoryRequest> histories,
       LocalDateTime now) {
     if (basicInfoId == null || CollectionUtils.isEmpty(histories)) {
@@ -80,6 +103,13 @@ public class RegionService {
         });
   }
 
+  /**
+   * 유효한 사진 메타데이터만 추려 기본 정보와 매핑하여 저장한다.
+   *
+   * @param basicInfoId 기본 정보 식별자
+   * @param photos      사진 요청 목록
+   * @param now         생성 시각
+   */
   private void insertPhotoMetadata(Long basicInfoId, List<RegionRegisterRequest.PhotoRequest> photos,
       LocalDateTime now) {
     if (basicInfoId == null || CollectionUtils.isEmpty(photos)) {
@@ -102,16 +132,33 @@ public class RegionService {
         });
   }
 
+  /**
+   * 조치 일자를 연월(yyyyMM) 포맷으로 변환한다.
+   *
+   * @param date 조치 일자
+   * @return yyyyMM 문자열
+   */
   private String formatYearMonth(LocalDate date) {
     return date.format(ACTION_YEAR_MONTH_FORMATTER);
   }
 
+  /**
+   * {@link LocalDate}를 자정 시각의 {@link LocalDateTime}으로 변환한다.
+   *
+   * @param date 변환할 날짜
+   * @return 변환된 날짜-시각, 입력이 null이면 null
+   */
   private LocalDateTime toLocalDateTime(LocalDate date) {
     return date == null ? null : date.atStartOfDay();
   }
 
+  /**
+   * 소수의 불필요한 0을 제거해 정규화한다.
+   *
+   * @param value 정규화 대상 값
+   * @return 정규화된 값, 입력이 null이면 null
+   */
   private BigDecimal normalizeDecimal(BigDecimal value) {
     return value == null ? null : value.stripTrailingZeros();
   }
 }
-
