@@ -4,9 +4,12 @@
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.toji.toji.mapper.RegionMapper">
 
-  <insert id="insertBasicInfo" parameterType="BasicInfo" useGeneratedKeys="true" keyProperty="id"
-      keyColumn="basic_info_id">
+  <insert id="insertBasicInfo" parameterType="BasicInfo">
+    <selectKey keyProperty="id" resultType="Long" order="BEFORE">
+      SELECT SEQ_BASIC_INFO.NEXTVAL FROM DUAL
+    </selectKey>
     INSERT INTO basic_info (
+      basic_info_id,
       hq_name,
       branch_name,
       route_name,
@@ -28,6 +31,7 @@
       created_at,
       updated_at
     ) VALUES (
+      #{id},
       #{hqName},
       #{branchName},
       #{routeName},
@@ -46,29 +50,36 @@
       #{pnu},
       #{latitude},
       #{longitude},
-      #{createdAt},
-      #{updatedAt}
+      SYSDATE,
+      SYSDATE
     )
   </insert>
 
-  <insert id="insertActionHistory" parameterType="ActionHistory" useGeneratedKeys="true" keyProperty="id"
-      keyColumn="action_id">
+  <insert id="insertActionHistory" parameterType="ActionHistory">
+    <selectKey keyProperty="id" resultType="Long" order="BEFORE">
+      SELECT SEQ_ACTION_HISTORY.NEXTVAL FROM DUAL
+    </selectKey>
     INSERT INTO action_history (
+      action_id,
       basic_info_id,
       action_year_month,
       description,
       created_at
     ) VALUES (
+      #{id},
       #{basicInfoId},
       #{actionYearMonth},
       #{description},
-      #{createdAt}
+      SYSDATE
     )
   </insert>
 
-  <insert id="insertPhotoMetadata" parameterType="PhotoMetadata" useGeneratedKeys="true" keyProperty="id"
-      keyColumn="photo_id">
+  <insert id="insertPhotoMetadata" parameterType="PhotoMetadata">
+    <selectKey keyProperty="id" resultType="Long" order="BEFORE">
+      SELECT SEQ_PHOTO_METADATA.NEXTVAL FROM DUAL
+    </selectKey>
     INSERT INTO photo_metadata (
+      photo_id,
       basic_info_id,
       file_name,
       file_path,
@@ -78,6 +89,7 @@
       description,
       created_at
     ) VALUES (
+      #{id},
       #{basicInfoId},
       #{fileName},
       #{filePath},
@@ -85,7 +97,7 @@
       #{fileSize},
       #{shotDatetime},
       #{description},
-      #{createdAt}
+      SYSDATE
     )
   </insert>
 
@@ -164,7 +176,7 @@
       pnu = #{pnu},
       latitude = #{latitude},
       longitude = #{longitude},
-      updated_at = #{updatedAt}
+      updated_at = SYSDATE
     WHERE basic_info_id = #{id}
   </update>
 

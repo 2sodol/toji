@@ -47,6 +47,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
                 type="text"
                 class="illegal-register-input"
                 id="illegalHeadOfficeInput"
+                value="${loginUserDept}"
                 maxlength="100"
                 required
               />
@@ -194,6 +195,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
                 type="text"
                 class="illegal-register-input"
                 id="illegalManagerNameInput"
+                value="${loginUserName}"
                 maxlength="100"
                 required
               />

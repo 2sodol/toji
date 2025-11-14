@@ -75,15 +75,6 @@ pageEncoding="UTF-8"%>
         return null;
       }
 
-      // 좌표값 반올림 처리 (소수점 6자리)
-      function roundCoord(value) {
-        var num = Number(value);
-        if (isNaN(num)) {
-          return null;
-        }
-        return Math.round(num * 1000000) / 1000000;
-      }
-
       // 팝업 및 등록 폼에서 사용될 주소 데이터 구성
       function buildRegionData(props, feature) {
         var region = {};

@@ -36,7 +36,7 @@ public class RegionService {
   public Long registerRegion(RegionRegisterRequest request) {
     LocalDateTime now = LocalDateTime.now();
 
-    BasicInfo basicInfo = buildBasicInfo(request, now);
+    BasicInfo basicInfo = buildBasicInfo(request);
     regionMapper.insertBasicInfo(basicInfo);
 
     insertActionHistories(basicInfo.getId(), request.getActionHistories(), now);
@@ -49,10 +49,9 @@ public class RegionService {
    * 등록 요청으로부터 기본 정보를 구성한다.
    *
    * @param request 등록 요청 DTO
-   * @param now     생성/수정 시각
    * @return 구성된 기본 정보 엔티티
    */
-  private BasicInfo buildBasicInfo(RegionRegisterRequest request, LocalDateTime now) {
+  private BasicInfo buildBasicInfo(RegionRegisterRequest request) {
     BasicInfo basicInfo = new BasicInfo();
     basicInfo.setHqName(request.getHqName());
     basicInfo.setBranchName(request.getBranchName());
@@ -72,8 +71,6 @@ public class RegionService {
     basicInfo.setPnu(null);
     basicInfo.setLatitude(null);
     basicInfo.setLongitude(null);
-    basicInfo.setCreatedAt(now);
-    basicInfo.setUpdatedAt(now);
     return basicInfo;
   }
 
@@ -123,9 +120,7 @@ public class RegionService {
         metadata.setFilePath(photo.getFilePath());
         metadata.setContentType(photo.getContentType());
         metadata.setFileSize(photo.getFileSize());
-        metadata.setShotDatetime(toLocalDateTime(photo.getShotDatetime()));
         metadata.setDescription(photo.getDescription());
-        metadata.setCreatedAt(now);
         regionMapper.insertPhotoMetadata(metadata);
       }
     }
@@ -139,16 +134,6 @@ public class RegionService {
    */
   private String formatYearMonth(LocalDate date) {
     return date.format(ACTION_YEAR_MONTH_FORMATTER);
-  }
-
-  /**
-   * {@link LocalDate}를 자정 시각의 {@link LocalDateTime}으로 변환한다.
-   *
-   * @param date 변환할 날짜
-   * @return 변환된 날짜-시각, 입력이 null이면 null
-   */
-  private LocalDateTime toLocalDateTime(LocalDate date) {
-    return date == null ? null : date.atStartOfDay();
   }
 
   /**
