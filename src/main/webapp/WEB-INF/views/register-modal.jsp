@@ -167,7 +167,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
           <p class="illegal-register-form__section-title">
             발생 및 관계자 정보
           </p>
-          <div class="illegal-register-grid illegal-register-grid--cols-4">
+          <div class="illegal-register-grid illegal-register-grid--cols-4 illegal-register-grid--single-row">
             <div class="illegal-register-field">
               <label
                 class="illegal-register-label"
@@ -577,12 +577,21 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     gap: 18px;
   }
 
+  .illegal-register-grid--single-row {
+    flex-wrap: nowrap;
+  }
+
   .illegal-register-field {
     flex: 1 1 calc(33.333% - 12px);
     min-width: 220px;
     display: flex;
     flex-direction: column;
     gap: 6px;
+  }
+
+  .illegal-register-grid--single-row .illegal-register-field {
+    flex: 1 1 0;
+    min-width: 0;
   }
 
   .illegal-register-field--wide {

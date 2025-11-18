@@ -73,6 +73,9 @@
           }
         });
       }
+
+      // 리스트 아이템 클릭 이벤트
+      this.$listContainer.on("click", ".slide-panel-list-item", this.handleItemClick.bind(this));
     },
 
     /**
@@ -89,6 +92,9 @@
 
       // 이벤트 발생
       $(document).trigger("slidePanel:opened");
+
+      // 패널이 열릴 때 리스트 자동 로드
+      this.loadList(1);
     },
 
     /**
@@ -196,9 +202,15 @@
       list.forEach(function (item, index) {
         var sequenceNumber = (self.currentPage - 1) * self.pageSize + index + 1;
         var address = item.lndsLdnoAddr || "-";
+        var gpsLgtd = item.gpsLgtd || "";
+        var gpsLttd = item.gpsLttd || "";
         var itemHtml =
           '<div class="slide-panel-list-item" data-id="' +
           (item.ilglPrvuInfoSeq || "") +
+          '" data-gps-lgtd="' +
+          gpsLgtd +
+          '" data-gps-lttd="' +
+          gpsLttd +
           '">' +
           '<div class="slide-panel-list-item__cell slide-panel-list-item__cell--sequence">' +
           sequenceNumber +
@@ -311,6 +323,118 @@
       // 추후 검색 기능이 필요하면 여기에 구현
       this.currentPage = 1;
       this.loadList(1);
+    },
+
+    /**
+     * 리스트 아이템 클릭 처리
+     */
+    handleItemClick: function (e) {
+      var $item = $(e.currentTarget);
+      var id = $item.data("id");
+      var gpsLgtd = $item.data("gps-lgtd");
+      var gpsLttd = $item.data("gps-lttd");
+
+      // GPS 좌표가 있는 경우에만 지도 이동
+      if (gpsLgtd && gpsLttd && !isNaN(gpsLgtd) && !isNaN(gpsLttd)) {
+        this.moveMapToLocation(parseFloat(gpsLgtd), parseFloat(gpsLttd));
+
+        // 클릭된 아이템 하이라이트
+        this.$listContainer.find(".slide-panel-list-item").removeClass("slide-panel-list-item--selected");
+        $item.addClass("slide-panel-list-item--selected");
+
+        // 이벤트 발생 (다른 모듈에서 사용할 수 있도록)
+        $(document).trigger("slidePanel:itemClicked", {
+          id: id,
+          gpsLgtd: gpsLgtd,
+          gpsLttd: gpsLttd,
+          element: $item,
+        });
+      } else {
+        console.warn("GPS 좌표 정보가 없거나 유효하지 않습니다:", { id: id, gpsLgtd: gpsLgtd, gpsLttd: gpsLttd });
+      }
+    },
+
+    /**
+     * 지도를 특정 좌표로 이동
+     */
+    moveMapToLocation: function (longitude, latitude) {
+      // 전역 지도 객체가 있는지 확인
+      var mapObj = window.map || map;
+      if (mapObj && mapObj.getView) {
+        try {
+          // DB에 저장된 좌표가 이미 EPSG:3857이므로 변환 없이 바로 사용
+          var coordinate = [longitude, latitude];
+
+          // 지도 중심 이동 (애니메이션 포함)
+          mapObj.getView().animate({
+            center: coordinate,
+            zoom: 18,
+            duration: 1000,
+          });
+
+          // 해당 위치에 핀(마커) 추가
+          this.addMarkerAtLocation(coordinate);
+
+          console.log("지도 이동 완료:", { longitude: longitude, latitude: latitude });
+        } catch (error) {
+          console.error("지도 이동 중 오류 발생:", error);
+        }
+      } else {
+        console.warn("지도 객체를 찾을 수 없습니다. 지도가 초기화되었는지 확인해주세요.");
+      }
+    },
+
+    /**
+     * 특정 좌표에 마커(핀) 추가
+     */
+    addMarkerAtLocation: function (coordinate) {
+      try {
+        // 전역 highlightSource가 있는지 확인
+        if (typeof window.highlightSource !== "undefined" && window.highlightSource) {
+          // 기존 하이라이트 제거
+          window.highlightSource.clear();
+
+          // 마커 포인트 생성
+          var markerPoint = new ol.geom.Point(coordinate);
+          var markerFeature = new ol.Feature(markerPoint);
+
+          // 마커 스타일 설정 (완전 오프라인 지원)
+          // TODO: 추후 이미지로 대체 시 아래와 같이 변경
+          // var markerStyle = new ol.style.Style({
+          //   image: new ol.style.Icon({
+          //     src: '/resources/images/marker-icon.png', // 마커 이미지 경로
+          //     scale: 1.0, // 이미지 크기 조절 (1.0 = 원본 크기)
+          //     anchor: [0.5, 1], // 앵커 포인트 (중앙 하단)
+          //     anchorXUnits: 'fraction', // X 앵커 단위
+          //     anchorYUnits: 'fraction'  // Y 앵커 단위
+          //   })
+          // });
+          var markerStyle = new ol.style.Style({
+            image: new ol.style.Circle({
+              radius: 8,
+              fill: new ol.style.Fill({
+                color: "#ff4444",
+              }),
+              stroke: new ol.style.Stroke({
+                color: "#ffffff",
+                width: 2,
+              }),
+            }),
+          });
+
+          // 마커에 스타일 적용
+          markerFeature.setStyle(markerStyle);
+
+          // 하이라이트 소스에 추가
+          window.highlightSource.addFeature(markerFeature);
+
+          console.log("마커 추가 완료:", coordinate);
+        } else {
+          console.warn("highlightSource를 찾을 수 없습니다.");
+        }
+      } catch (error) {
+        console.error("마커 추가 중 오류 발생:", error);
+      }
     },
 
     /**

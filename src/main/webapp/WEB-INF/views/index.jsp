@@ -174,15 +174,16 @@ pageEncoding="UTF-8"%>
           }),
           fill: new ol.style.Fill({ color: "rgba(0, 153, 255, 0.1)" }),
         });
-        var highlightSource = new ol.source.Vector();
+        // 하이라이트 소스를 전역 변수로 선언
+        window.highlightSource = new ol.source.Vector();
         var highlightLayer = new ol.layer.Vector({
-          source: highlightSource,
+          source: window.highlightSource,
           style: highlightStyle,
           zIndex: 1,
         });
 
-        // 지도 객체 생성
-        var map = new ol.Map({
+        // 지도 객체 생성 (전역 변수로 선언)
+        window.map = new ol.Map({
           target: "map",
           layers: [baseLayer, cadastralLayer, highlightLayer],
           view: view,
@@ -197,7 +198,7 @@ pageEncoding="UTF-8"%>
           autoPan: true,
           autoPanAnimation: { duration: 250 },
         });
-        map.addOverlay(overlay);
+        window.map.addOverlay(overlay);
 
         // 팝업 닫기 버튼 이벤트
         closer.onclick = function () {
@@ -210,12 +211,12 @@ pageEncoding="UTF-8"%>
         };
 
         // 단일 클릭 시 지적 정보 조회
-        map.on("singleclick", function (evt) {
+        window.map.on("singleclick", function (evt) {
           var currentZoom = view.getZoom();
 
           // 너무 낮은 줌 레벨에서는 토스트 메시지만 노출
           if (currentZoom < 18) {
-            highlightSource.clear();
+            window.highlightSource.clear();
             overlay.setPosition(undefined);
 
             var toast = $("#toast-message");
@@ -234,7 +235,7 @@ pageEncoding="UTF-8"%>
           selectedRegionData = null;
 
           // WMS GetFeatureInfo 호출 URL 생성
-          var viewResolution = map.getView().getResolution();
+          var viewResolution = window.map.getView().getResolution();
           var source = cadastralLayer.getSource();
           var url = source.getGetFeatureInfoUrl(
             coordinate,
@@ -256,7 +257,7 @@ pageEncoding="UTF-8"%>
               jsonpCallback: "parseResponse",
             })
               .done(function (json) {
-                highlightSource.clear();
+                window.highlightSource.clear();
                 console.log(json);
                 if (json.features && json.features.length > 0) {
                   var featureData = json.features[0];
@@ -266,7 +267,7 @@ pageEncoding="UTF-8"%>
                     dataProjection: "EPSG:3857",
                     featureProjection: "EPSG:3857",
                   });
-                  highlightSource.addFeature(selectedFeature);
+                  window.highlightSource.addFeature(selectedFeature);
                   selectedRegionData = buildRegionData(
                     selectedProperties,
                     selectedFeature,
@@ -285,7 +286,7 @@ pageEncoding="UTF-8"%>
               })
               .fail(function (err) {
                 console.error("GetFeatureInfo Error:", err);
-                highlightSource.clear();
+                window.highlightSource.clear();
                 overlay.setPosition(undefined);
               });
           }

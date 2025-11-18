@@ -142,7 +142,9 @@
         SELECT
           MAX(ILGL_PRVU_INFO_SEQ) as ilglPrvuInfoSeq,
           LNDS_UNQ_NO as lndsUnqNo,
-          MAX(LNDS_LDNO_ADDR) as lndsLdnoAddr
+          MAX(LNDS_LDNO_ADDR) as lndsLdnoAddr,
+          MAX(GPS_LGTD) as gpsLgtd,
+          MAX(GPS_LTTD) as gpsLttd
         FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
         WHERE USE_YN = 'Y'
         GROUP BY LNDS_UNQ_NO
