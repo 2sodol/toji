@@ -76,7 +76,7 @@ pageEncoding="UTF-8"%>
       }
 
       // 팝업 및 등록 폼에서 사용될 주소 데이터 구성
-      function buildRegionData(props, feature) {
+      function buildRegionData(props, feature, coordinate) {
         var region = {};
         region.address = getFirstAvailable(props, [
           "addr",
@@ -89,6 +89,17 @@ pageEncoding="UTF-8"%>
           "jibun_address",
           "land_address",
         ]);
+        // PNU 값 추출
+        region.pnu = getFirstAvailable(props, [
+          "pnu",
+          "PNU",
+          "pnu_code",
+        ]);
+        // 좌표 정보 (coordinate가 있을 경우)
+        if (coordinate && Array.isArray(coordinate) && coordinate.length >= 2) {
+          region.coordinateX = coordinate[0];
+          region.coordinateY = coordinate[1];
+        }
 
         return region;
       }
@@ -229,7 +240,7 @@ pageEncoding="UTF-8"%>
               info_format: "text/javascript",
             }
           );
-
+          console.log(url);
           if (url) {
             $.ajax({
               url: url,
@@ -238,6 +249,7 @@ pageEncoding="UTF-8"%>
             })
               .done(function (json) {
                 highlightSource.clear();
+                console.log(json);
                 if (json.features && json.features.length > 0) {
                   var featureData = json.features[0];
                   selectedProperties = featureData.properties || {};
@@ -249,7 +261,8 @@ pageEncoding="UTF-8"%>
                   highlightSource.addFeature(selectedFeature);
                   selectedRegionData = buildRegionData(
                     selectedProperties,
-                    selectedFeature
+                    selectedFeature,
+                    coordinate
                   );
                   content.innerHTML = buildPopupContent(selectedRegionData);
                   overlay.setPosition(coordinate);
@@ -278,6 +291,16 @@ pageEncoding="UTF-8"%>
               typeof window.RegisterModule.fillForm === "function"
             ) {
               window.RegisterModule.fillForm(selectedRegionData);
+            }
+            // PNU 및 좌표 정보를 히든 필드에 설정
+            if (selectedRegionData.pnu) {
+              $("#lndsUnqNo").val(selectedRegionData.pnu);
+            }
+            if (selectedRegionData.coordinateX !== undefined) {
+              $("#gpsLgtd").val(selectedRegionData.coordinateX);
+            }
+            if (selectedRegionData.coordinateY !== undefined) {
+              $("#gpsLttd").val(selectedRegionData.coordinateY);
             }
             if (
               window.RegisterModule &&

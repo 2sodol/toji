@@ -12,9 +12,13 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ActionHistory {
 
-  private Long id;
-  private Long basicInfoId;
-  private String actionYearMonth;
-  private String description;
-  private LocalDateTime createdAt;
+  private Long ilglActnCtntSeq; // ILGL_ACTN_CTNT_SEQ
+  private Long ilglPrvuInfoSeq; // ILGL_PRVU_INFO_SEQ (NOT NULL)
+  private LocalDateTime actnDttm; // ACTN_DTTM (NOT NULL, DATE)
+  private String actnCtnt; // ACTN_CTNT (NOT NULL)
+  private String fsttmRgsrId; // FSTTM_RGSR_ID (NOT NULL)
+  private LocalDateTime fsttmRgstDttm; // FSTTM_RGST_DTTM (NOT NULL)
+  private String lsttmModfrId; // LSTTM_MODFR_ID (NOT NULL)
+  private LocalDateTime lsttmAltrDttm; // LSTTM_ALTR_DTTM (NOT NULL)
+  private String useYn; // USE_YN (NOT NULL)
 }

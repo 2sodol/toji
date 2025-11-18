@@ -26,27 +26,24 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     </header>
     <div class="illegal-register-modal__body">
       <form id="illegalRegisterForm" class="illegal-register-form" novalidate>
-        <div
-          id="illegalRegisterAlert"
-          class="illegal-register-alert"
-          role="alert"
-          aria-live="assertive"
-          hidden
-        ></div>
-
         <section class="illegal-register-form__section">
+          <!-- 히든 필드: PNU 및 좌표 정보 -->
+          <input id="lndsUnqNo" name="lndsUnqNo" />
+          <input  id="gpsLgtd" name="gpsLgtd" />
+          <input id="gpsLttd" name="gpsLttd" />
+          
           <p class="illegal-register-form__section-title">
             기본정보<span class="illegal-register-form__required">*</span>
           </p>
           <div class="illegal-register-grid illegal-register-grid--cols-3">
             <div class="illegal-register-field">
-              <label class="illegal-register-label" for="illegalHeadOfficeInput"
+              <label class="illegal-register-label" for="hdqrNm"
                 >본부</label
               >
               <input
                 type="text"
                 class="illegal-register-input"
-                id="illegalHeadOfficeInput"
+                id="hdqrNm"
                 value="${loginUserDept}"
                 maxlength="100"
                 required
@@ -55,25 +52,25 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
             <div class="illegal-register-field">
               <label
                 class="illegal-register-label"
-                for="illegalBranchOfficeInput"
+                for="mtnofNm"
                 >지사</label
               >
               <input
                 type="text"
                 class="illegal-register-input"
-                id="illegalBranchOfficeInput"
+                id="mtnofNm"
                 maxlength="100"
                 required
               />
             </div>
             <div class="illegal-register-field">
-              <label class="illegal-register-label" for="illegalRouteNameInput"
+              <label class="illegal-register-label" for="routeCd"
                 >노선</label
               >
               <input
                 type="text"
                 class="illegal-register-input"
-                id="illegalRouteNameInput"
+                id="routeCd"
                 maxlength="100"
                 required
               />
@@ -83,12 +80,12 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
             <div class="illegal-register-field">
               <label
                 class="illegal-register-label"
-                for="illegalDrivingDirectionSelect"
+                for="drveDrctCd"
                 >주행방향</label
               >
               <select
                 class="illegal-register-select"
-                id="illegalDrivingDirectionSelect"
+                id="drveDrctCd"
                 required
               >
                 <option value="" disabled selected>선택하세요</option>
@@ -100,13 +97,13 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
             <div class="illegal-register-field">
               <label
                 class="illegal-register-label"
-                for="illegalDistanceMarkInput"
+                for="routeDstnc"
                 >이정</label
               >
               <input
                 type="text"
                 class="illegal-register-input"
-                id="illegalDistanceMarkInput"
+                id="routeDstnc"
                 placeholder="예: 123.5km"
                 maxlength="50"
               />
@@ -123,7 +120,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
                 >
                   <input
                     type="radio"
-                    name="categoryOptions"
+                    name="strcClssCd"
                     value="GENERAL"
                     checked
                   />
@@ -132,7 +129,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
                 <label
                   class="illegal-register-segmented__option illegal-register-segmented__option_right"
                 >
-                  <input type="radio" name="categoryOptions" value="BRIDGE" />
+                  <input type="radio" name="strcClssCd" value="BRIDGE" />
                   <span>교량</span>
                 </label>
               </div>
@@ -142,14 +139,14 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
             <div class="illegal-register-field illegal-register-field--full">
               <label
                 class="illegal-register-label"
-                for="illegalDetailAddressInput"
+                for="lndsLdnoAddr"
                 >세부위치(주소)</label
               >
               <div class="illegal-register-input-group">
                 <input
                   type="text"
                   class="illegal-register-input"
-                  id="illegalDetailAddressInput"
+                  id="lndsLdnoAddr"
                   placeholder="주소를 검색하세요"
                   maxlength="255"
                   readonly
@@ -157,7 +154,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
                 <button
                   class="illegal-register-button illegal-register-button--ghost"
                   type="button"
-                  id="illegalDetailAddressSearchBtn"
+                  id="lndsLdnoAddrSearchBtn"
                 >
                   검색
                 </button>
@@ -174,13 +171,13 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
             <div class="illegal-register-field">
               <label
                 class="illegal-register-label"
-                for="illegalIncidentDateInput"
+                for="ocrnDates"
                 >발생일자</label
               >
               <input
                 type="date"
                 class="illegal-register-input"
-                id="illegalIncidentDateInput"
+                id="ocrnDates"
                 value="<%= todayIsoDate %>"
                 required
               />
@@ -188,26 +185,26 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
             <div class="illegal-register-field">
               <label
                 class="illegal-register-label"
-                for="illegalManagerNameInput"
+                for="prchEmno"
                 >담당자</label
               >
               <input
                 type="text"
                 class="illegal-register-input"
-                id="illegalManagerNameInput"
+                id="prchEmno"
                 value="${loginUserName}"
                 maxlength="100"
                 required
               />
             </div>
             <div class="illegal-register-field">
-              <label class="illegal-register-label" for="illegalActorNameInput"
+              <label class="illegal-register-label" for="trnrNm"
                 >행위자명</label
               >
               <input
                 type="text"
                 class="illegal-register-input"
-                id="illegalActorNameInput"
+                id="trnrNm"
                 maxlength="100"
                 required
               />
@@ -215,13 +212,13 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
             <div class="illegal-register-field">
               <label
                 class="illegal-register-label"
-                for="illegalRelatedPersonInput"
+                for="rltrNm"
                 >관련자</label
               >
               <input
                 type="text"
                 class="illegal-register-input"
-                id="illegalRelatedPersonInput"
+                id="rltrNm"
                 maxlength="100"
               />
             </div>
@@ -230,14 +227,14 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
             <div class="illegal-register-field">
               <label
                 class="illegal-register-label"
-                for="illegalActorAddressInput"
+                for="trnrAddr"
                 >행위자 주소</label
               >
               <div class="illegal-register-input-group">
                 <input
                   type="text"
                   class="illegal-register-input"
-                  id="illegalActorAddressInput"
+                  id="trnrAddr"
                   placeholder="주소를 검색하세요"
                   maxlength="255"
                   readonly
@@ -254,14 +251,14 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
             <div class="illegal-register-field">
               <label
                 class="illegal-register-label"
-                for="illegalRelatedAddressInput"
+                for="rltrAddr"
                 >관련자 주소</label
               >
               <div class="illegal-register-input-group">
                 <input
                   type="text"
                   class="illegal-register-input"
-                  id="illegalRelatedAddressInput"
+                  id="rltrAddr"
                   placeholder="주소를 검색하세요"
                   maxlength="255"
                   readonly
@@ -284,13 +281,13 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
             <div class="illegal-register-field">
               <label
                 class="illegal-register-label"
-                for="illegalOccupancyRateInput"
+                for="ilglPssrt"
                 >점유율 (%)</label
               >
               <input
                 type="number"
                 class="illegal-register-input"
-                id="illegalOccupancyRateInput"
+                id="ilglPssrt"
                 placeholder="예: 50.5"
                 step="0.1"
                 min="0"
@@ -300,13 +297,13 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
             <div class="illegal-register-field">
               <label
                 class="illegal-register-label"
-                for="illegalOccupancyAreaInput"
+                for="ilglPssnSqms"
                 >점유면적 (㎡)</label
               >
               <input
                 type="number"
                 class="illegal-register-input"
-                id="illegalOccupancyAreaInput"
+                id="ilglPssnSqms"
                 placeholder="예: 10.5"
                 step="0.1"
                 min="0"
@@ -324,7 +321,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
                 >
                   <input
                     type="radio"
-                    name="actionStatusOptions"
+                    name="ilglPrvuActnStatVal"
                     value="COMPLETED"
                   />
                   <span>조치완료</span>
@@ -334,7 +331,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
                 >
                   <input
                     type="radio"
-                    name="actionStatusOptions"
+                    name="ilglPrvuActnStatVal"
                     value="IN_PROGRESS"
                     checked
                   />
@@ -359,13 +356,13 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
               <button
                 type="button"
                 class="illegal-register-button illegal-register-button--primary illegal-register-button--sm"
-                id="illegalAddActionHistoryBtn"
+                id="addActionHistoryBtn"
               >
                 조치사항 추가
               </button>
             </div>
             <div
-              id="illegalActionHistoryList"
+              id="actionHistoryList"
               class="illegal-register-history__list"
             >
               <div class="illegal-register-history__item">
@@ -373,12 +370,14 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
                   <input
                     type="date"
                     class="illegal-register-input illegal-register-history__date-input"
+                    name="actnDttm"
                   />
                 </div>
                 <div class="illegal-register-history__desc">
                   <input
                     type="text"
                     class="illegal-register-input illegal-register-history__desc-input"
+                    name="actnCtnt"
                     placeholder="예: 구두주의, 경고 등"
                     maxlength="500"
                   />
@@ -686,42 +685,6 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     border-color: #2563eb;
   }
 
-  .illegal-register-alert {
-    border-radius: 8px;
-    padding: 12px 16px;
-    font-size: 15px;
-    font-weight: 500;
-    display: none;
-  }
-
-  .illegal-register-alert.is-visible {
-    display: block;
-  }
-
-  .illegal-register-alert--success {
-    background-color: #ecfdf5;
-    color: #047857;
-    border: 1px solid #a7f3d0;
-  }
-
-  .illegal-register-alert--danger {
-    background-color: #fef2f2;
-    color: #dc2626;
-    border: 1px solid #fecaca;
-  }
-
-  .illegal-register-alert--warning {
-    background-color: #fffbeb;
-    color: #b45309;
-    border: 1px solid #fde68a;
-  }
-
-  .illegal-register-alert--info {
-    background-color: #eff6ff;
-    color: #1d4ed8;
-    border: 1px solid #bfdbfe;
-  }
-
   .illegal-register-button {
     border: none;
     border-radius: 8px;
@@ -768,15 +731,15 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     border-color: #9ca3af;
   }
 
-  #illegalDetailAddressSearchBtn,
+  #lndsLdnoAddrSearchBtn,
   [data-register-address-target] {
     background-color: #2563eb;
     color: #ffffff;
     border-color: #2563eb;
   }
 
-  #illegalDetailAddressSearchBtn:hover,
-  #illegalDetailAddressSearchBtn:focus-visible,
+  #lndsLdnoAddrSearchBtn:hover,
+  #lndsLdnoAddrSearchBtn:focus-visible,
   [data-register-address-target]:hover,
   [data-register-address-target]:focus-visible {
     background-color: #1d4ed8;

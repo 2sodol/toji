@@ -5,222 +5,210 @@
 <mapper namespace="com.toji.toji.mapper.RegionMapper">
 
   <insert id="insertBasicInfo" parameterType="BasicInfo">
-    <selectKey keyProperty="id" resultType="Long" order="BEFORE">
-      SELECT SEQ_BASIC_INFO.NEXTVAL FROM DUAL
+    <selectKey keyProperty="ilglPrvuInfoSeq" resultType="Long" order="BEFORE">
+      SELECT DTJ_MAIN.SEQ_ILGL_PRVU_INFO.NEXTVAL FROM DUAL
     </selectKey>
-    INSERT INTO basic_info (
-      basic_info_id,
-      hq_name,
-      branch_name,
-      route_name,
-      driving_direction,
-      milestone,
-      category,
-      occurrence_date,
-      manager_name,
-      actor_name,
-      related_person,
-      actor_address,
-      related_address,
-      occupancy_rate,
-      occupancy_area,
-      action_status,
-      pnu,
-      latitude,
-      longitude,
-      created_at,
-      updated_at
+    INSERT INTO DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1 (
+      ILGL_PRVU_INFO_SEQ,
+      GPS_LGTD,
+      GPS_LTTD,
+      LNDS_UNQ_NO,
+      LNDS_LDNO_ADDR,
+      HDQR_NM,
+      MTNOF_NM,
+      ROUTE_CD,
+      DRVE_DRCT_CD,
+      ROUTE_DSTNC,
+      STRC_CLSS_CD,
+      OCRN_DATES,
+      PRCH_EMNO,
+      TRNR_NM,
+      RLTR_NM,
+      TRNR_ADDR,
+      RLTR_ADDR,
+      ILGL_PSSRT,
+      ILGL_PSSN_SQMS,
+      ILGL_PRVU_ACTN_STAT_VAL,
+      FSTTM_RGSR_ID,
+      FSTTM_RGST_DTTM,
+      LSTTM_MODFR_ID,
+      LSTTM_ALTR_DTTM,
+      USE_YN
     ) VALUES (
-      #{id},
-      #{hqName},
-      #{branchName},
-      #{routeName},
-      #{drivingDirection},
-      #{milestone},
-      #{category},
-      #{occurrenceDate},
-      #{managerName},
-      #{actorName},
-      #{relatedPerson},
-      #{actorAddress},
-      #{relatedAddress},
-      #{occupancyRate},
-      #{occupancyArea},
-      #{actionStatus},
-      #{pnu},
-      #{latitude},
-      #{longitude},
+      #{ilglPrvuInfoSeq},
+      #{gpsLgtd},
+      #{gpsLttd},
+      #{lndsUnqNo},
+      #{lndsLdnoAddr},
+      #{hdqrNm},
+      #{mtnofNm},
+      #{routeCd},
+      #{drveDrctCd},
+      #{routeDstnc},
+      #{strcClssCd},
+      #{ocrnDates},
+      #{prchEmno},
+      #{trnrNm},
+      #{rltrNm},
+      #{trnrAddr},
+      #{rltrAddr},
+      #{ilglPssrt},
+      #{ilglPssnSqms},
+      #{ilglPrvuActnStatVal},
+      #{fsttmRgsrId},
       SYSDATE,
-      SYSDATE
+      #{lsttmModfrId},
+      SYSDATE,
+      NVL(#{useYn}, 'Y')
     )
   </insert>
 
   <insert id="insertActionHistory" parameterType="ActionHistory">
-    <selectKey keyProperty="id" resultType="Long" order="BEFORE">
-      SELECT SEQ_ACTION_HISTORY.NEXTVAL FROM DUAL
+    <selectKey keyProperty="ilglActnCtntSeq" resultType="Long" order="BEFORE">
+      SELECT DTJ_MAIN.SEQ_ILGL_ACTN_CTNT.NEXTVAL FROM DUAL
     </selectKey>
-    INSERT INTO action_history (
-      action_id,
-      basic_info_id,
-      action_year_month,
-      description,
-      created_at
+    INSERT INTO DTJ_MAIN.T_LNDS_ILGL_ACTN_CTNT01M1 (
+      ILGL_ACTN_CTNT_SEQ,
+      ILGL_PRVU_INFO_SEQ,
+      ACTN_DTTM,
+      ACTN_CTNT,
+      FSTTM_RGSR_ID,
+      FSTTM_RGST_DTTM,
+      LSTTM_MODFR_ID,
+      LSTTM_ALTR_DTTM,
+      USE_YN
     ) VALUES (
-      #{id},
-      #{basicInfoId},
-      #{actionYearMonth},
-      #{description},
-      SYSDATE
-    )
-  </insert>
-
-  <insert id="insertPhotoMetadata" parameterType="PhotoMetadata">
-    <selectKey keyProperty="id" resultType="Long" order="BEFORE">
-      SELECT SEQ_PHOTO_METADATA.NEXTVAL FROM DUAL
-    </selectKey>
-    INSERT INTO photo_metadata (
-      photo_id,
-      basic_info_id,
-      file_name,
-      file_path,
-      content_type,
-      file_size,
-      shot_datetime,
-      description,
-      created_at
-    ) VALUES (
-      #{id},
-      #{basicInfoId},
-      #{fileName},
-      #{filePath},
-      #{contentType},
-      #{fileSize},
-      #{shotDatetime},
-      #{description},
-      SYSDATE
+      #{ilglActnCtntSeq},
+      #{ilglPrvuInfoSeq},
+      #{actnDttm},
+      #{actnCtnt},
+      #{fsttmRgsrId},
+      SYSDATE,
+      #{lsttmModfrId},
+      SYSDATE,
+      NVL(#{useYn}, 'Y')
     )
   </insert>
 
   <select id="findById" parameterType="Long" resultType="BasicInfo">
     SELECT
-      basic_info_id as id,
-      hq_name as hqName,
-      branch_name as branchName,
-      route_name as routeName,
-      driving_direction as drivingDirection,
-      milestone,
-      category,
-      occurrence_date as occurrenceDate,
-      manager_name as managerName,
-      actor_name as actorName,
-      related_person as relatedPerson,
-      actor_address as actorAddress,
-      related_address as relatedAddress,
-      occupancy_rate as occupancyRate,
-      occupancy_area as occupancyArea,
-      action_status as actionStatus,
-      pnu,
-      latitude,
-      longitude,
-      created_at as createdAt,
-      updated_at as updatedAt
-    FROM basic_info
-    WHERE basic_info_id = #{id}
+      ILGL_PRVU_INFO_SEQ as ilglPrvuInfoSeq,
+      GPS_LGTD as gpsLgtd,
+      GPS_LTTD as gpsLttd,
+      LNDS_UNQ_NO as lndsUnqNo,
+      LNDS_LDNO_ADDR as lndsLdnoAddr,
+      HDQR_NM as hdqrNm,
+      MTNOF_NM as mtnofNm,
+      ROUTE_CD as routeCd,
+      DRVE_DRCT_CD as drveDrctCd,
+      ROUTE_DSTNC as routeDstnc,
+      STRC_CLSS_CD as strcClssCd,
+      OCRN_DATES as ocrnDates,
+      PRCH_EMNO as prchEmno,
+      TRNR_NM as trnrNm,
+      RLTR_NM as rltrNm,
+      TRNR_ADDR as trnrAddr,
+      RLTR_ADDR as rltrAddr,
+      ILGL_PSSRT as ilglPssrt,
+      ILGL_PSSN_SQMS as ilglPssnSqms,
+      ILGL_PRVU_ACTN_STAT_VAL as ilglPrvuActnStatVal,
+      FSTTM_RGSR_ID as fsttmRgsrId,
+      FSTTM_RGST_DTTM as fsttmRgstDttm,
+      LSTTM_MODFR_ID as lsttmModfrId,
+      LSTTM_ALTR_DTTM as lsttmAltrDttm,
+      USE_YN as useYn
+    FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
+    WHERE ILGL_PRVU_INFO_SEQ = #{id}
+      AND USE_YN = 'Y'
   </select>
 
   <select id="findAll" resultType="BasicInfo">
     SELECT
-      basic_info_id as id,
-      hq_name as hqName,
-      branch_name as branchName,
-      route_name as routeName,
-      driving_direction as drivingDirection,
-      milestone,
-      category,
-      occurrence_date as occurrenceDate,
-      manager_name as managerName,
-      actor_name as actorName,
-      related_person as relatedPerson,
-      actor_address as actorAddress,
-      related_address as relatedAddress,
-      occupancy_rate as occupancyRate,
-      occupancy_area as occupancyArea,
-      action_status as actionStatus,
-      pnu,
-      latitude,
-      longitude,
-      created_at as createdAt,
-      updated_at as updatedAt
-    FROM basic_info
-    ORDER BY created_at DESC
+      ILGL_PRVU_INFO_SEQ as ilglPrvuInfoSeq,
+      GPS_LGTD as gpsLgtd,
+      GPS_LTTD as gpsLttd,
+      LNDS_UNQ_NO as lndsUnqNo,
+      LNDS_LDNO_ADDR as lndsLdnoAddr,
+      HDQR_NM as hdqrNm,
+      MTNOF_NM as mtnofNm,
+      ROUTE_CD as routeCd,
+      DRVE_DRCT_CD as drveDrctCd,
+      ROUTE_DSTNC as routeDstnc,
+      STRC_CLSS_CD as strcClssCd,
+      OCRN_DATES as ocrnDates,
+      PRCH_EMNO as prchEmno,
+      TRNR_NM as trnrNm,
+      RLTR_NM as rltrNm,
+      TRNR_ADDR as trnrAddr,
+      RLTR_ADDR as rltrAddr,
+      ILGL_PSSRT as ilglPssrt,
+      ILGL_PSSN_SQMS as ilglPssnSqms,
+      ILGL_PRVU_ACTN_STAT_VAL as ilglPrvuActnStatVal,
+      FSTTM_RGSR_ID as fsttmRgsrId,
+      FSTTM_RGST_DTTM as fsttmRgstDttm,
+      LSTTM_MODFR_ID as lsttmModfrId,
+      LSTTM_ALTR_DTTM as lsttmAltrDttm,
+      USE_YN as useYn
+    FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
+    WHERE USE_YN = 'Y'
+    ORDER BY FSTTM_RGST_DTTM DESC
   </select>
 
   <update id="updateBasicInfo" parameterType="BasicInfo">
-    UPDATE basic_info
+    UPDATE DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
     SET
-      hq_name = #{hqName},
-      branch_name = #{branchName},
-      route_name = #{routeName},
-      driving_direction = #{drivingDirection},
-      milestone = #{milestone},
-      category = #{category},
-      occurrence_date = #{occurrenceDate},
-      manager_name = #{managerName},
-      actor_name = #{actorName},
-      related_person = #{relatedPerson},
-      actor_address = #{actorAddress},
-      related_address = #{relatedAddress},
-      occupancy_rate = #{occupancyRate},
-      occupancy_area = #{occupancyArea},
-      action_status = #{actionStatus},
-      pnu = #{pnu},
-      latitude = #{latitude},
-      longitude = #{longitude},
-      updated_at = SYSDATE
-    WHERE basic_info_id = #{id}
+      GPS_LGTD = #{gpsLgtd},
+      GPS_LTTD = #{gpsLttd},
+      LNDS_UNQ_NO = #{lndsUnqNo},
+      LNDS_LDNO_ADDR = #{lndsLdnoAddr},
+      HDQR_NM = #{hdqrNm},
+      MTNOF_NM = #{mtnofNm},
+      ROUTE_CD = #{routeCd},
+      DRVE_DRCT_CD = #{drveDrctCd},
+      ROUTE_DSTNC = #{routeDstnc},
+      STRC_CLSS_CD = #{strcClssCd},
+      OCRN_DATES = #{ocrnDates},
+      PRCH_EMNO = #{prchEmno},
+      TRNR_NM = #{trnrNm},
+      RLTR_NM = #{rltrNm},
+      TRNR_ADDR = #{trnrAddr},
+      RLTR_ADDR = #{rltrAddr},
+      ILGL_PSSRT = #{ilglPssrt},
+      ILGL_PSSN_SQMS = #{ilglPssnSqms},
+      ILGL_PRVU_ACTN_STAT_VAL = #{ilglPrvuActnStatVal},
+      LSTTM_MODFR_ID = #{lsttmModfrId},
+      LSTTM_ALTR_DTTM = SYSDATE
+    WHERE ILGL_PRVU_INFO_SEQ = #{ilglPrvuInfoSeq}
   </update>
 
   <delete id="deleteBasicInfo" parameterType="Long">
-    DELETE FROM basic_info
-    WHERE basic_info_id = #{id}
+    UPDATE DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
+    SET USE_YN = 'N',
+        LSTTM_ALTR_DTTM = SYSDATE
+    WHERE ILGL_PRVU_INFO_SEQ = #{id}
   </delete>
 
   <select id="findActionHistoriesByBasicInfoId" parameterType="Long" resultType="ActionHistory">
     SELECT
-      action_id as id,
-      basic_info_id as basicInfoId,
-      action_year_month as actionYearMonth,
-      description,
-      created_at as createdAt
-    FROM action_history
-    WHERE basic_info_id = #{basicInfoId}
-    ORDER BY action_year_month DESC
-  </select>
-
-  <select id="findPhotoMetadataByBasicInfoId" parameterType="Long" resultType="PhotoMetadata">
-    SELECT
-      photo_id as id,
-      basic_info_id as basicInfoId,
-      file_name as fileName,
-      file_path as filePath,
-      content_type as contentType,
-      file_size as fileSize,
-      shot_datetime as shotDatetime,
-      description,
-      created_at as createdAt
-    FROM photo_metadata
-    WHERE basic_info_id = #{basicInfoId}
-    ORDER BY created_at DESC
+      ILGL_ACTN_CTNT_SEQ as ilglActnCtntSeq,
+      ILGL_PRVU_INFO_SEQ as ilglPrvuInfoSeq,
+      ACTN_DTTM as actnDttm,
+      ACTN_CTNT as actnCtnt,
+      FSTTM_RGSR_ID as fsttmRgsrId,
+      FSTTM_RGST_DTTM as fsttmRgstDttm,
+      LSTTM_MODFR_ID as lsttmModfrId,
+      LSTTM_ALTR_DTTM as lsttmAltrDttm,
+      USE_YN as useYn
+    FROM DTJ_MAIN.T_LNDS_ILGL_ACTN_CTNT01M1
+    WHERE ILGL_PRVU_INFO_SEQ = #{basicInfoId}
+      AND USE_YN = 'Y'
+    ORDER BY ACTN_DTTM DESC
   </select>
 
   <delete id="deleteActionHistoriesByBasicInfoId" parameterType="Long">
-    DELETE FROM action_history
-    WHERE basic_info_id = #{basicInfoId}
-  </delete>
-
-  <delete id="deletePhotoMetadataByBasicInfoId" parameterType="Long">
-    DELETE FROM photo_metadata
-    WHERE basic_info_id = #{basicInfoId}
+    UPDATE DTJ_MAIN.T_LNDS_ILGL_ACTN_CTNT01M1
+    SET USE_YN = 'N',
+        LSTTM_ALTR_DTTM = SYSDATE
+    WHERE ILGL_PRVU_INFO_SEQ = #{basicInfoId}
   </delete>
 </mapper>
-

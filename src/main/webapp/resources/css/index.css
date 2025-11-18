@@ -139,6 +139,129 @@ body {
   margin-right: 8px;
 }
 
+/* 등록 모달 토스트 메시지 스타일 */
+.register-toast-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.register-toast {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background-color: #ffffff;
+  border-bottom: 3px solid;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 320px;
+  max-width: 500px;
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: auto;
+}
+
+.register-toast--show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 아이콘 래퍼 (원형 배경) */
+.register-toast__icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.register-toast__icon-wrapper i {
+  font-size: 16px;
+  color: #ffffff;
+}
+
+.register-toast__message {
+  flex: 1;
+  word-break: break-word;
+  color: #333333;
+  font-size: 15px;
+  font-weight: 400;
+}
+
+/* 닫기 버튼 */
+.register-toast__close {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #666666;
+  font-size: 16px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+.register-toast__close:hover {
+  color: #333333;
+}
+
+.register-toast__close:focus {
+  outline: none;
+  color: #333333;
+}
+
+/* 타입별 색상 */
+.register-toast--success {
+  border-bottom-color: #3b82f6;
+}
+
+.register-toast--success .register-toast__icon-wrapper {
+  background-color: #3b82f6;
+}
+
+.register-toast--danger {
+  border-bottom-color: #ef4444;
+}
+
+.register-toast--danger .register-toast__icon-wrapper {
+  background-color: #ef4444;
+}
+
+.register-toast--danger .register-toast__icon-wrapper i {
+  font-size: 14px;
+}
+
+.register-toast--warning {
+  border-bottom-color: #f59e0b;
+}
+
+.register-toast--warning .register-toast__icon-wrapper {
+  background-color: #f59e0b;
+}
+
+.register-toast--info {
+  border-bottom-color: #3b82f6;
+}
+
+.register-toast--info .register-toast__icon-wrapper {
+  background-color: #3b82f6;
+}
+
 .illegal-occupancy-form .illegal-occupancy-control:focus {
   border-color: #1a73e8;
   box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.25);

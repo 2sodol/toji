@@ -45,31 +45,49 @@
   function createActionHistoryRow(actionDate, description) {
     var safeDate = escapeHtml(actionDate || "");
     var safeDesc = escapeHtml(description || "");
-    var $row = $('<div class="illegal-register-history__item"></div>');
+    var $row = $("<div>", {
+      class: "illegal-register-history__item",
+    });
 
-    $row.append(
-      '<div class="illegal-register-history__date">' +
-        '<input type="date" class="illegal-register-input illegal-register-history__date-input" value="' +
-        safeDate +
-        '">' +
-        "</div>"
-    );
+    var $dateDiv = $("<div>", {
+      class: "illegal-register-history__date",
+    });
+    var $dateInput = $("<input>", {
+      type: "date",
+      class: "illegal-register-input illegal-register-history__date-input",
+      value: safeDate,
+    });
+    $dateDiv.append($dateInput);
 
-    $row.append(
-      '<div class="illegal-register-history__desc">' +
-        '<input type="text" class="illegal-register-input illegal-register-history__desc-input" placeholder="예: 구두주의, 경고 등" maxlength="500" value="' +
-        safeDesc +
-        '">' +
-        "</div>"
-    );
+    var $descDiv = $("<div>", {
+      class: "illegal-register-history__desc",
+    });
+    var $descInput = $("<input>", {
+      type: "text",
+      class: "illegal-register-input illegal-register-history__desc-input",
+      placeholder: "예: 구두주의, 경고 등",
+      maxlength: "500",
+      value: safeDesc,
+    });
+    $descDiv.append($descInput);
 
-    $row.append(
-      '<div class="illegal-register-history__actions">' +
-        '<button type="button" class="illegal-register-history__remove remove-action-history-btn" title="삭제" aria-label="삭제">' +
-        '<i class="fas fa-minus" aria-hidden="true"></i>' +
-        "</button>" +
-        "</div>"
-    );
+    var $actionsDiv = $("<div>", {
+      class: "illegal-register-history__actions",
+    });
+    var $removeBtn = $("<button>", {
+      type: "button",
+      class: "illegal-register-history__remove remove-action-history-btn",
+      title: "삭제",
+      "aria-label": "삭제",
+    });
+    var $icon = $("<i>", {
+      class: "fas fa-minus",
+      "aria-hidden": "true",
+    });
+    $removeBtn.append($icon);
+    $actionsDiv.append($removeBtn);
+
+    $row.append($dateDiv).append($descDiv).append($actionsDiv);
 
     return $row;
   }
@@ -80,7 +98,7 @@
    * - 첫 행은 삭제 버튼을 제거하여 최소 1개 행은 항상 유지되도록 한다.
    */
   function resetActionHistoryList() {
-    var $list = $("#illegalActionHistoryList");
+    var $list = $("#actionHistoryList");
     $list.empty();
     $list.append(createActionHistoryRow());
     $list.find(".illegal-register-history__actions").first().empty();
@@ -97,28 +115,35 @@
     $list.empty();
 
     if (!state.selectedPhotoFiles.length) {
-      $list.append(
-        '<li class="illegal-register-photo__placeholder" id="illegalPhotoFilePlaceholder">선택된 파일이 없습니다.</li>'
-      );
+      var $placeholder = $("<li>", {
+        class: "illegal-register-photo__placeholder",
+        id: "illegalPhotoFilePlaceholder",
+        text: "선택된 파일이 없습니다.",
+      });
+      $list.append($placeholder);
       return;
     }
 
-    state.selectedPhotoFiles.forEach(function (file, index) {
-      var sizeLabel = file.size
-        ? " (" + (file.size / 1024).toFixed(1) + " KB)"
-        : "";
-      var listItem =
-        "" +
-        '<li class="illegal-register-photo__item">' +
-        '<span class="illegal-register-photo__name">' +
-        escapeHtml(file.name) +
-        sizeLabel +
-        "</span>" +
-        '<button type="button" class="illegal-register-photo__remove remove-photo-file-btn" data-index="' +
-        index +
-        '">삭제</button>' +
-        "</li>";
-      $list.append(listItem);
+    $.each(state.selectedPhotoFiles, function (index, file) {
+      var sizeLabel = file.size ? " (" + (file.size / 1024).toFixed(1) + " KB)" : "";
+      var $listItem = $("<li>", {
+        class: "illegal-register-photo__item",
+      });
+
+      var $nameSpan = $("<span>", {
+        class: "illegal-register-photo__name",
+        text: escapeHtml(file.name) + sizeLabel,
+      });
+
+      var $removeBtn = $("<button>", {
+        type: "button",
+        class: "illegal-register-photo__remove remove-photo-file-btn",
+        "data-index": index,
+        text: "삭제",
+      });
+
+      $listItem.append($nameSpan).append($removeBtn);
+      $list.append($listItem);
     });
   }
 
@@ -127,19 +152,16 @@
    * - 입력 필드 리셋
    * - 토글/라디오 버튼 초기화
    * - 조치 이력, 사진 첨부 목록 초기화
-   * - 알림 메시지 제거
+   * - 히든 필드 초기화
    */
   function resetRegisterForm() {
-    var formElement = $("#illegalRegisterForm")[0];
-    if (formElement) {
-      formElement.reset();
+    var $form = $("#illegalRegisterForm");
+    if ($form.length && $form[0]) {
+      $form[0].reset();
     }
 
-    $('input[name="categoryOptions"][value="GENERAL"]').prop("checked", true);
-    $('input[name="actionStatusOptions"][value="IN_PROGRESS"]').prop(
-      "checked",
-      true
-    );
+    $('input[name="strcClssCd"][value="GENERAL"]').prop("checked", true);
+    $('input[name="ilglPrvuActnStatVal"][value="IN_PROGRESS"]').prop("checked", true);
 
     resetActionHistoryList();
     state.selectedPhotoFiles = [];
@@ -149,34 +171,32 @@
     var today = new Date().toISOString().split("T")[0];
     $("#illegalPhotoRegisteredAtInput").val(today);
 
-    clearRegisterAlert();
+    // 히든 필드 초기화
+    $("#lndsUnqNo").val("");
+    $("#gpsLgtd").val("");
+    $("#gpsLttd").val("");
   }
 
   /**
    * 조치 이력 입력 필드에서 유효한 항목만 추출한다.
-   * @returns {Array<{actionDate: string, description: string}>}
+   * @returns {Array<{actnDttm: string, actnCtnt: string}>}
    */
   function collectActionHistories() {
     var histories = [];
 
-    $("#illegalActionHistoryList .illegal-register-history__item").each(
-      function () {
-        var dateValue = $(this)
-          .find(".illegal-register-history__date-input")
-          .val();
-        var descValue = $(this)
-          .find(".illegal-register-history__desc-input")
-          .val()
-          .trim();
+    $("#actionHistoryList .illegal-register-history__item").each(function () {
+      var dateValue = $(this).find(".illegal-register-history__date-input").val();
+      var descValue = $(this).find(".illegal-register-history__desc-input").val().trim();
 
-        if (dateValue && descValue) {
-          histories.push({
-            actionDate: dateValue,
-            description: descValue,
-          });
-        }
+      if (dateValue && descValue) {
+        // 날짜 문자열을 ISO 8601 형식으로 변환 (LocalDateTime 형식)
+        var dateTimeValue = dateValue + "T00:00:00";
+        histories.push({
+          actnDttm: dateTimeValue,
+          actnCtnt: descValue,
+        });
       }
-    );
+    });
 
     return histories;
   }
@@ -198,39 +218,105 @@
   }
 
   /**
-   * 상단 알림 영역에 메시지를 표시한다.
+   * 토스트 메시지를 표시한다.
    * @param {"success"|"danger"|"warning"|"info"} type - 알림 타입
    * @param {string} message - 사용자에게 보여줄 메시지
    */
   function showRegisterAlert(type, message) {
-    var $alert = $("#illegalRegisterAlert");
-    var modifierClass =
-      {
-        success: "illegal-register-alert--success",
-        danger: "illegal-register-alert--danger",
-        warning: "illegal-register-alert--warning",
-        info: "illegal-register-alert--info",
-      }[type] || "illegal-register-alert--info";
+    // 토스트 컨테이너가 없으면 생성
+    var $container = $("#registerToastContainer");
+    if (!$container.length) {
+      $container = $("<div>", {
+        id: "registerToastContainer",
+        class: "register-toast-container",
+      });
+      $("body").append($container);
+    }
 
-    $alert
-      .removeClass(
-        "illegal-register-alert--success illegal-register-alert--danger illegal-register-alert--warning illegal-register-alert--info is-visible"
-      )
-      .addClass(modifierClass + " is-visible")
-      .text(message)
-      .removeAttr("hidden");
-  }
+    // 타입별 아이콘과 클래스 설정
+    var iconClass = "";
+    var toastClass = "register-toast register-toast--" + type;
+    switch (type) {
+      case "success":
+        iconClass = "fas fa-check";
+        break;
+      case "danger":
+        iconClass = "fas fa-times";
+        break;
+      case "warning":
+        iconClass = "fas fa-exclamation";
+        break;
+      case "info":
+      default:
+        iconClass = "fas fa-info-circle";
+        break;
+    }
 
-  /**
-   * 알림 영역을 숨기고 기본 상태로 초기화한다.
-   */
-  function clearRegisterAlert() {
-    $("#illegalRegisterAlert")
-      .removeClass(
-        "illegal-register-alert--success illegal-register-alert--danger illegal-register-alert--warning illegal-register-alert--info is-visible"
-      )
-      .attr("hidden", true)
-      .text("");
+    // 토스트 요소 생성
+    var $toast = $("<div>", {
+      class: toastClass,
+    });
+
+    // 아이콘 래퍼 (원형 배경)
+    var $iconWrapper = $("<div>", {
+      class: "register-toast__icon-wrapper",
+    });
+
+    var $icon = $("<i>", {
+      class: iconClass,
+    });
+
+    $iconWrapper.append($icon);
+
+    // 메시지 텍스트
+    var $message = $("<span>", {
+      class: "register-toast__message",
+      text: message,
+    });
+
+    // 닫기 버튼
+    var $closeBtn = $("<button>", {
+      type: "button",
+      class: "register-toast__close",
+      "aria-label": "닫기",
+    });
+    var $closeIcon = $("<i>", {
+      class: "fas fa-times",
+    });
+    $closeBtn.append($closeIcon);
+
+    // 닫기 버튼 클릭 이벤트
+    $closeBtn.on("click", function () {
+      $toast.removeClass("register-toast--show");
+      setTimeout(function () {
+        $toast.remove();
+        if ($container.children().length === 0) {
+          $container.remove();
+        }
+      }, 300);
+    });
+
+    $toast.append($iconWrapper).append($message).append($closeBtn);
+
+    // 컨테이너에 추가
+    $container.append($toast);
+
+    // 애니메이션으로 표시
+    setTimeout(function () {
+      $toast.addClass("register-toast--show");
+    }, 10);
+
+    // 3초 후 자동으로 제거
+    setTimeout(function () {
+      $toast.removeClass("register-toast--show");
+      setTimeout(function () {
+        $toast.remove();
+        // 컨테이너가 비어있으면 제거
+        if ($container.children().length === 0) {
+          $container.remove();
+        }
+      }, 300);
+    }, 3000);
   }
 
   /**
@@ -241,9 +327,51 @@
     if (!region) {
       return;
     }
-    var resolvedAddress =
-      region.address || region.roadAddress || region.jibunAddress || "";
-    $("#illegalDetailAddressInput").val(resolvedAddress);
+
+    var $detailAddressInput = $("#lndsLdnoAddr");
+    if (!$detailAddressInput.length) {
+      return;
+    }
+
+    var resolvedAddress = region.address || region.roadAddress || region.jibunAddress || "";
+    $detailAddressInput.val(resolvedAddress);
+
+    // PNU 및 좌표 정보를 히든 필드에 설정
+    if (region.pnu) {
+      $("#lndsUnqNo").val(region.pnu);
+    }
+    if (region.coordinateX !== undefined && region.coordinateX !== null) {
+      $("#gpsLgtd").val(region.coordinateX);
+    }
+    if (region.coordinateY !== undefined && region.coordinateY !== null) {
+      $("#gpsLttd").val(region.coordinateY);
+    }
+
+    // 기본값 하드코딩: 본부, 지사, 노선, 주행방향, 이정
+    var $headOfficeInput = $("#hdqrNm");
+    if ($headOfficeInput.length && !$headOfficeInput.val().trim()) {
+      $headOfficeInput.val("서울본부");
+    }
+
+    var $branchOfficeInput = $("#mtnofNm");
+    if ($branchOfficeInput.length && !$branchOfficeInput.val().trim()) {
+      $branchOfficeInput.val("서울지사");
+    }
+
+    var $routeInput = $("#routeCd");
+    if ($routeInput.length && !$routeInput.val().trim()) {
+      $routeInput.val("경부고속도로");
+    }
+
+    var $drivingDirectionSelect = $("#drveDrctCd");
+    if ($drivingDirectionSelect.length && !$drivingDirectionSelect.val()) {
+      $drivingDirectionSelect.val("UP");
+    }
+
+    var $distanceMarkInput = $("#routeDstnc");
+    if ($distanceMarkInput.length && !$distanceMarkInput.val().trim()) {
+      $distanceMarkInput.val("123.5");
+    }
   }
 
   /**
@@ -252,21 +380,52 @@
    * - 모달이 닫힐 때 폼 초기화
    */
   function registerModalEvents() {
-    var modalElement = document.getElementById("illegalRegisterModal");
-    if (!modalElement) {
+    var $modal = $("#illegalRegisterModal");
+    if (!$modal.length) {
       return;
     }
 
-    modalElement.addEventListener("illegalRegisterModal:open", function () {
+    // 모달이 열릴 때만 실행되는 이벤트 리스너
+    $modal.on("illegalRegisterModal:open", function () {
       if (!$("#illegalPhotoRegisteredAtInput").val()) {
         var today = new Date().toISOString().split("T")[0];
         $("#illegalPhotoRegisteredAtInput").val(today);
       }
-      $("#illegalHeadOfficeInput").trigger("focus");
+      $("#hdqrNm").trigger("focus");
       updatePhotoFileList();
+
+      // 모달이 열릴 때 서버에서 초기 데이터를 가져오는 Ajax 호출
+      $.ajax({
+        url: "/api/initial-data", // 실제 엔드포인트로 변경 필요
+        method: "GET",
+        dataType: "json",
+      })
+        .done(function (response) {
+          // 성공 시 처리 로직
+          console.log("초기 데이터 로드 성공:", response);
+
+          // 예시: 서버에서 받은 데이터로 폼 필드 채우기
+          if (response.defaultValues) {
+            var $branchInput = $("#mtnofNm");
+            var $routeInput = $("#routeCd");
+
+            if (response.defaultValues.mtnofNm && $branchInput.length) {
+              $branchInput.val(response.defaultValues.mtnofNm);
+            }
+            if (response.defaultValues.routeCd && $routeInput.length) {
+              $routeInput.val(response.defaultValues.routeCd);
+            }
+          }
+        })
+        .fail(function (xhr, status, error) {
+          // 실패 시 처리 로직 (선택사항)
+          console.warn("초기 데이터 로드 실패:", status, error);
+          // 에러가 발생해도 모달은 정상적으로 열리도록 함
+        });
     });
 
-    modalElement.addEventListener("illegalRegisterModal:close", function () {
+    // 모달이 닫힐 때만 실행되는 이벤트 리스너
+    $modal.on("illegalRegisterModal:close", function () {
       resetRegisterForm();
     });
   }
@@ -275,25 +434,21 @@
    * 조치 이력 추가/삭제 버튼에 대한 이벤트를 바인딩한다.
    */
   function bindActionHistoryEvents() {
-    $("#illegalAddActionHistoryBtn").on("click", function () {
-      $("#illegalActionHistoryList").append(createActionHistoryRow());
+    $("#addActionHistoryBtn").on("click", function () {
+      $("#actionHistoryList").append(createActionHistoryRow());
     });
 
-    $("#illegalActionHistoryList").on(
-      "click",
-      ".remove-action-history-btn",
-      function () {
-        var $items = $(
-          "#illegalActionHistoryList .illegal-register-history__item"
-        );
-        var $targetItem = $(this).closest(".illegal-register-history__item");
-        if ($items.length <= 1) {
-          $targetItem.find("input").val("");
-          return;
-        }
-        $targetItem.remove();
+    $("#actionHistoryList").on("click", ".remove-action-history-btn", function () {
+      var $targetItem = $(this).closest(".illegal-register-history__item");
+      var $items = $("#actionHistoryList .illegal-register-history__item");
+
+      if ($items.length <= 1) {
+        $targetItem.find("input").val("");
+        return;
       }
-    );
+
+      $targetItem.remove();
+    });
   }
 
   /**
@@ -304,26 +459,27 @@
    */
   function bindPhotoUploadEvents() {
     $("#illegalPhotoUploadBtn").on("click", function () {
-      $("#illegalPhotoFileInput").trigger("click");
+      var $fileInput = $("#illegalPhotoFileInput");
+      $fileInput.trigger("click");
     });
 
-    $("#illegalPhotoFileInput").on("change", function (event) {
-      state.selectedPhotoFiles = Array.from(event.target.files || []);
+    $("#illegalPhotoFileInput").on("change", function () {
+      var $input = $(this);
+      var files = $input[0].files || [];
+      state.selectedPhotoFiles = $.makeArray(files);
       updatePhotoFileList();
-      $("#illegalPhotoFileInput").val("");
+      $input.val("");
     });
 
-    $("#illegalPhotoFileList").on(
-      "click",
-      ".remove-photo-file-btn",
-      function () {
-        var index = Number($(this).data("index"));
-        if (!isNaN(index) && index >= 0) {
-          state.selectedPhotoFiles.splice(index, 1);
-          updatePhotoFileList();
-        }
+    $("#illegalPhotoFileList").on("click", ".remove-photo-file-btn", function () {
+      var $btn = $(this);
+      var index = parseInt($btn.data("index"), 10);
+
+      if (!isNaN(index) && index >= 0 && index < state.selectedPhotoFiles.length) {
+        state.selectedPhotoFiles.splice(index, 1);
+        updatePhotoFileList();
       }
-    );
+    });
   }
 
   /**
@@ -332,7 +488,7 @@
    * - 없으면 준비 중 알림
    */
   function bindAddressEvents() {
-    $("#illegalDetailAddressSearchBtn").on("click", function () {
+    $("#lndsLdnoAddrSearchBtn").on("click", function () {
       if (typeof window.openAddressModal === "function") {
         window.openAddressModal();
       } else {
@@ -357,15 +513,15 @@
    * @returns {number|null|undefined} - 유효한 숫자, null(빈 값), undefined(에러)
    */
   function parseOptionalNumber(rawValue, warningMessage, $input) {
-    if (rawValue === "") {
+    if (!rawValue || rawValue === "") {
       return null;
     }
 
-    var parsed = Number(rawValue);
+    var parsed = parseFloat(rawValue);
     if (isNaN(parsed)) {
       showRegisterAlert("warning", warningMessage);
       if ($input && $input.length) {
-        $input.focus();
+        $input.trigger("focus");
       }
       return undefined;
     }
@@ -380,150 +536,185 @@
    * - 서버로 Ajax POST 요청 전송
    */
   function handleSubmit() {
-    var headOffice = $("#illegalHeadOfficeInput").val().trim();
-    var branchOffice = $("#illegalBranchOfficeInput").val().trim();
-    var routeName = $("#illegalRouteNameInput").val().trim();
-    var drivingDirection = $("#illegalDrivingDirectionSelect").val();
-    var distanceMark = $("#illegalDistanceMarkInput").val().trim();
-    var category = $('input[name="categoryOptions"]:checked').val();
-    var detailAddress = $("#illegalDetailAddressInput").val().trim();
-    var incidentDate = $("#illegalIncidentDateInput").val();
-    var managerName = $("#illegalManagerNameInput").val().trim();
-    var actorName = $("#illegalActorNameInput").val().trim();
-    var relatedPersonName = $("#illegalRelatedPersonInput").val().trim();
-    var actorAddress = $("#illegalActorAddressInput").val().trim();
-    var relatedAddress = $("#illegalRelatedAddressInput").val().trim();
-    var occupancyRateValue = $("#illegalOccupancyRateInput").val();
-    var occupancyAreaValue = $("#illegalOccupancyAreaInput").val();
-    var actionStatus = $('input[name="actionStatusOptions"]:checked').val();
-    var photoRegisteredAt = $("#illegalPhotoRegisteredAtInput").val();
+    var $headOfficeInput = $("#hdqrNm");
+    var $branchOfficeInput = $("#mtnofNm");
+    var $routeNameInput = $("#routeCd");
+    var $drivingDirectionSelect = $("#drveDrctCd");
+    var $distanceMarkInput = $("#routeDstnc");
+    var $detailAddressInput = $("#lndsLdnoAddr");
+    var $incidentDateInput = $("#ocrnDates");
+    var $managerNameInput = $("#prchEmno");
+    var $actorNameInput = $("#trnrNm");
+    var $relatedPersonInput = $("#rltrNm");
+    var $actorAddressInput = $("#trnrAddr");
+    var $relatedAddressInput = $("#rltrAddr");
+    var $occupancyRateInput = $("#ilglPssrt");
+    var $occupancyAreaInput = $("#ilglPssnSqms");
+    var $photoRegisteredAtInput = $("#illegalPhotoRegisteredAtInput");
+    var $lndsUnqNoInput = $("#lndsUnqNo");
+    var $gpsLgtdInput = $("#gpsLgtd");
+    var $gpsLttdInput = $("#gpsLttd");
+
+    var headOffice = $headOfficeInput.val().trim();
+    var branchOffice = $branchOfficeInput.val().trim();
+    var routeName = $routeNameInput.val().trim();
+    var drivingDirection = $drivingDirectionSelect.val();
+    var distanceMark = $distanceMarkInput.val().trim();
+    var category = $('input[name="strcClssCd"]:checked').val();
+    var detailAddress = $detailAddressInput.val().trim();
+    var incidentDate = $incidentDateInput.val();
+    var managerName = $managerNameInput.val().trim();
+    var actorName = $actorNameInput.val().trim();
+    var relatedPersonName = $relatedPersonInput.val().trim();
+    var actorAddress = $actorAddressInput.val().trim();
+    var relatedAddress = $relatedAddressInput.val().trim();
+    var occupancyRateValue = $occupancyRateInput.val();
+    var occupancyAreaValue = $occupancyAreaInput.val();
+    var actionStatus = $('input[name="ilglPrvuActnStatVal"]:checked').val();
+    var photoRegisteredAt = $photoRegisteredAtInput.val();
+    var lndsUnqNo = $lndsUnqNoInput.val().trim();
+    var gpsLgtdValue = $gpsLgtdInput.val().trim();
+    var gpsLttdValue = $gpsLttdInput.val().trim();
     var memoValue = null;
 
     if (!headOffice) {
       showRegisterAlert("warning", "본부를 입력해주세요.");
-      $("#illegalHeadOfficeInput").focus();
+      $headOfficeInput.trigger("focus");
       return;
     }
     if (!branchOffice) {
       showRegisterAlert("warning", "지사를 입력해주세요.");
-      $("#illegalBranchOfficeInput").focus();
+      $branchOfficeInput.trigger("focus");
       return;
     }
     if (!routeName) {
       showRegisterAlert("warning", "노선명을 입력해주세요.");
-      $("#illegalRouteNameInput").focus();
+      $routeNameInput.trigger("focus");
       return;
     }
     if (!drivingDirection) {
       showRegisterAlert("warning", "주행방향을 선택해주세요.");
-      $("#illegalDrivingDirectionSelect").focus();
+      $drivingDirectionSelect.trigger("focus");
       return;
     }
     if (!incidentDate) {
       showRegisterAlert("warning", "발생일자를 선택해주세요.");
-      $("#illegalIncidentDateInput").focus();
+      $incidentDateInput.trigger("focus");
       return;
     }
     if (!managerName) {
       showRegisterAlert("warning", "담당자를 입력해주세요.");
-      $("#illegalManagerNameInput").focus();
+      $managerNameInput.trigger("focus");
       return;
     }
     if (!actorName) {
       showRegisterAlert("warning", "행위자명을 입력해주세요.");
-      $("#illegalActorNameInput").focus();
+      $actorNameInput.trigger("focus");
       return;
     }
     if (!actionStatus) {
       showRegisterAlert("warning", "조치상태를 선택해주세요.");
       return;
     }
-    if (!photoRegisteredAt) {
-      showRegisterAlert("warning", "사진 등록일을 선택해주세요.");
-      $("#illegalPhotoRegisteredAtInput").focus();
-      return;
-    }
 
-    var occupancyRate = parseOptionalNumber(
-      occupancyRateValue,
-      "점유율은 숫자로 입력해주세요.",
-      $("#illegalOccupancyRateInput")
-    );
+    var occupancyRate = parseOptionalNumber(occupancyRateValue, "점유율은 숫자로 입력해주세요.", $occupancyRateInput);
     if (occupancyRate === undefined) {
       return;
     }
 
-    var occupancyArea = parseOptionalNumber(
-      occupancyAreaValue,
-      "점유면적은 숫자로 입력해주세요.",
-      $("#illegalOccupancyAreaInput")
-    );
+    var occupancyArea = parseOptionalNumber(occupancyAreaValue, "점유면적은 숫자로 입력해주세요.", $occupancyAreaInput);
     if (occupancyArea === undefined) {
       return;
     }
 
     var actionHistories = collectActionHistories();
 
-    if (state.selectedPhotoFiles.length > 0 && !photoRegisteredAt) {
-      showRegisterAlert(
-        "warning",
-        "사진 등록일을 선택한 뒤 파일을 첨부해주세요."
-      );
-      $("#illegalPhotoRegisteredAtInput").focus();
+    // GPS 좌표 파싱
+    var gpsLgtd = parseOptionalNumber(gpsLgtdValue, "경도는 숫자로 입력해주세요.", $gpsLgtdInput);
+    if (gpsLgtd === undefined && gpsLgtdValue) {
       return;
     }
 
-    var photos = state.selectedPhotoFiles.map(function (file) {
-      return {
-        photoDate: photoRegisteredAt,
-        fileName: file.name,
-        fileSize: file.size,
-        filePath: null,
-      };
-    });
+    var gpsLttd = parseOptionalNumber(gpsLttdValue, "위도는 숫자로 입력해주세요.", $gpsLttdInput);
+    if (gpsLttd === undefined && gpsLttdValue) {
+      return;
+    }
+
+    // 발생일자를 yyyyMMdd 형식으로 변환
+    var ocrnDates = null;
+    if (incidentDate) {
+      var date = new Date(incidentDate);
+      var year = date.getFullYear();
+      var month = String(date.getMonth() + 1).padStart(2, "0");
+      var day = String(date.getDate()).padStart(2, "0");
+      ocrnDates = year + month + day;
+    }
+
+    // 거리표지판을 BigDecimal로 변환
+    var routeDstnc = null;
+    if (distanceMark) {
+      routeDstnc = parseOptionalNumber(distanceMark, "거리표지판은 숫자로 입력해주세요.", $distanceMarkInput);
+      if (routeDstnc === undefined) {
+        return;
+      }
+    }
 
     var payload = {
-      headOffice: headOffice,
-      branchOffice: branchOffice,
-      routeName: routeName,
-      drivingDirection: drivingDirection,
-      distanceMark: distanceMark || null,
-      category: category,
-      detailAddress: detailAddress || null,
-      incidentDate: incidentDate,
-      managerName: managerName,
-      actorName: actorName,
-      relatedPersonName: relatedPersonName || null,
-      actorAddress: actorAddress || null,
-      relatedAddress: relatedAddress || null,
-      occupancyRate: occupancyRate,
-      occupancyArea: occupancyArea,
-      actionStatus: actionStatus,
-      photoRegisteredAt: photoRegisteredAt,
-      memo: memoValue,
+      hdqrNm: headOffice,
+      mtnofNm: branchOffice,
+      routeCd: routeName,
+      drveDrctCd: drivingDirection,
+      routeDstnc: routeDstnc,
+      strcClssCd: category,
+      lndsLdnoAddr: detailAddress || null,
+      ocrnDates: ocrnDates,
+      prchEmno: managerName,
+      trnrNm: actorName,
+      rltrNm: relatedPersonName || null,
+      trnrAddr: actorAddress || null,
+      rltrAddr: relatedAddress || null,
+      ilglPssrt: occupancyRate,
+      ilglPssnSqms: occupancyArea,
+      ilglPrvuActnStatVal: actionStatus,
       actionHistories: actionHistories,
-      photos: photos,
+      lndsUnqNo: lndsUnqNo || null,
+      gpsLgtd: gpsLgtd,
+      gpsLttd: gpsLttd,
     };
 
     toggleSubmitLoading(true);
 
     $.ajax({
-      url: "/regions",
+      url: "/regions/register",
       method: "POST",
       contentType: "application/json",
       data: JSON.stringify(payload),
+      dataType: "json",
     })
       .done(function () {
+        // 성공 토스트 메시지 표시
         showRegisterAlert("success", "등록이 완료되었습니다.");
+
+        // 최근 등록 목록 갱신
         if (typeof window.loadRecentRegions === "function") {
           window.loadRecentRegions();
         }
+
+        // 모달 닫기 (토스트가 표시된 후 약간의 지연을 두고 닫음)
+        setTimeout(function () {
+          if (window.IllegalRegisterModal && typeof window.IllegalRegisterModal.close === "function") {
+            window.IllegalRegisterModal.close();
+          }
+        }, 500);
       })
       .fail(function (xhr) {
         var message = "저장 중 오류가 발생했습니다.";
-        if (xhr.responseJSON && xhr.responseJSON.message) {
-          message = xhr.responseJSON.message;
+        var responseJSON = xhr.responseJSON || {};
+
+        if (responseJSON.message) {
+          message = responseJSON.message;
         }
+
         showRegisterAlert("danger", message);
       })
       .always(function () {
@@ -551,7 +742,6 @@
    */
   window.RegisterModule = {
     fillForm: fillRegisterForm,
-    clearAlert: clearRegisterAlert,
     resetForm: resetRegisterForm,
   };
 
