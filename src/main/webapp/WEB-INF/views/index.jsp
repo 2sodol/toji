@@ -29,8 +29,15 @@ pageEncoding="UTF-8"%>
       rel="stylesheet"
       href="<%=request.getContextPath()%>/resources/css/index.css"
     />
+    <link
+      rel="stylesheet"
+      href="<%=request.getContextPath()%>/resources/css/slide-panel.css"
+    />
   </head>
   <body>
+    <!-- 슬라이드 패널 JSP 포함 -->
+    <jsp:include page="slide-panel.jsp" />
+
     <!-- 지도 렌더링 컨테이너 -->
     <div id="map"></div>
 
@@ -51,6 +58,7 @@ pageEncoding="UTF-8"%>
     <!-- 등록 모달 JSP 포함 -->
     <jsp:include page="register-modal.jsp" />
     <script src="<%=request.getContextPath()%>/resources/js/register.js"></script>
+    <script src="<%=request.getContextPath()%>/resources/js/slide-panel.js"></script>
 
     <script type="text/javascript">
       // 지도에서 선택된 피처 및 속성 정보 저장용 전역 변수

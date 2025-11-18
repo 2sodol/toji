@@ -6,7 +6,9 @@ import com.toji.toji.dto.RegionRegisterRequest;
 import com.toji.toji.mapper.RegionMapper;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -116,5 +118,36 @@ public class RegionServiceImpl implements RegionService {
    */
   private BigDecimal normalizeDecimal(BigDecimal value) {
     return value == null ? null : value.stripTrailingZeros();
+  }
+
+  /**
+   * 페이징 처리된 불법점용 리스트를 조회한다.
+   *
+   * @param page 페이지 번호 (1부터 시작)
+   * @param size 페이지 크기
+   * @return 페이징 정보와 리스트를 포함한 맵
+   */
+  @Override
+  public Map<String, Object> findAllWithPaging(int page, int size) {
+    if (page < 1) {
+      page = 1;
+    }
+    if (size < 1) {
+      size = 5;
+    }
+
+    int offset = (page - 1) * size;
+    List<BasicInfo> list = regionMapper.findAllWithPaging(offset, size);
+    int totalCount = regionMapper.countAll();
+    int totalPages = (int) Math.ceil((double) totalCount / size);
+
+    Map<String, Object> result = new HashMap<>();
+    result.put("list", list);
+    result.put("totalCount", totalCount);
+    result.put("totalPages", totalPages);
+    result.put("currentPage", page);
+    result.put("pageSize", size);
+
+    return result;
   }
 }

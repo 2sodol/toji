@@ -1,6 +1,7 @@
 package com.toji.toji.service;
 
 import com.toji.toji.dto.RegionRegisterRequest;
+import java.util.Map;
 
 /**
  * 지역 기본 정보와 이력을 등록하는 서비스 인터페이스.
@@ -14,4 +15,13 @@ public interface RegionService {
    * @return 생성된 기본 정보의 식별자
    */
   Long registerRegion(RegionRegisterRequest request);
+
+  /**
+   * 페이징 처리된 불법점용 리스트를 조회한다.
+   *
+   * @param page 페이지 번호 (1부터 시작)
+   * @param size 페이지 크기
+   * @return 페이징 정보와 리스트를 포함한 맵
+   */
+  Map<String, Object> findAllWithPaging(int page, int size);
 }

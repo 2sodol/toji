@@ -16,6 +16,10 @@ public interface RegionMapper {
 
   List<BasicInfo> findAll();
 
+  List<BasicInfo> findAllWithPaging(int offset, int limit);
+
+  int countAll();
+
   int updateBasicInfo(BasicInfo basicInfo);
 
   int deleteBasicInfo(Long id);

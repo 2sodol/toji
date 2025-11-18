@@ -124,34 +124,42 @@
 
   <select id="findAll" resultType="BasicInfo">
     SELECT
-      ILGL_PRVU_INFO_SEQ as ilglPrvuInfoSeq,
-      GPS_LGTD as gpsLgtd,
-      GPS_LTTD as gpsLttd,
+      MAX(ILGL_PRVU_INFO_SEQ) as ilglPrvuInfoSeq,
       LNDS_UNQ_NO as lndsUnqNo,
-      LNDS_LDNO_ADDR as lndsLdnoAddr,
-      HDQR_NM as hdqrNm,
-      MTNOF_NM as mtnofNm,
-      ROUTE_CD as routeCd,
-      DRVE_DRCT_CD as drveDrctCd,
-      ROUTE_DSTNC as routeDstnc,
-      STRC_CLSS_CD as strcClssCd,
-      OCRN_DATES as ocrnDates,
-      PRCH_EMNO as prchEmno,
-      TRNR_NM as trnrNm,
-      RLTR_NM as rltrNm,
-      TRNR_ADDR as trnrAddr,
-      RLTR_ADDR as rltrAddr,
-      ILGL_PSSRT as ilglPssrt,
-      ILGL_PSSN_SQMS as ilglPssnSqms,
-      ILGL_PRVU_ACTN_STAT_VAL as ilglPrvuActnStatVal,
-      FSTTM_RGSR_ID as fsttmRgsrId,
-      FSTTM_RGST_DTTM as fsttmRgstDttm,
-      LSTTM_MODFR_ID as lsttmModfrId,
-      LSTTM_ALTR_DTTM as lsttmAltrDttm,
-      USE_YN as useYn
+      MAX(LNDS_LDNO_ADDR) as lndsLdnoAddr
     FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
     WHERE USE_YN = 'Y'
-    ORDER BY FSTTM_RGST_DTTM DESC
+    GROUP BY LNDS_UNQ_NO
+    ORDER BY MAX(ILGL_PRVU_INFO_SEQ) DESC
+  </select>
+
+  <select id="findAllWithPaging" resultType="BasicInfo">
+    SELECT * FROM (
+      SELECT
+        ROWNUM as rn,
+        t.*
+      FROM (
+        SELECT
+          MAX(ILGL_PRVU_INFO_SEQ) as ilglPrvuInfoSeq,
+          LNDS_UNQ_NO as lndsUnqNo,
+          MAX(LNDS_LDNO_ADDR) as lndsLdnoAddr
+        FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
+        WHERE USE_YN = 'Y'
+        GROUP BY LNDS_UNQ_NO
+        ORDER BY MAX(ILGL_PRVU_INFO_SEQ) DESC
+      ) t
+    ) WHERE rn BETWEEN #{offset} + 1 AND #{offset} + #{limit}
+  </select>
+
+  <select id="countAll" resultType="int">
+    SELECT COUNT(*)
+    FROM (
+      SELECT
+        LNDS_UNQ_NO
+      FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
+      WHERE USE_YN = 'Y'
+      GROUP BY LNDS_UNQ_NO
+    )
   </select>
 
   <update id="updateBasicInfo" parameterType="BasicInfo">
