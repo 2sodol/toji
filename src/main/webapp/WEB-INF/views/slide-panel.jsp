@@ -12,11 +12,73 @@ pageEncoding="UTF-8"%>
 <div id="slide-panel" class="slide-panel">
   <div class="slide-panel__header">
     <h2 class="slide-panel__title">불법점용 리스트</h2>
-    <button id="slide-panel-close-btn" class="slide-panel__close-btn" type="button">
+    <button
+      id="slide-panel-close-btn"
+      class="slide-panel__close-btn"
+      type="button"
+    >
       <i class="fas fa-times"></i>
     </button>
   </div>
   <div class="slide-panel__body">
+    <!-- 이미지 레이어 제어 영역 -->
+    <div id="kml-layer-controls" class="kml-layer-controls">
+      <h3 class="kml-layer-controls__title">필지 항공사진</h3>
+      <div class="kml-layer-controls__list">
+        <div class="kml-layer-control">
+          <label class="kml-layer-control__label">
+            <input type="checkbox" id="layer-field1" checked />
+            <span class="kml-layer-control__name">필지1</span>
+            <span
+              class="kml-layer-control__color"
+              style="background-color: #ff0000"
+            ></span>
+          </label>
+          <button
+            type="button"
+            class="kml-layer-control__goto-btn"
+            data-field="field1"
+          >
+            <i class="fas fa-crosshairs"></i>
+          </button>
+        </div>
+        <div class="kml-layer-control">
+          <label class="kml-layer-control__label">
+            <input type="checkbox" id="layer-field2" checked />
+            <span class="kml-layer-control__name">필지2</span>
+            <span
+              class="kml-layer-control__color"
+              style="background-color: #00ff00"
+            ></span>
+          </label>
+          <button
+            type="button"
+            class="kml-layer-control__goto-btn"
+            data-field="field2"
+          >
+            <i class="fas fa-crosshairs"></i>
+          </button>
+        </div>
+        <div class="kml-layer-control">
+          <label class="kml-layer-control__label">
+            <input type="checkbox" id="layer-field3" checked />
+            <span class="kml-layer-control__name">필지3</span>
+            <span
+              class="kml-layer-control__color"
+              style="background-color: #0000ff"
+            ></span>
+          </label>
+          <button
+            type="button"
+            class="kml-layer-control__goto-btn"
+            data-field="field3"
+          >
+            <i class="fas fa-crosshairs"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- 검색 영역 -->
     <div id="slide-panel-search-wrapper" class="slide-panel-search-wrapper">
       <input
@@ -38,21 +100,35 @@ pageEncoding="UTF-8"%>
       <div id="slide-panel-list-container" class="slide-panel-list-container">
         <!-- 데이터그리드 헤더 -->
         <div class="slide-panel-list-header">
-          <div class="slide-panel-list-header__cell slide-panel-list-header__cell--sequence">번호</div>
-          <div class="slide-panel-list-header__cell slide-panel-list-header__cell--address">주소</div>
+          <div
+            class="slide-panel-list-header__cell slide-panel-list-header__cell--sequence"
+          >
+            번호
+          </div>
+          <div
+            class="slide-panel-list-header__cell slide-panel-list-header__cell--address"
+          >
+            주소
+          </div>
         </div>
         <!-- 리스트 아이템들이 여기에 동적으로 추가됩니다 -->
       </div>
       <!-- 페이징 영역 -->
-      <div id="slide-panel-pagination-wrapper" class="slide-panel-pagination-wrapper">
+      <div
+        id="slide-panel-pagination-wrapper"
+        class="slide-panel-pagination-wrapper"
+      >
         <!-- 페이징 버튼들이 여기에 동적으로 추가됩니다 -->
       </div>
     </div>
     <!-- 로딩 영역 -->
-    <div id="slide-panel-loading" class="slide-panel-loading" style="display: none;">
-    </div>
+    <div
+      id="slide-panel-loading"
+      class="slide-panel-loading"
+      style="display: none"
+    ></div>
     <!-- 빈 상태 영역 -->
-    <div id="slide-panel-empty" class="slide-panel-empty" style="display: none;">
+    <div id="slide-panel-empty" class="slide-panel-empty" style="display: none">
       <div class="slide-panel-empty__icon">
         <i class="fas fa-inbox"></i>
       </div>
@@ -60,4 +136,3 @@ pageEncoding="UTF-8"%>
     </div>
   </div>
 </div>
-
