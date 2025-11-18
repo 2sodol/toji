@@ -50,9 +50,9 @@
   }
 
   /**
-   * 날짜시간 포맷팅
+   * 날짜시간 포맷팅 (년월일만 표시)
    * @param {string} dateTimeStr - 포맷팅할 날짜시간 문자열
-   * @returns {string} - 포맷팅된 날짜시간 문자열
+   * @returns {string} - 포맷팅된 날짜 문자열 (yyyy-MM-dd)
    */
   function formatDateTime(dateTimeStr) {
     if (!dateTimeStr) return "";
@@ -62,11 +62,7 @@
       "-" +
       String(date.getMonth() + 1).padStart(2, "0") +
       "-" +
-      String(date.getDate()).padStart(2, "0") +
-      " " +
-      String(date.getHours()).padStart(2, "0") +
-      ":" +
-      String(date.getMinutes()).padStart(2, "0")
+      String(date.getDate()).padStart(2, "0")
     );
   }
 
