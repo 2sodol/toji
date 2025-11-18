@@ -207,6 +207,8 @@
         var itemHtml =
           '<div class="slide-panel-list-item" data-id="' +
           (item.ilglPrvuInfoSeq || "") +
+          '" data-lnds-unq-no="' +
+          (item.lndsUnqNo || "") +
           '" data-gps-lgtd="' +
           gpsLgtd +
           '" data-gps-lttd="' +
@@ -341,6 +343,16 @@
         // 클릭된 아이템 하이라이트
         this.$listContainer.find(".slide-panel-list-item").removeClass("slide-panel-list-item--selected");
         $item.addClass("slide-panel-list-item--selected");
+
+        // 조회 모달 열기
+        if (window.illegalInquiryModal && typeof window.illegalInquiryModal.open === "function") {
+          // LNDS_UNQ_NO를 추출해야 함 - 현재는 ID를 사용하지만 실제로는 LNDS_UNQ_NO가 필요
+          // 임시로 ID를 사용하되, 실제 구현에서는 적절한 LNDS_UNQ_NO를 전달해야 함
+          var lndsUnqNo = $item.data("lnds-unq-no"); // data-lnds-unq-no 속성 사용
+          window.illegalInquiryModal.open(lndsUnqNo);
+        } else {
+          console.warn("조회 모달이 초기화되지 않았습니다.");
+        }
 
         // 이벤트 발생 (다른 모듈에서 사용할 수 있도록)
         $(document).trigger("slidePanel:itemClicked", {

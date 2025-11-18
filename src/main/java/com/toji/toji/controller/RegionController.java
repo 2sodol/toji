@@ -84,4 +84,107 @@ public class RegionController {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
   }
+
+  /**
+   * 특정 토지의 등록일 리스트를 조회한다.
+   *
+   * @param lndsUnqNo 토지고유번호
+   * @param type 조회 타입 (detail: 상세정보, photo: 사진)
+   * @return 등록일 리스트 응답
+   */
+  @RequestMapping(value = "/dates", method = RequestMethod.GET)
+  public ResponseEntity<Map<String, Object>> getDatesByLndsUnqNo(
+      @RequestParam String lndsUnqNo,
+      @RequestParam String type) {
+    try {
+      log.info("등록일 리스트 조회 요청: lndsUnqNo={}, type={}", lndsUnqNo, type);
+      
+      Map<String, Object> result = regionService.findDatesByLndsUnqNoAndType(lndsUnqNo, type);
+      Map<String, Object> response = new HashMap<>();
+      response.put("success", true);
+      response.put("data", result);
+      
+      log.info("등록일 리스트 조회 성공: lndsUnqNo={}, type={}, count={}", 
+          lndsUnqNo, type, result.get("dates") != null ? ((java.util.List<?>) result.get("dates")).size() : 0);
+      
+      return ResponseEntity.ok(response);
+    } catch (Exception ex) {
+      String errorMessage = ex.getMessage();
+      if (errorMessage == null || errorMessage.isEmpty()) {
+        errorMessage = ex.getClass().getSimpleName();
+      }
+      log.error("등록일 리스트 조회 실패: lndsUnqNo={}, type={}", lndsUnqNo, type, ex);
+      Map<String, Object> response = new HashMap<>();
+      response.put("success", false);
+      response.put("message", "등록일 리스트 조회에 실패했습니다: " + errorMessage);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+  }
+
+  /**
+   * 특정 SEQ의 상세정보를 조회한다.
+   *
+   * @param ilglPrvuInfoSeq 불법점용정보 SEQ
+   * @return 상세정보 응답
+   */
+  @RequestMapping(value = "/details", method = RequestMethod.GET)
+  public ResponseEntity<Map<String, Object>> getDetailBySeq(
+      @RequestParam Long ilglPrvuInfoSeq) {
+    try {
+      log.info("상세정보 조회 요청: ilglPrvuInfoSeq={}", ilglPrvuInfoSeq);
+      
+      Map<String, Object> result = regionService.findDetailBySeq(ilglPrvuInfoSeq);
+      Map<String, Object> response = new HashMap<>();
+      response.put("success", true);
+      response.put("data", result);
+      
+      log.info("상세정보 조회 성공: ilglPrvuInfoSeq={}", ilglPrvuInfoSeq);
+      
+      return ResponseEntity.ok(response);
+    } catch (Exception ex) {
+      String errorMessage = ex.getMessage();
+      if (errorMessage == null || errorMessage.isEmpty()) {
+        errorMessage = ex.getClass().getSimpleName();
+      }
+      log.error("상세정보 조회 실패: ilglPrvuInfoSeq={}", ilglPrvuInfoSeq, ex);
+      Map<String, Object> response = new HashMap<>();
+      response.put("success", false);
+      response.put("message", "상세정보 조회에 실패했습니다: " + errorMessage);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+  }
+
+  /**
+   * 특정 SEQ의 사진 리스트를 조회한다.
+   *
+   * @param ilglPrvuInfoSeq 불법점용정보 SEQ
+   * @return 사진 리스트 응답
+   */
+  @RequestMapping(value = "/photos", method = RequestMethod.GET)
+  public ResponseEntity<Map<String, Object>> getPhotosBySeq(
+      @RequestParam Long ilglPrvuInfoSeq) {
+    try {
+      log.info("사진 리스트 조회 요청: ilglPrvuInfoSeq={}", ilglPrvuInfoSeq);
+      
+      Map<String, Object> result = regionService.findPhotosBySeq(ilglPrvuInfoSeq);
+      Map<String, Object> response = new HashMap<>();
+      response.put("success", true);
+      response.put("data", result);
+      
+      log.info("사진 리스트 조회 성공: ilglPrvuInfoSeq={}, count={}", 
+          ilglPrvuInfoSeq, result.get("photos") != null ? ((java.util.List<?>) result.get("photos")).size() : 0);
+      
+      return ResponseEntity.ok(response);
+    } catch (Exception ex) {
+      String errorMessage = ex.getMessage();
+      if (errorMessage == null || errorMessage.isEmpty()) {
+        errorMessage = ex.getClass().getSimpleName();
+      }
+      log.error("사진 리스트 조회 실패: ilglPrvuInfoSeq={}", ilglPrvuInfoSeq, ex);
+      Map<String, Object> response = new HashMap<>();
+      response.put("success", false);
+      response.put("message", "사진 리스트 조회에 실패했습니다: " + errorMessage);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+  }
 }

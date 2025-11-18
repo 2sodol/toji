@@ -1,0 +1,489 @@
+/* ===== 조회 모달 기본 스타일 ===== */
+.illegal-inquiry-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.illegal-inquiry-modal[aria-hidden="false"] {
+  opacity: 1;
+  visibility: visible;
+}
+
+.illegal-inquiry-modal__window {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 95%;
+  max-width: 1200px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.illegal-inquiry-modal[aria-hidden="false"] .illegal-inquiry-modal__window {
+  transform: scale(1);
+}
+
+/* ===== 모달 헤더 ===== */
+.illegal-inquiry-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f8fafc;
+  border-radius: 8px 8px 0 0;
+}
+
+.illegal-inquiry-modal__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.illegal-inquiry-modal__close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.illegal-inquiry-modal__close-button:hover {
+  color: #374151;
+  background-color: #f3f4f6;
+}
+
+/* ===== 모달 바디 ===== */
+.illegal-inquiry-modal__body {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== 탭 네비게이션 ===== */
+.illegal-inquiry-tabs {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f8fafc;
+}
+
+.illegal-inquiry-tab {
+  flex: 1;
+  padding: 16px 24px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+  border-bottom: 3px solid transparent;
+}
+
+.illegal-inquiry-tab:hover {
+  color: #374151;
+  background-color: #f3f4f6;
+}
+
+.illegal-inquiry-tab--active {
+  color: #2563eb;
+  background-color: white;
+  border-bottom-color: #2563eb;
+}
+
+/* ===== 탭 콘텐츠 ===== */
+.illegal-inquiry-tab-content {
+  flex: 1;
+  display: none;
+  overflow: hidden;
+}
+
+.illegal-inquiry-tab-content--active {
+  display: flex;
+  flex-direction: column;
+}
+
+.illegal-inquiry-content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ===== 사이드바 (날짜 리스트) ===== */
+.illegal-inquiry-sidebar {
+  width: 250px;
+  background-color: #f8fafc;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+}
+
+.illegal-inquiry-sidebar__title {
+  margin: 0;
+  padding: 20px 16px 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.illegal-inquiry-date-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.illegal-inquiry-date-item {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  margin-bottom: 4px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.illegal-inquiry-date-item:hover {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.illegal-inquiry-date-item--active {
+  background-color: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.illegal-inquiry-date-item--active:hover {
+  background-color: #1d4ed8;
+}
+
+/* ===== 메인 콘텐츠 영역 ===== */
+.illegal-inquiry-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* ===== 상세정보 폼 ===== */
+.illegal-inquiry-form {
+  max-width: 800px;
+}
+
+.illegal-inquiry-form__section {
+  margin-bottom: 32px;
+}
+
+.illegal-inquiry-form__section-title {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.illegal-inquiry-grid {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.illegal-inquiry-grid--cols-1 {
+  grid-template-columns: 1fr;
+}
+
+.illegal-inquiry-grid--cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.illegal-inquiry-grid--cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.illegal-inquiry-grid--cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.illegal-inquiry-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.illegal-inquiry-label {
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.illegal-inquiry-input {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: #f9fafb;
+  color: #374151;
+  cursor: default;
+}
+
+.illegal-inquiry-input:focus {
+  outline: none;
+  border-color: #9ca3af;
+}
+
+/* ===== 조치이력 ===== */
+.illegal-inquiry-action-history {
+  background-color: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 16px;
+  min-height: 120px;
+}
+
+.illegal-inquiry-action-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.illegal-inquiry-action-item:last-child {
+  border-bottom: none;
+}
+
+.illegal-inquiry-action-date {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.illegal-inquiry-action-content {
+  flex: 1;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.illegal-inquiry-action-empty {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+  padding: 20px;
+}
+
+/* ===== 사진 갤러리 ===== */
+.illegal-inquiry-photo-gallery {
+  max-width: 800px;
+}
+
+.illegal-inquiry-photo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.illegal-inquiry-photo-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.illegal-inquiry-photo-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.illegal-inquiry-photo-btn {
+  padding: 8px 16px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.illegal-inquiry-photo-btn:hover {
+  background-color: #1d4ed8;
+}
+
+.illegal-inquiry-photo-btn:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.illegal-inquiry-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.illegal-inquiry-photo-item {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.illegal-inquiry-photo-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.illegal-inquiry-photo-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  background-color: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.illegal-inquiry-photo-info {
+  padding: 12px;
+}
+
+.illegal-inquiry-photo-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+
+.illegal-inquiry-photo-size {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.illegal-inquiry-photo-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* ===== 모달 푸터 ===== */
+.illegal-inquiry-modal__footer {
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
+  background-color: #f8fafc;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-radius: 0 0 8px 8px;
+}
+
+.illegal-inquiry-modal__button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.illegal-inquiry-modal__button--secondary {
+  background-color: #6b7280;
+  color: white;
+  border-color: #6b7280;
+}
+
+.illegal-inquiry-modal__button--secondary:hover {
+  background-color: #4b5563;
+  border-color: #4b5563;
+}
+
+/* ===== 반응형 디자인 ===== */
+@media (max-width: 768px) {
+  .illegal-inquiry-modal__window {
+    width: 100%;
+    height: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .illegal-inquiry-content {
+    flex-direction: column;
+  }
+
+  .illegal-inquiry-sidebar {
+    width: 100%;
+    max-height: 200px;
+  }
+
+  .illegal-inquiry-grid--cols-3,
+  .illegal-inquiry-grid--cols-4 {
+    grid-template-columns: 1fr;
+  }
+
+  .illegal-inquiry-grid--cols-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .illegal-inquiry-photo-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+}
+
+/* ===== 스크롤바 스타일링 ===== */
+.illegal-inquiry-date-list::-webkit-scrollbar,
+.illegal-inquiry-main::-webkit-scrollbar {
+  width: 6px;
+}
+
+.illegal-inquiry-date-list::-webkit-scrollbar-track,
+.illegal-inquiry-main::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.illegal-inquiry-date-list::-webkit-scrollbar-thumb,
+.illegal-inquiry-main::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.illegal-inquiry-date-list::-webkit-scrollbar-thumb:hover,
+.illegal-inquiry-main::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

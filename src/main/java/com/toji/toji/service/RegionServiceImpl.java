@@ -1,6 +1,7 @@
 package com.toji.toji.service;
 
 import com.toji.toji.domain.ActionHistory;
+import com.toji.toji.domain.Attachment;
 import com.toji.toji.domain.BasicInfo;
 import com.toji.toji.dto.RegionRegisterRequest;
 import com.toji.toji.mapper.RegionMapper;
@@ -147,6 +148,56 @@ public class RegionServiceImpl implements RegionService {
     result.put("totalPages", totalPages);
     result.put("currentPage", page);
     result.put("pageSize", size);
+
+    return result;
+  }
+
+  @Override
+  public Map<String, Object> findDatesByLndsUnqNoAndType(String lndsUnqNo, String type) {
+    Object dates;
+    
+    if ("detail".equals(type)) {
+      dates = regionMapper.findDetailDatesByLndsUnqNo(lndsUnqNo);
+    } else if ("photo".equals(type)) {
+      dates = regionMapper.findPhotoDatesByLndsUnqNo(lndsUnqNo);
+    } else {
+      throw new IllegalArgumentException("Invalid type: " + type + ". Must be 'detail' or 'photo'");
+    }
+
+    Map<String, Object> result = new HashMap<>();
+    result.put("lndsUnqNo", lndsUnqNo);
+    result.put("type", type);
+    result.put("dates", dates);
+
+    return result;
+  }
+
+  @Override
+  public Map<String, Object> findDetailBySeq(Long ilglPrvuInfoSeq) {
+    BasicInfo basicInfo = regionMapper.findDetailBySeq(ilglPrvuInfoSeq);
+    
+    if (basicInfo == null) {
+      throw new RuntimeException("해당 SEQ의 상세정보를 찾을 수 없습니다: ilglPrvuInfoSeq=" + ilglPrvuInfoSeq);
+    }
+
+    // 조치이력 조회
+    List<ActionHistory> actionHistories = regionMapper.findActionHistoriesByBasicInfoId(basicInfo.getIlglPrvuInfoSeq());
+
+    Map<String, Object> result = new HashMap<>();
+    result.put("ilglPrvuInfoSeq", ilglPrvuInfoSeq);
+    result.put("basicInfo", basicInfo);
+    result.put("actionHistories", actionHistories);
+
+    return result;
+  }
+
+  @Override
+  public Map<String, Object> findPhotosBySeq(Long ilglPrvuInfoSeq) {
+    List<Attachment> photos = regionMapper.findPhotosBySeq(ilglPrvuInfoSeq);
+
+    Map<String, Object> result = new HashMap<>();
+    result.put("ilglPrvuInfoSeq", ilglPrvuInfoSeq);
+    result.put("photos", photos);
 
     return result;
   }

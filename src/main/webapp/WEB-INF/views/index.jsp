@@ -33,6 +33,10 @@ pageEncoding="UTF-8"%>
       rel="stylesheet"
       href="<%=request.getContextPath()%>/resources/css/slide-panel.css"
     />
+    <link
+      rel="stylesheet"
+      href="<%=request.getContextPath()%>/resources/css/inquiry-modal.css"
+    />
   </head>
   <body>
     <!-- 슬라이드 패널 JSP 포함 -->
@@ -57,8 +61,13 @@ pageEncoding="UTF-8"%>
 
     <!-- 등록 모달 JSP 포함 -->
     <jsp:include page="register-modal.jsp" />
+    
+    <!-- 조회 모달 JSP 포함 -->
+    <jsp:include page="inquiry-modal.jsp" />
+    
     <script src="<%=request.getContextPath()%>/resources/js/register.js"></script>
     <script src="<%=request.getContextPath()%>/resources/js/slide-panel.js"></script>
+    <script src="<%=request.getContextPath()%>/resources/js/inquiry-modal.js"></script>
 
     <script type="text/javascript">
       // 지도에서 선택된 피처 및 속성 정보 저장용 전역 변수
@@ -329,6 +338,11 @@ pageEncoding="UTF-8"%>
             alert("등록할 정보가 없습니다. 지도를 다시 클릭해주세요.");
           }
         });
+        
+        // 조회 모달 초기화
+        if (typeof IllegalInquiryModal === "function") {
+          illegalInquiryModal = new IllegalInquiryModal();
+        }
       };
     </script>
   </body>

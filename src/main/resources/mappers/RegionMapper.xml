@@ -221,4 +221,82 @@
         LSTTM_ALTR_DTTM = SYSDATE
     WHERE ILGL_PRVU_INFO_SEQ = #{basicInfoId}
   </delete>
+
+  <!-- 첨부파일 관련 쿼리 -->
+  
+  <!-- 특정 토지의 상세정보 등록일 리스트 조회 -->
+  <select id="findDetailDatesByLndsUnqNo" parameterType="String" resultType="map">
+    SELECT 
+      OCRN_DATES AS ocrnDates,
+      PRCH_EMNO AS prchEmno,
+      ILGL_PRVU_INFO_SEQ AS ilglPrvuInfoSeq
+    FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
+    WHERE LNDS_UNQ_NO = #{lndsUnqNo}
+      AND USE_YN = 'Y'
+    ORDER BY OCRN_DATES DESC, ILGL_PRVU_INFO_SEQ DESC
+  </select>
+
+  <!-- 특정 토지의 사진 등록일 리스트 조회 -->
+  <select id="findPhotoDatesByLndsUnqNo" parameterType="String" resultType="map">
+    SELECT 
+      a.OCRN_DATES AS ocrnDates,
+      MAX(p.ILGL_PRVU_INFO_SEQ) AS ilglPrvuInfoSeq,
+      MAX(p.PRCH_EMNO) AS prchEmno
+    FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 a
+    INNER JOIN DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1 p 
+      ON a.ILGL_PRVU_ADDR_SEQ = p.ILGL_PRVU_INFO_SEQ
+    WHERE p.LNDS_UNQ_NO = #{lndsUnqNo}
+      AND p.USE_YN = 'Y'
+      AND a.OCRN_DATES IS NOT NULL
+    GROUP BY a.OCRN_DATES
+    ORDER BY a.OCRN_DATES DESC
+  </select>
+
+  <!-- 특정 SEQ의 상세정보 조회 -->
+  <select id="findDetailBySeq" parameterType="Long" resultType="BasicInfo">
+    SELECT
+      ILGL_PRVU_INFO_SEQ as ilglPrvuInfoSeq,
+      GPS_LGTD as gpsLgtd,
+      GPS_LTTD as gpsLttd,
+      LNDS_UNQ_NO as lndsUnqNo,
+      LNDS_LDNO_ADDR as lndsLdnoAddr,
+      HDQR_NM as hdqrNm,
+      MTNOF_NM as mtnofNm,
+      ROUTE_CD as routeCd,
+      DRVE_DRCT_CD as drveDrctCd,
+      ROUTE_DSTNC as routeDstnc,
+      STRC_CLSS_CD as strcClssCd,
+      OCRN_DATES as ocrnDates,
+      PRCH_EMNO as prchEmno,
+      TRNR_NM as trnrNm,
+      RLTR_NM as rltrNm,
+      TRNR_ADDR as trnrAddr,
+      RLTR_ADDR as rltrAddr,
+      ILGL_PSSRT as ilglPssrt,
+      ILGL_PSSN_SQMS as ilglPssnSqms,
+      ILGL_PRVU_ACTN_STAT_VAL as ilglPrvuActnStatVal,
+      FSTTM_RGSR_ID as fsttmRgsrId,
+      FSTTM_RGST_DTTM as fsttmRgstDttm,
+      LSTTM_MODFR_ID as lsttmModfrId,
+      LSTTM_ALTR_DTTM as lsttmAltrDttm,
+      USE_YN as useYn
+    FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
+    WHERE ILGL_PRVU_INFO_SEQ = #{ilglPrvuInfoSeq}
+      AND USE_YN = 'Y'
+  </select>
+
+  <!-- 특정 SEQ의 사진 리스트 조회 -->
+  <select id="findPhotosBySeq" parameterType="Long" resultType="Attachment">
+    SELECT
+      a.ILGL_ATTFL_SEQ as ilglAttflSeq,
+      a.ILGL_PRVU_ADDR_SEQ as ilglPrvuAddrSeq,
+      a.ATTFL_NM as attflNm,
+      a.ATTFL_PATH as attflPath,
+      a.ATTFL_CPCT as attflCpct,
+      a.OCRN_DATES as ocrnDates
+    FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 a
+    WHERE a.ILGL_PRVU_ADDR_SEQ = #{ilglPrvuInfoSeq}
+    ORDER BY a.ILGL_ATTFL_SEQ DESC
+  </select>
+
 </mapper>
