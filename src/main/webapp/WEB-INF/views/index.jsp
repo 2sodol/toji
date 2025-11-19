@@ -603,14 +603,8 @@ pageEncoding="UTF-8"%>
                   var imageLayer = new ol.layer.Image({
                     source: new ol.source.ImageStatic({
                       url: fullImagePath,
-                      //imageExtent: ol.extent.boundingExtent(transformedCoords),
+                      imageExtent: ol.extent.boundingExtent(transformedCoords),
                       projection: "EPSG:3857",
-                      imageExtent: [
-                        14239464.2594340723007917,  // minX (좌측)
-                        4330956.0154813230037689,   // minY (하단)
-                        14239635.9350230209529400,  // maxX (우측)
-                        4331150.7715587764978409    // maxY (상단)
-]
                     }),
                     opacity: 1.0, // 완전 불투명으로 설정하여 선명도 향상
                     zIndex: 1,
