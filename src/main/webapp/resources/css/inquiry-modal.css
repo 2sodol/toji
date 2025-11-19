@@ -456,14 +456,16 @@
 }
 
 .illegal-inquiry-modal__button--secondary {
-  background-color: #6b7280;
-  color: white;
-  border-color: #6b7280;
+  background-color: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
 }
 
-.illegal-inquiry-modal__button--secondary:hover {
-  background-color: #4b5563;
-  border-color: #4b5563;
+.illegal-inquiry-modal__button--secondary:hover,
+.illegal-inquiry-modal__button--secondary:focus-visible {
+  color: #1f2937;
+  background-color: #e5e7eb;
+  border-color: #9ca3af;
 }
 
 /* ===== 반응형 디자인 ===== */
