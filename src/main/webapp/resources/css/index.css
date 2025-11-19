@@ -55,11 +55,12 @@ body {
 .ol-popup-closer {
   text-decoration: none;
   position: absolute;
-  top: 2px;
+  top: 8px;
   right: 8px;
   color: #1a73e8;
   font-weight: bold;
   transition: color 0.2s;
+  z-index: 1;
 }
 
 .ol-popup-closer:hover {
@@ -77,9 +78,32 @@ body {
   content: "✖";
 }
 
+/* 팝업 헤더 스타일 */
+.ol-popup-header {
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  margin-top: 0;
+}
+
+.ol-popup-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  padding-right: 20px;
+}
+
 #popup-content {
   font-size: 14px;
   margin-bottom: 10px;
+}
+
+/* 팝업 내 버튼 컨테이너 스타일 */
+#popup-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
 }
 
 /* 팝업 내 등록 버튼 스타일 */
@@ -87,7 +111,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
+  flex: 1;
   padding: 8px 10px;
   font-size: 14px;
   font-weight: bold;
@@ -96,11 +120,12 @@ body {
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
 }
 
 .map-register-btn:hover {
   background-color: #f8f9fa;
+  border-color: #1a73e8;
 }
 
 .map-register-btn:focus,
@@ -113,6 +138,41 @@ body {
 }
 
 .map-register-btn .fas {
+  margin-right: 6px;
+}
+
+/* 팝업 내 조회 버튼 스타일 */
+.map-inquiry-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 8px 10px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #7c3aed;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.map-inquiry-btn:hover {
+  background-color: #f5f3ff;
+  border-color: #7c3aed;
+}
+
+.map-inquiry-btn:focus,
+.map-inquiry-btn:active {
+  background-color: #ede9fe;
+  border-color: #7c3aed;
+  color: #6d28d9;
+  outline: none;
+  box-shadow: none;
+}
+
+.map-inquiry-btn .fas {
   margin-right: 6px;
 }
 

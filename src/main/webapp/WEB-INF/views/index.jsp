@@ -53,10 +53,18 @@ pageEncoding="UTF-8"%>
     <!-- 지도 선택 결과를 보여주는 팝업 -->
     <div id="popup" class="ol-popup">
       <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+      <div id="popup-header" class="ol-popup-header">
+        <h3 class="ol-popup-title">불법점용점검</h3>
+      </div>
       <div id="popup-content"></div>
-      <button id="popup-register-btn" class="map-register-btn">
-        <i class="fas fa-plus"></i>이 위치 등록
-      </button>
+      <div id="popup-buttons">
+        <button id="popup-register-btn" class="map-register-btn">
+          <i class="fas fa-plus"></i>등록
+        </button>
+        <button id="popup-inquiry-btn" class="map-inquiry-btn" style="display: none;">
+          <i class="fas fa-search"></i>조회
+        </button>
+      </div>
     </div>
 
     <!-- 등록 모달 JSP 포함 -->
@@ -115,6 +123,57 @@ pageEncoding="UTF-8"%>
         }
 
         return region;
+      }
+
+      // 데이터 존재 여부 확인 후 팝업 버튼 업데이트
+      function checkDataExistenceAndUpdateButtons(pnu) {
+        if (!pnu) {
+          resetPopupButtons();
+          return;
+        }
+
+        // LNDS_UNQ_NO로 데이터 존재 여부 확인
+        $.ajax({
+          url: "/regions/dates",
+          method: "GET",
+          data: {
+            lndsUnqNo: pnu,
+            type: "detail"
+          },
+          dataType: "json"
+        })
+        .done(function(response) {
+          if (response.success && response.data && response.data.dates) {
+            var dates = response.data.dates;
+            if (Array.isArray(dates) && dates.length > 0) {
+              // 데이터가 존재하는 경우 - 등록 버튼과 조회 버튼 모두 표시
+              showBothButtons();
+            } else {
+              // 데이터가 없는 경우 - 등록 버튼만 표시
+              resetPopupButtons();
+            }
+          } else {
+            // API 호출은 성공했지만 데이터가 없는 경우
+            resetPopupButtons();
+          }
+        })
+        .fail(function(xhr, status, error) {
+          console.warn("데이터 존재 여부 확인 실패:", status, error);
+          // 실패 시에도 등록 버튼은 표시
+          resetPopupButtons();
+        });
+      }
+
+      // 팝업 버튼을 기본 상태로 리셋 (등록 버튼만 표시)
+      function resetPopupButtons() {
+        $("#popup-register-btn").show();
+        $("#popup-inquiry-btn").hide();
+      }
+
+      // 등록 버튼과 조회 버튼 모두 표시
+      function showBothButtons() {
+        $("#popup-register-btn").show();
+        $("#popup-inquiry-btn").show();
       }
 
       // 팝업에 표시할 내용을 HTML 템플릿으로 반환
@@ -437,6 +496,7 @@ pageEncoding="UTF-8"%>
           selectedProperties = null;
           selectedFeature = null;
           selectedRegionData = null;
+          resetPopupButtons(); // 팝업 닫을 때 버튼 상태 리셋
           return false;
         };
 
@@ -504,6 +564,10 @@ pageEncoding="UTF-8"%>
                     coordinate
                   );
                   content.innerHTML = buildPopupContent(selectedRegionData);
+                  
+                  // 데이터 존재 여부 확인 후 버튼 표시
+                  checkDataExistenceAndUpdateButtons(selectedRegionData.pnu);
+                  
                   overlay.setPosition(coordinate);
                 } else {
                   selectedProperties = null;
@@ -511,6 +575,10 @@ pageEncoding="UTF-8"%>
                   selectedRegionData = null;
                   content.innerHTML =
                     "<span>선택한 위치의 지적 정보가 없습니다.</span>";
+                  
+                  // 지적 정보가 없는 경우 등록 버튼만 표시
+                  resetPopupButtons();
+                  
                   overlay.setPosition(coordinate);
                 }
               })
@@ -518,6 +586,7 @@ pageEncoding="UTF-8"%>
                 console.error("GetFeatureInfo Error:", err);
                 window.highlightSource.clear();
                 overlay.setPosition(undefined);
+                resetPopupButtons(); // 에러 시에도 버튼 상태 리셋
               });
           }
         });
@@ -557,6 +626,22 @@ pageEncoding="UTF-8"%>
             }
           } else {
             alert("등록할 정보가 없습니다. 지도를 다시 클릭해주세요.");
+          }
+        });
+
+        // 팝업 내 조회 버튼 클릭 시 조회 모달 띄우기
+        $("#popup-inquiry-btn").on("click", function () {
+          if (selectedRegionData && selectedRegionData.pnu) {
+            if (
+              window.illegalInquiryModal &&
+              typeof window.illegalInquiryModal.open === "function"
+            ) {
+              window.illegalInquiryModal.open(selectedRegionData.pnu);
+            } else {
+              console.warn("IllegalInquiryModal이 초기화되지 않았습니다.");
+            }
+          } else {
+            alert("조회할 정보가 없습니다. 지도를 다시 클릭해주세요.");
           }
         });
 
