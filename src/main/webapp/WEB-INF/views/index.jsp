@@ -125,10 +125,14 @@ pageEncoding="UTF-8"%>
         return region;
       }
 
-      // 데이터 존재 여부 확인 후 팝업 버튼 업데이트
-      function checkDataExistenceAndUpdateButtons(pnu) {
+      // 데이터 존재 여부 확인 후 팝업 버튼 업데이트 및 스타일 적용
+      function checkDataExistenceAndUpdateButtons(pnu, feature) {
         if (!pnu) {
           resetPopupButtons();
+          // feature에 데이터 없음 표시
+          if (feature) {
+            feature.set('hasData', false);
+          }
           return;
         }
 
@@ -148,19 +152,35 @@ pageEncoding="UTF-8"%>
             if (Array.isArray(dates) && dates.length > 0) {
               // 데이터가 존재하는 경우 - 등록 버튼과 조회 버튼 모두 표시
               showBothButtons();
+              // feature에 데이터 있음 표시 (붉은색 테두리)
+              if (feature) {
+                feature.set('hasData', true);
+                feature.changed(); // 지도 다시 렌더링
+              }
             } else {
               // 데이터가 없는 경우 - 등록 버튼만 표시
               resetPopupButtons();
+              // feature에 데이터 없음 표시 (파란색 기본 스타일)
+              if (feature) {
+                feature.set('hasData', false);
+                feature.changed(); // 지도 다시 렌더링
+              }
             }
           } else {
             // API 호출은 성공했지만 데이터가 없는 경우
             resetPopupButtons();
+            if (feature) {
+              feature.set('hasData', false);
+            }
           }
         })
         .fail(function(xhr, status, error) {
           console.warn("데이터 존재 여부 확인 실패:", status, error);
           // 실패 시에도 등록 버튼은 표시
           resetPopupButtons();
+          if (feature) {
+            feature.set('hasData', false);
+          }
         });
       }
 
@@ -237,7 +257,7 @@ pageEncoding="UTF-8"%>
             INFO_FORMAT: "application/json",
             QUERY_LAYERS: layerName,
             FEATURE_COUNT: 1,
-            domain: "http://localhost",
+            //domain: "http://localhost",
             info_format: "text/javascript",
           }
         );
@@ -266,9 +286,6 @@ pageEncoding="UTF-8"%>
                 featureProjection: "EPSG:3857",
               });
               
-              // 영역 하이라이트 표시
-              window.highlightSource.addFeature(selectedFeature);
-              
               // regionData 구성
               selectedRegionData = buildRegionData(
                 selectedProperties,
@@ -281,19 +298,27 @@ pageEncoding="UTF-8"%>
                 selectedRegionData.pnu = pnu;
               }
               
+              // 초기에는 데이터 없음으로 설정 (기본 파란색 스타일)
+              selectedFeature.set('hasData', false);
+              
+              // 영역 하이라이트 표시
+              window.highlightSource.addFeature(selectedFeature);
+              
               // 팝업 내용 생성
               window.popupContent.innerHTML = buildPopupContent(selectedRegionData);
               
-              // 데이터 존재 여부 확인 후 버튼 표시
+              // 데이터 존재 여부 확인 후 버튼 표시 및 스타일 업데이트
               if (checkDataExistence) {
                 var pnuToCheck = selectedRegionData.pnu || pnu;
                 if (pnuToCheck) {
-                  checkDataExistenceAndUpdateButtons(pnuToCheck);
+                  checkDataExistenceAndUpdateButtons(pnuToCheck, selectedFeature);
                 } else {
                   resetPopupButtons();
+                  selectedFeature.set('hasData', false);
                 }
               } else {
                 resetPopupButtons();
+                selectedFeature.set('hasData', false);
               }
               
               // 팝업 표시
@@ -377,19 +402,38 @@ pageEncoding="UTF-8"%>
           }),
           zIndex: 5, // 이미지 위에 표시되도록 설정
         });
-        // 선택 영역 하이라이트 스타일
-        var highlightStyle = new ol.style.Style({
+        // 선택 영역 하이라이트 스타일 (동적 스타일 함수)
+        // 데이터 없을 때: 파란색 + fill (기본 스타일)
+        var defaultHighlightStyle = new ol.style.Style({
           stroke: new ol.style.Stroke({
             color: "rgba(0, 153, 255, 0.8)",
             width: 3,
           }),
           fill: new ol.style.Fill({ color: "rgba(0, 153, 255, 0.1)" }),
         });
+        
+        // 데이터 있을 때: 붉은색 테두리만 (fill 없음)
+        var dataExistsHighlightStyle = new ol.style.Style({
+          stroke: new ol.style.Stroke({
+            color: "rgba(255, 0, 0, 0.8)",
+            width: 3,
+          }),
+          // fill 없음
+        });
+        
         // 하이라이트 소스를 전역 변수로 선언
         window.highlightSource = new ol.source.Vector();
         var highlightLayer = new ol.layer.Vector({
           source: window.highlightSource,
-          style: highlightStyle,
+          style: function(feature) {
+            // feature의 hasData 속성에 따라 스타일 반환
+            var hasData = feature.get('hasData');
+            if (hasData === true) {
+              return dataExistsHighlightStyle;
+            } else {
+              return defaultHighlightStyle;
+            }
+          },
           zIndex: 10, // 이미지 위에 표시되도록 높은 zIndex
         });
 
