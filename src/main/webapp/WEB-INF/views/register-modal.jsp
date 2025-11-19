@@ -21,7 +21,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
         data-register-modal-close
         aria-label="닫기"
       >
-        <span aria-hidden="true">&times;</span>
+        <i class="fas fa-times" aria-hidden="true"></i>
       </button>
     </header>
     <div class="illegal-register-modal__body">
@@ -524,6 +524,11 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     font-size: 24px;
     color: #6b7280;
     transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .illegal-register-modal__close-button i {
+    display: block;
+    line-height: 1;
   }
 
   .illegal-register-modal__close-button:hover,

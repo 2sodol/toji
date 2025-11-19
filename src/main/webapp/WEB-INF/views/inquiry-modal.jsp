@@ -16,7 +16,7 @@
         data-inquiry-modal-close
         aria-label="닫기"
       >
-        <span aria-hidden="true">&times;</span>
+        <i class="fas fa-times" aria-hidden="true"></i>
       </button>
     </header>
 

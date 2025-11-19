@@ -42,33 +42,41 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  padding: 20px 28px;
   border-bottom: 1px solid #e5e7eb;
-  background-color: #f8fafc;
-  border-radius: 8px 8px 0 0;
+  gap: 12px;
 }
 
 .illegal-inquiry-modal__title {
   margin: 0;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 600;
-  color: #1f2937;
+  color: #111827;
 }
 
 .illegal-inquiry-modal__close-button {
-  background: none;
-  border: none;
+  all: unset;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
   font-size: 24px;
   color: #6b7280;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: color 0.2s ease, background-color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  position: relative;
 }
 
-.illegal-inquiry-modal__close-button:hover {
+.illegal-inquiry-modal__close-button i {
+  display: block;
+  line-height: 1;
+}
+
+.illegal-inquiry-modal__close-button:hover,
+.illegal-inquiry-modal__close-button:focus-visible {
+  background-color: rgba(107, 114, 128, 0.15);
   color: #374151;
-  background-color: #f3f4f6;
 }
 
 /* ===== 모달 바디 ===== */
