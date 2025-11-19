@@ -13,10 +13,15 @@
 
   /**
    * 모듈 내부에서 공유되는 UI 상태 값.
-   * selectedPhotoFiles: 사용자가 첨부한 사진 파일 목록 (File 객체 배열)
+   * selectedFiles: 각 파일 타입별로 선택된 파일 정보
+   *   - image: 이미지 파일 (갤러리용 및 레이어용으로 공통 사용)
+   *   - kml: KML 파일
    */
   var state = {
-    selectedPhotoFiles: [],
+    selectedFiles: {
+      image: null, // { file: File, base64: string, preview: string }
+      kml: null,
+    },
   };
 
   /**
@@ -105,46 +110,136 @@
   }
 
   /**
-   * 첨부된 사진 파일 목록을 UI에 갱신한다.
-   * - 파일이 없는 경우 플레이스홀더 문구를 표시한다.
-   * - 각 파일 옆에는 삭제 버튼을 함께 표시한다.
+   * 파일을 base64로 인코딩한다.
+   * @param {File} file - 인코딩할 파일 객체
+   * @returns {Promise<string>} - base64 인코딩된 문자열 (data URL 형식)
    */
-  function updatePhotoFileList() {
-    var $list = $("#illegalPhotoFileList");
+  function encodeFileToBase64(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        resolve(reader.result);
+      };
+      reader.onerror = function (error) {
+        reject(error);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
 
-    $list.empty();
+  /**
+   * 파일 타입에 따른 아이콘 클래스를 반환한다.
+   * @param {string} fileType - 파일 타입 ('image', 'kml')
+   * @returns {string} - FontAwesome 아이콘 클래스
+   */
+  function getFileIconClass(fileType) {
+    switch (fileType) {
+      case "image":
+        return "fas fa-image";
+      case "kml":
+        return "fas fa-map";
+      default:
+        return "fas fa-file";
+    }
+  }
 
-    if (!state.selectedPhotoFiles.length) {
-      var $placeholder = $("<li>", {
-        class: "illegal-register-photo__placeholder",
-        id: "illegalPhotoFilePlaceholder",
+  /**
+   * 파일 크기를 읽기 쉬운 형식으로 변환한다.
+   * @param {number} bytes - 바이트 단위 크기
+   * @returns {string} - 변환된 크기 문자열
+   */
+  function formatFileSize(bytes) {
+    if (bytes === 0) return "0 Bytes";
+    var k = 1024;
+    var sizes = ["Bytes", "KB", "MB", "GB"];
+    var i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+  }
+
+  /**
+   * 특정 파일 타입의 미리보기 UI를 갱신한다.
+   * @param {string} fileType - 파일 타입 ('tif', 'png', 'kml')
+   */
+  function updateFilePreview(fileType) {
+    var $preview = $("#" + fileType + "FilePreview");
+    var fileData = state.selectedFiles[fileType];
+
+    $preview.empty();
+
+    if (!fileData) {
+      var $placeholder = $("<div>", {
+        class: "illegal-register-file-upload__placeholder",
         text: "선택된 파일이 없습니다.",
       });
-      $list.append($placeholder);
+      $preview.append($placeholder);
       return;
     }
 
-    $.each(state.selectedPhotoFiles, function (index, file) {
-      var sizeLabel = file.size ? " (" + (file.size / 1024).toFixed(1) + " KB)" : "";
-      var $listItem = $("<li>", {
-        class: "illegal-register-photo__item",
-      });
-
-      var $nameSpan = $("<span>", {
-        class: "illegal-register-photo__name",
-        text: escapeHtml(file.name) + sizeLabel,
-      });
-
-      var $removeBtn = $("<button>", {
-        type: "button",
-        class: "illegal-register-photo__remove remove-photo-file-btn",
-        "data-index": index,
-        text: "삭제",
-      });
-
-      $listItem.append($nameSpan).append($removeBtn);
-      $list.append($listItem);
+    var $item = $("<div>", {
+      class: "illegal-register-file-upload__item",
     });
+
+    var $itemInfo = $("<div>", {
+      class: "illegal-register-file-upload__item-info",
+    });
+
+    var $icon = $("<div>", {
+      class: "illegal-register-file-upload__item-icon illegal-register-file-upload__item-icon--" + fileType,
+    });
+    var $iconElement = $("<i>", {
+      class: getFileIconClass(fileType),
+    });
+    $icon.append($iconElement);
+
+    var $details = $("<div>", {
+      class: "illegal-register-file-upload__item-details",
+    });
+    var $name = $("<div>", {
+      class: "illegal-register-file-upload__item-name",
+      text: escapeHtml(fileData.file.name),
+    });
+    var $size = $("<div>", {
+      class: "illegal-register-file-upload__item-size",
+      text: formatFileSize(fileData.file.size),
+    });
+    $details.append($name).append($size);
+
+    $itemInfo.append($icon).append($details);
+
+    // 이미지 파일인 경우 미리보기 추가
+    if (fileType === "image") {
+      if (fileData.preview) {
+        var $previewImg = $("<img>", {
+          class: "illegal-register-file-upload__item-preview",
+          src: fileData.preview,
+          alt: escapeHtml(fileData.file.name),
+        });
+        $itemInfo.append($previewImg);
+      }
+    }
+
+    var $removeBtn = $("<button>", {
+      type: "button",
+      class: "illegal-register-file-upload__item-remove",
+      "data-file-type": fileType,
+      title: "삭제",
+      "aria-label": "삭제",
+    });
+    var $removeIcon = $("<i>", {
+      class: "fas fa-times",
+    });
+    $removeBtn.append($removeIcon);
+
+    $item.append($itemInfo).append($removeBtn);
+    $preview.append($item);
+  }
+
+  /**
+   * 모든 파일 미리보기를 갱신한다.
+   */
+  function updateAllFilePreviews() {
+    updateFilePreview("image");
+    updateFilePreview("kml");
   }
 
   /**
@@ -164,12 +259,17 @@
     $('input[name="ilglPrvuActnStatVal"][value="IN_PROGRESS"]').prop("checked", true);
 
     resetActionHistoryList();
-    state.selectedPhotoFiles = [];
-    updatePhotoFileList();
-    $("#illegalPhotoFileInput").val("");
-
+    state.selectedFiles = {
+      image: null,
+      kml: null,
+    };
+    updateAllFilePreviews();
+    $("#imageFileInput").val("");
+    $("#kmlFileInput").val("");
+    
+    // 이미지 등록일 초기화 (오늘 날짜로 설정)
     var today = new Date().toISOString().split("T")[0];
-    $("#illegalPhotoRegisteredAtInput").val(today);
+    $("#imageOcrnDates").val(today);
 
     // 히든 필드 초기화
     $("#lndsUnqNo").val("");
@@ -387,11 +487,13 @@
 
     // 모달이 열릴 때만 실행되는 이벤트 리스너
     $modal.on("illegalRegisterModal:open", function () {
-      if (!$("#illegalPhotoRegisteredAtInput").val()) {
+      updateAllFilePreviews();
+      
+      // 이미지 등록일 초기화 (오늘 날짜로 설정)
+      if (!$("#imageOcrnDates").val()) {
         var today = new Date().toISOString().split("T")[0];
-        $("#illegalPhotoRegisteredAtInput").val(today);
+        $("#imageOcrnDates").val(today);
       }
-      updatePhotoFileList();
 
       // 모달이 열릴 때 서버에서 초기 데이터를 가져오는 Ajax 호출
       $.ajax({
@@ -451,32 +553,87 @@
   }
 
   /**
-   * 사진 업로드 관련 이벤트를 바인딩한다.
-   * - 업로드 버튼 클릭 시 파일 선택창 열기
-   * - 파일 선택 시 상태 저장 및 리스트 갱신
-   * - 리스트 내 삭제 버튼 처리
+   * 파일 업로드 관련 이벤트를 바인딩한다.
+   * - 각 파일 타입별 업로드 버튼 클릭 시 파일 선택창 열기
+   * - 파일 선택 시 base64 인코딩 및 상태 저장
+   * - 미리보기 갱신 및 삭제 버튼 처리
    */
-  function bindPhotoUploadEvents() {
-    $("#illegalPhotoUploadBtn").on("click", function () {
-      var $fileInput = $("#illegalPhotoFileInput");
+  function bindFileUploadEvents() {
+    // 각 파일 타입별 업로드 버튼 이벤트
+    $("#imageFileUploadBtn, #kmlFileUploadBtn").on("click", function () {
+      var fileType = $(this).data("file-upload-type");
+      var $fileInput = $("#" + fileType + "FileInput");
       $fileInput.trigger("click");
     });
 
-    $("#illegalPhotoFileInput").on("change", function () {
+    // 각 파일 타입별 파일 선택 이벤트
+    $("#imageFileInput, #kmlFileInput").on("change", function () {
       var $input = $(this);
-      var files = $input[0].files || [];
-      state.selectedPhotoFiles = $.makeArray(files);
-      updatePhotoFileList();
-      $input.val("");
+      var fileType = $input.data("file-type");
+      var file = $input[0].files && $input[0].files[0];
+
+      if (!file) {
+        return;
+      }
+
+      // 파일 타입 검증
+      var isValid = false;
+      if (fileType === "image") {
+        var fileName = file.name.toLowerCase();
+        isValid = fileName.endsWith(".tif") || fileName.endsWith(".tiff") || fileName.endsWith(".png");
+      } else if (fileType === "kml") {
+        isValid = file.name.toLowerCase().endsWith(".kml");
+      }
+
+      if (!isValid) {
+        var fileTypeLabel = fileType === "image" ? "이미지 (TIF/PNG)" : "KML";
+        showRegisterAlert("warning", "올바른 " + fileTypeLabel + " 파일을 선택해주세요.");
+        $input.val("");
+        return;
+      }
+
+      // 파일 크기 제한 (예: 50MB)
+      var maxSize = 50 * 1024 * 1024; // 50MB
+      if (file.size > maxSize) {
+        showRegisterAlert("warning", "파일 크기는 50MB 이하여야 합니다.");
+        $input.val("");
+        return;
+      }
+
+      // base64 인코딩 및 미리보기 생성
+      encodeFileToBase64(file)
+        .then(function (base64) {
+          var fileData = {
+            file: file,
+            base64: base64,
+            preview: null,
+          };
+
+          // 이미지 파일인 경우 미리보기 URL 생성
+          if (fileType === "image") {
+            fileData.preview = base64;
+          }
+
+          state.selectedFiles[fileType] = fileData;
+          updateFilePreview(fileType);
+          $input.val("");
+        })
+        .catch(function (error) {
+          console.error("파일 인코딩 오류:", error);
+          showRegisterAlert("danger", "파일을 읽는 중 오류가 발생했습니다.");
+          $input.val("");
+        });
     });
 
-    $("#illegalPhotoFileList").on("click", ".remove-photo-file-btn", function () {
+    // 파일 삭제 버튼 이벤트
+    $(document).on("click", ".illegal-register-file-upload__item-remove", function () {
       var $btn = $(this);
-      var index = parseInt($btn.data("index"), 10);
+      var fileType = $btn.data("file-type");
 
-      if (!isNaN(index) && index >= 0 && index < state.selectedPhotoFiles.length) {
-        state.selectedPhotoFiles.splice(index, 1);
-        updatePhotoFileList();
+      if (fileType && state.selectedFiles[fileType]) {
+        state.selectedFiles[fileType] = null;
+        updateFilePreview(fileType);
+        $("#" + fileType + "FileInput").val("");
       }
     });
   }
@@ -549,7 +706,6 @@
     var $relatedAddressInput = $("#rltrAddr");
     var $occupancyRateInput = $("#ilglPssrt");
     var $occupancyAreaInput = $("#ilglPssnSqms");
-    var $photoRegisteredAtInput = $("#illegalPhotoRegisteredAtInput");
     var $lndsUnqNoInput = $("#lndsUnqNo");
     var $gpsLgtdInput = $("#gpsLgtd");
     var $gpsLttdInput = $("#gpsLttd");
@@ -570,7 +726,6 @@
     var occupancyRateValue = $occupancyRateInput.val();
     var occupancyAreaValue = $occupancyAreaInput.val();
     var actionStatus = $('input[name="ilglPrvuActnStatVal"]:checked').val();
-    var photoRegisteredAt = $photoRegisteredAtInput.val();
     var lndsUnqNo = $lndsUnqNoInput.val().trim();
     var gpsLgtdValue = $gpsLgtdInput.val().trim();
     var gpsLttdValue = $gpsLttdInput.val().trim();
@@ -658,6 +813,56 @@
       }
     }
 
+    // 이미지 등록일 검증
+    var $imageOcrnDatesInput = $("#imageOcrnDates");
+    var imageOcrnDates = $imageOcrnDatesInput.val();
+    
+    if (state.selectedFiles.image && !imageOcrnDates) {
+      showRegisterAlert("warning", "이미지 등록일을 선택해주세요.");
+      $imageOcrnDatesInput.trigger("focus");
+      return;
+    }
+
+    // 이미지 등록일을 yyyyMMdd 형식으로 변환
+    var imageOcrnDatesFormatted = null;
+    if (imageOcrnDates) {
+      var date = new Date(imageOcrnDates);
+      var year = date.getFullYear();
+      var month = String(date.getMonth() + 1).padStart(2, "0");
+      var day = String(date.getDate()).padStart(2, "0");
+      imageOcrnDatesFormatted = year + month + day;
+    }
+
+    // 파일 데이터 수집 (base64 인코딩된 데이터)
+    // 실제 파일은 NAS에 저장하고, DB에는 메타데이터만 저장
+    var files = {
+      image: null, // 갤러리용 및 레이어용으로 공통 사용
+      kml: null,
+    };
+
+    if (state.selectedFiles.image) {
+      files.image = {
+        filename: state.selectedFiles.image.file.name,
+        base64: state.selectedFiles.image.base64,
+        size: state.selectedFiles.image.file.size,
+        // 서버에서 갤러리용과 레이어용으로 구분하여 사용할 수 있도록
+        // 파일 확장자 정보도 포함
+        extension: state.selectedFiles.image.file.name.split('.').pop().toLowerCase(),
+        // 이미지 등록일 (DB의 OCRN_DATES에 저장될 값)
+        ocrnDates: imageOcrnDatesFormatted,
+        // 서버에서 NAS 경로를 생성할 때 사용할 정보
+        // 실제 파일은 NAS에 저장하고, DB에는 경로만 저장
+      };
+    }
+    if (state.selectedFiles.kml) {
+      files.kml = {
+        filename: state.selectedFiles.kml.file.name,
+        base64: state.selectedFiles.kml.base64,
+        size: state.selectedFiles.kml.file.size,
+        // KML 파일은 등록일이 필요 없을 수도 있지만, 필요시 추가 가능
+      };
+    }
+
     var payload = {
       hdqrNm: headOffice,
       mtnofNm: branchOffice,
@@ -679,6 +884,7 @@
       lndsUnqNo: lndsUnqNo || null,
       gpsLgtd: gpsLgtd,
       gpsLttd: gpsLttd,
+      files: files,
     };
 
     toggleSubmitLoading(true);
@@ -729,7 +935,7 @@
     resetRegisterForm();
     registerModalEvents();
     bindActionHistoryEvents();
-    bindPhotoUploadEvents();
+    bindFileUploadEvents();
     bindAddressEvents();
     $("#illegalRegisterSubmitBtn").on("click", handleSubmit);
   }

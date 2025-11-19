@@ -387,50 +387,101 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
         </section>
 
         <section class="illegal-register-form__section">
-          <p class="illegal-register-form__section-title">사진 등록</p>
-          <div class="illegal-register-grid illegal-register-grid--cols-4">
-            <div class="illegal-register-field">
-              <label
-                class="illegal-register-label"
-                for="illegalPhotoRegisteredAtInput"
-                >등록일</label
-              >
-              <input
-                type="date"
-                class="illegal-register-input"
-                id="illegalPhotoRegisteredAtInput"
-                required
-              />
+          <p class="illegal-register-form__section-title">파일 등록</p>
+          
+          <!-- 이미지 파일 (갤러리용 및 레이어용으로 공통 사용) -->
+          <div class="illegal-register-file-upload">
+            <div class="illegal-register-file-upload__header">
+              <label class="illegal-register-label">
+                이미지 파일
+                <span class="illegal-register-file-upload__format">(TIF 또는 PNG 파일)</span>
+              </label>
+              <small class="illegal-register-file-upload__description">
+                조회 모달 갤러리 및 레이어 표시에 사용됩니다.
+              </small>
             </div>
-            <div class="illegal-register-field illegal-register-field--wide">
-              <span class="illegal-register-label">사진 파일</span>
-              <div class="illegal-register-photo">
-                <button
-                  type="button"
-                  class="illegal-register-button illegal-register-button--outline"
-                  id="illegalPhotoUploadBtn"
-                >
-                  <span class="illegal-register-button__text">사진 추가</span>
-                </button>
-                <div class="illegal-register-photo__list-wrapper">
-                  <ul
-                    class="illegal-register-photo__list"
-                    id="illegalPhotoFileList"
+            <div class="illegal-register-file-upload__content">
+              <div class="illegal-register-grid illegal-register-grid--cols-2">
+                <div class="illegal-register-field">
+                  <label
+                    class="illegal-register-label"
+                    for="imageOcrnDates"
                   >
-                    <li
-                      class="illegal-register-photo__placeholder"
-                      id="illegalPhotoFilePlaceholder"
-                    >
-                      선택된 파일이 없습니다.
-                    </li>
-                  </ul>
+                    이미지 등록일
+                    <span class="illegal-register-form__required">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    class="illegal-register-input"
+                    id="imageOcrnDates"
+                    required
+                  />
+                </div>
+                <div class="illegal-register-field">
+                  <label class="illegal-register-label">
+                    파일 선택
+                  </label>
+                  <button
+                    type="button"
+                    class="illegal-register-button illegal-register-button--outline"
+                    data-file-upload-type="image"
+                    id="imageFileUploadBtn"
+                  >
+                    <i class="fas fa-upload" aria-hidden="true"></i>
+                    <span class="illegal-register-button__text">이미지 파일 선택</span>
+                  </button>
+                </div>
+              </div>
+              <div class="illegal-register-file-upload__preview" id="imageFilePreview">
+                <div class="illegal-register-file-upload__placeholder">
+                  선택된 파일이 없습니다.
                 </div>
               </div>
               <input
                 type="file"
-                id="illegalPhotoFileInput"
-                accept="image/*"
-                multiple
+                id="imageFileInput"
+                accept=".tif,.tiff,.png"
+                data-file-type="image"
+                hidden
+              />
+            </div>
+          </div>
+
+          <!-- KML 파일 -->
+          <div class="illegal-register-file-upload">
+            <div class="illegal-register-file-upload__header">
+              <label class="illegal-register-label">
+                KML 파일
+                <span class="illegal-register-file-upload__format">(KML 파일)</span>
+              </label>
+            </div>
+            <div class="illegal-register-file-upload__content">
+              <div class="illegal-register-grid illegal-register-grid--cols-2">
+                <div class="illegal-register-field">
+                  <label class="illegal-register-label">
+                    파일 선택
+                  </label>
+                  <button
+                    type="button"
+                    class="illegal-register-button illegal-register-button--outline"
+                    data-file-upload-type="kml"
+                    id="kmlFileUploadBtn"
+                  >
+                    <i class="fas fa-upload" aria-hidden="true"></i>
+                    <span class="illegal-register-button__text">KML 파일 선택</span>
+                  </button>
+                </div>
+              </div>
+              <div class="illegal-register-file-upload__preview" id="kmlFilePreview">
+                <div class="illegal-register-file-upload__placeholder">
+                  선택된 파일이 없습니다.
+                </div>
+              </div>
+              <input
+                type="file"
+                id="kmlFileInput"
+                accept=".kml"
+                data-file-type="kml"
                 hidden
               />
             </div>
@@ -897,6 +948,157 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
 
   .illegal-register-button__text {
     font-weight: 600;
+  }
+
+  .illegal-register-button i {
+    margin-right: 6px;
+  }
+
+  .illegal-register-file-upload {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background-color: #f9fafb;
+  }
+
+  .illegal-register-file-upload + .illegal-register-file-upload {
+    margin-top: 16px;
+  }
+
+  .illegal-register-file-upload__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .illegal-register-file-upload__format {
+    font-size: 13px;
+    font-weight: 400;
+    color: #6b7280;
+  }
+
+  .illegal-register-file-upload__description {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.4;
+  }
+
+  .illegal-register-file-upload__content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .illegal-register-file-upload__preview {
+    min-height: 60px;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .illegal-register-file-upload__placeholder {
+    color: #9ca3af;
+    font-size: 14px;
+  }
+
+  .illegal-register-file-upload__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background-color: #ffffff;
+  }
+
+  .illegal-register-file-upload__item-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .illegal-register-file-upload__item-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background-color: #f3f4f6;
+    color: #6b7280;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .illegal-register-file-upload__item-icon--image {
+    background-color: #dbeafe;
+    color: #2563eb;
+  }
+
+  .illegal-register-file-upload__item-icon--kml {
+    background-color: #e9d5ff;
+    color: #9333ea;
+  }
+
+  .illegal-register-file-upload__item-details {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .illegal-register-file-upload__item-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111827;
+    word-break: break-all;
+    margin-bottom: 4px;
+  }
+
+  .illegal-register-file-upload__item-size {
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  .illegal-register-file-upload__item-preview {
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 1px solid #e5e7eb;
+    flex-shrink: 0;
+  }
+
+  .illegal-register-file-upload__item-remove {
+    background: none;
+    border: none;
+    color: #dc2626;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .illegal-register-file-upload__item-remove:hover,
+  .illegal-register-file-upload__item-remove:focus-visible {
+    background-color: rgba(220, 38, 38, 0.1);
+    color: #b91c1c;
   }
 
   body.illegal-register-modal-open {
