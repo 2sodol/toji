@@ -58,60 +58,30 @@
                 <div class="illegal-inquiry-grid illegal-inquiry-grid--cols-3">
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">본부</label>
-                    <input
-                      type="text"
-                      class="illegal-inquiry-input"
-                      id="detail_hdqrNm"
-                      readonly
-                    />
+                    <span class="illegal-inquiry-text" id="detail_hdqrNm"></span>
                   </div>
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">지사</label>
-                    <input
-                      type="text"
-                      class="illegal-inquiry-input"
-                      id="detail_mtnofNm"
-                      readonly
-                    />
+                    <span class="illegal-inquiry-text" id="detail_mtnofNm"></span>
                   </div>
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">노선</label>
-                    <input
-                      type="text"
-                      class="illegal-inquiry-input"
-                      id="detail_routeCd"
-                      readonly
-                    />
+                    <span class="illegal-inquiry-text" id="detail_routeCd"></span>
                   </div>
                 </div>
 
                 <div class="illegal-inquiry-grid illegal-inquiry-grid--cols-3">
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">주행방향</label>
-                    <input
-                      type="text"
-                      class="illegal-inquiry-input"
-                      id="detail_drveDrctCd"
-                      readonly
-                    />
+                    <span class="illegal-inquiry-text" id="detail_drveDrctCd"></span>
                   </div>
                   <div class="illegal-inquiry-field">
-                    <label class="illegal-inquiry-label">이정</label>
-                    <input
-                      type="text"
-                      class="illegal-inquiry-input"
-                      id="detail_routeDstnc"
-                      readonly
-                    />
+                    <label class="illegal-inquiry-label">이정(km)</label>
+                    <span class="illegal-inquiry-text" id="detail_routeDstnc"></span>
                   </div>
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">구분</label>
-                    <input
-                      type="text"
-                      class="illegal-inquiry-input"
-                      id="detail_strcClssCd"
-                      readonly
-                    />
+                    <span class="illegal-inquiry-text" id="detail_strcClssCd"></span>
                   </div>
                 </div>
               </section>
@@ -120,14 +90,9 @@
               <section class="illegal-inquiry-form__section">
                 <p class="illegal-inquiry-form__section-title">토지정보</p>
                 <div class="illegal-inquiry-grid illegal-inquiry-grid--cols-1">
-                  <div class="illegal-inquiry-field">
+                  <div class="illegal-inquiry-field illegal-inquiry-field--row">
                     <label class="illegal-inquiry-label">세부위치(주소)</label>
-                    <input
-                      type="text"
-                      class="illegal-inquiry-input"
-                      id="detail_lndsLdnoAddr"
-                      readonly
-                    />
+                    <span class="illegal-inquiry-text" id="detail_lndsLdnoAddr"></span>
                   </div>
                 </div>
               </section>
@@ -140,60 +105,30 @@
                 <div class="illegal-inquiry-grid illegal-inquiry-grid--cols-4">
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">발생일자</label>
-                    <input
-                      type="text"
-                      class="illegal-inquiry-input"
-                      id="detail_ocrnDates"
-                      readonly
-                    />
+                    <span class="illegal-inquiry-text" id="detail_ocrnDates"></span>
                   </div>
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">담당자</label>
-                    <input
-                      type="text"
-                      class="illegal-inquiry-input"
-                      id="detail_prchEmno"
-                      readonly
-                    />
+                    <span class="illegal-inquiry-text" id="detail_prchEmno"></span>
                   </div>
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">행위자명</label>
-                    <input
-                      type="text"
-                      class="illegal-inquiry-input"
-                      id="detail_trnrNm"
-                      readonly
-                    />
+                    <span class="illegal-inquiry-text" id="detail_trnrNm"></span>
                   </div>
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">관련자</label>
-                    <input
-                      type="text"
-                      class="illegal-inquiry-input"
-                      id="detail_rltrNm"
-                      readonly
-                    />
+                    <span class="illegal-inquiry-text" id="detail_rltrNm"></span>
                   </div>
                 </div>
 
                 <div class="illegal-inquiry-grid illegal-inquiry-grid--cols-2">
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">행위자 주소</label>
-                    <input
-                      type="text"
-                      class="illegal-inquiry-input"
-                      id="detail_trnrAddr"
-                      readonly
-                    />
+                    <span class="illegal-inquiry-text" id="detail_trnrAddr"></span>
                   </div>
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">관련자 주소</label>
-                    <input
-                      type="text"
-                      class="illegal-inquiry-input"
-                      id="detail_rltrAddr"
-                      readonly
-                    />
+                    <span class="illegal-inquiry-text" id="detail_rltrAddr"></span>
                   </div>
                 </div>
               </section>
@@ -206,30 +141,15 @@
                 <div class="illegal-inquiry-grid illegal-inquiry-grid--cols-3">
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">점유율 (%)</label>
-                    <input
-                      type="text"
-                      class="illegal-inquiry-input"
-                      id="detail_ilglPssrt"
-                      readonly
-                    />
+                    <span class="illegal-inquiry-text" id="detail_ilglPssrt"></span>
                   </div>
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">점유면적 (㎡)</label>
-                    <input
-                      type="text"
-                      class="illegal-inquiry-input"
-                      id="detail_ilglPssnSqms"
-                      readonly
-                    />
+                    <span class="illegal-inquiry-text" id="detail_ilglPssnSqms"></span>
                   </div>
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">조치상태</label>
-                    <input
-                      type="text"
-                      class="illegal-inquiry-input"
-                      id="detail_ilglPrvuActnStatVal"
-                      readonly
-                    />
+                    <span class="illegal-inquiry-text" id="detail_ilglPrvuActnStatVal"></span>
                   </div>
                 </div>
               </section>

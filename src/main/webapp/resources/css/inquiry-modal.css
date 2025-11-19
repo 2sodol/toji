@@ -234,11 +234,22 @@
   flex-direction: column;
 }
 
+.illegal-inquiry-field--row {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
 .illegal-inquiry-label {
   margin-bottom: 6px;
   font-size: 14px;
   font-weight: 500;
   color: #374151;
+}
+
+.illegal-inquiry-field--row .illegal-inquiry-label {
+  margin-bottom: 0;
+  flex-shrink: 0;
 }
 
 .illegal-inquiry-input {
@@ -254,6 +265,20 @@
 .illegal-inquiry-input:focus {
   outline: none;
   border-color: #9ca3af;
+}
+
+.illegal-inquiry-text {
+  padding: 2px 4px;
+  font-size: 15px;
+  font-weight: bold;
+  color: #374151;
+  min-height: 20px;
+  display: block;
+  word-break: break-word;
+}
+
+.illegal-inquiry-field--row .illegal-inquiry-text {
+  flex: 1;
 }
 
 /* ===== 조치이력 ===== */

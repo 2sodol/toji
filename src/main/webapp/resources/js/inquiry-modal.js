@@ -80,6 +80,55 @@
   }
 
   /**
+   * 주행방향 코드를 텍스트로 변환
+   * @param {string} code - 주행방향 코드
+   * @returns {string} - 변환된 텍스트
+   */
+  function formatDrveDrctCd(code) {
+    if (!code) return "-";
+    var codeUpper = String(code).toUpperCase();
+    var mapping = {
+      S: "상행",
+      UP: "상행",
+      E: "하행",
+      DOWN: "하행",
+      O: "양방향",
+      BOTH: "양방향",
+    };
+    return mapping[codeUpper] || code;
+  }
+
+  /**
+   * 구분 코드를 텍스트로 변환
+   * @param {string} code - 구분 코드
+   * @returns {string} - 변환된 텍스트
+   */
+  function formatStrcClssCd(code) {
+    if (!code) return "-";
+    var codeUpper = String(code).toUpperCase();
+    var mapping = {
+      GENERAL: "일반",
+      BRIDGE: "교량",
+    };
+    return mapping[codeUpper] || code;
+  }
+
+  /**
+   * 조치상태 코드를 텍스트로 변환
+   * @param {string} code - 조치상태 코드
+   * @returns {string} - 변환된 텍스트
+   */
+  function formatIlglPrvuActnStatVal(code) {
+    if (!code) return "-";
+    var codeUpper = String(code).toUpperCase();
+    var mapping = {
+      IN_PROGRESS: "조치중",
+      COMPLETED: "조치완료",
+    };
+    return mapping[codeUpper] || code;
+  }
+
+  /**
    * 토스트 메시지를 표시한다.
    * @param {"success"|"danger"|"warning"|"info"} type - 알림 타입
    * @param {string} message - 사용자에게 보여줄 메시지
@@ -203,7 +252,7 @@
    * 상세정보 폼 초기화
    */
   function clearDetailForm() {
-    $("#detailForm input").val("");
+    $("#detailForm .illegal-inquiry-text").text("");
     $("#detailActionHistory").html('<div class="illegal-inquiry-action-empty">데이터가 없습니다.</div>');
   }
 
@@ -541,22 +590,23 @@
     }
 
     // 기본정보 필드 채우기
-    $("#detail_hdqrNm").val(basicInfo.hdqrNm || "");
-    $("#detail_mtnofNm").val(basicInfo.mtnofNm || "");
-    $("#detail_routeCd").val(basicInfo.routeCd || "");
-    $("#detail_drveDrctCd").val(basicInfo.drveDrctCd || "");
-    $("#detail_routeDstnc").val(basicInfo.routeDstnc || "");
-    $("#detail_strcClssCd").val(basicInfo.strcClssCd || "");
-    $("#detail_lndsLdnoAddr").val(basicInfo.lndsLdnoAddr || "");
-    $("#detail_ocrnDates").val(formatDate(basicInfo.ocrnDates) || "");
-    $("#detail_prchEmno").val(basicInfo.prchEmno || "");
-    $("#detail_trnrNm").val(basicInfo.trnrNm || "");
-    $("#detail_rltrNm").val(basicInfo.rltrNm || "");
-    $("#detail_trnrAddr").val(basicInfo.trnrAddr || "");
-    $("#detail_rltrAddr").val(basicInfo.rltrAddr || "");
-    $("#detail_ilglPssrt").val(basicInfo.ilglPssrt || "");
-    $("#detail_ilglPssnSqms").val(basicInfo.ilglPssnSqms || "");
-    $("#detail_ilglPrvuActnStatVal").val(basicInfo.ilglPrvuActnStatVal || "");
+    $("#detail_hdqrNm").text(basicInfo.hdqrNm || "-");
+    $("#detail_mtnofNm").text(basicInfo.mtnofNm || "-");
+    $("#detail_routeCd").text(basicInfo.routeCd || "-");
+    $("#detail_drveDrctCd").text(formatDrveDrctCd(basicInfo.drveDrctCd));
+    $("#detail_routeDstnc").text(basicInfo.routeDstnc || "-");
+    $("#detail_strcClssCd").text(formatStrcClssCd(basicInfo.strcClssCd));
+    $("#detail_lndsLdnoAddr").text(basicInfo.lndsLdnoAddr || "-");
+    var formattedDate = formatDate(basicInfo.ocrnDates);
+    $("#detail_ocrnDates").text(formattedDate || "-");
+    $("#detail_prchEmno").text(basicInfo.prchEmno || "-");
+    $("#detail_trnrNm").text(basicInfo.trnrNm || "-");
+    $("#detail_rltrNm").text(basicInfo.rltrNm || "-");
+    $("#detail_trnrAddr").text(basicInfo.trnrAddr || "-");
+    $("#detail_rltrAddr").text(basicInfo.rltrAddr || "-");
+    $("#detail_ilglPssrt").text(basicInfo.ilglPssrt || "-");
+    $("#detail_ilglPssnSqms").text(basicInfo.ilglPssnSqms || "-");
+    $("#detail_ilglPrvuActnStatVal").text(formatIlglPrvuActnStatVal(basicInfo.ilglPrvuActnStatVal));
 
     // 조치이력 렌더링
     renderActionHistories(actionHistories);
