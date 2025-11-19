@@ -302,7 +302,7 @@ pageEncoding="UTF-8"%>
                       imageExtent: ol.extent.boundingExtent(transformedCoords),
                       projection: "EPSG:3857",
                     }),
-                    opacity: 0.8,
+                    opacity: 1.0, // 완전 불투명으로 설정하여 선명도 향상
                     zIndex: 1,
                     visible: true,
                   });
@@ -319,22 +319,7 @@ pageEncoding="UTF-8"%>
                   window.imageExtents[overlay.name] = extent;
                   console.log("필지 범위 저장됨:", overlay.name, extent);
 
-                  // 모든 이미지가 로드되면 전체 영역으로 이동
-                  if (allImageExtents.length === imageOverlays.length) {
-                    var combinedExtent = allImageExtents.reduce(function (
-                      acc,
-                      extent
-                    ) {
-                      return ol.extent.extend(acc, extent);
-                    },
-                    ol.extent.createEmpty());
-
-                    window.map.getView().fit(combinedExtent, {
-                      padding: [50, 50, 50, 50],
-                      maxZoom: 18,
-                      duration: 1000, // 1초 애니메이션
-                    });
-                  }
+                  // 이미지 범위 저장만 수행 (자동 줌 조정 제거됨)
                 } else {
                   console.error("좌표가 4개가 아님:", coords.length, coords);
                   console.log("대안: 미리 정의된 bounds 사용");
@@ -380,7 +365,7 @@ pageEncoding="UTF-8"%>
               imageExtent: ol.extent.boundingExtent(transformedCoords),
               projection: "EPSG:3857",
             }),
-            opacity: 0.8,
+            opacity: 1.0, // 완전 불투명으로 설정하여 선명도 향상
             zIndex: 1,
             visible: true,
           });
@@ -397,18 +382,7 @@ pageEncoding="UTF-8"%>
           window.imageExtents[overlay.name] = extent;
           console.log("필지 범위 저장됨 (bounds):", overlay.name, extent);
 
-          // 모든 이미지가 로드되면 전체 영역으로 이동
-          if (allImageExtents.length === imageOverlays.length) {
-            var combinedExtent = allImageExtents.reduce(function (acc, extent) {
-              return ol.extent.extend(acc, extent);
-            }, ol.extent.createEmpty());
-
-            window.map.getView().fit(combinedExtent, {
-              padding: [50, 50, 50, 50],
-              maxZoom: 18,
-              duration: 1000, // 1초 애니메이션
-            });
-          }
+          // 이미지 범위 저장만 수행 (자동 줌 조정 제거됨)
         }
 
         // 테스트: 첫 번째 KML 파일 직접 접근 테스트
@@ -437,6 +411,8 @@ pageEncoding="UTF-8"%>
           target: "map",
           layers: [baseLayer, cadastralLayer, highlightLayer],
           view: view,
+          // 이미지 렌더링 최적화 설정
+          pixelRatio: window.devicePixelRatio || 1, // 고해상도 디스플레이 지원
         });
 
         // 이미지 레이어들을 전역 변수로 저장
@@ -645,10 +621,12 @@ pageEncoding="UTF-8"%>
             window.imageExtents[layerName]
           ) {
             console.log("이동 실행:", window.imageExtents[layerName]);
-            window.map.getView().fit(window.imageExtents[layerName], {
-              padding: [50, 50, 50, 50],
-              maxZoom: 19,
-              duration: 800,
+            // 현재 줌 레벨을 유지하면서 중심점만 이동
+            var extent = window.imageExtents[layerName];
+            var center = ol.extent.getCenter(extent);
+            window.map.getView().animate({
+              center: center,
+              duration: 800
             });
           } else {
             console.log("이동 실패 - 범위 정보 없음");

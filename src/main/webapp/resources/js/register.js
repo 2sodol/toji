@@ -391,7 +391,6 @@
         var today = new Date().toISOString().split("T")[0];
         $("#illegalPhotoRegisteredAtInput").val(today);
       }
-      $("#hdqrNm").trigger("focus");
       updatePhotoFileList();
 
       // 모달이 열릴 때 서버에서 초기 데이터를 가져오는 Ajax 호출

@@ -47,6 +47,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
                 value="${loginUserDept}"
                 maxlength="100"
                 required
+                readonly
               />
             </div>
             <div class="illegal-register-field">
@@ -61,6 +62,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
                 id="mtnofNm"
                 maxlength="100"
                 required
+                readonly
               />
             </div>
             <div class="illegal-register-field">
@@ -73,6 +75,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
                 id="routeCd"
                 maxlength="100"
                 required
+                readonly
               />
             </div>
           </div>
@@ -87,6 +90,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
                 class="illegal-register-select"
                 id="drveDrctCd"
                 required
+                disabled
               >
                 <option value="" disabled selected>선택하세요</option>
                 <option value="UP">상행</option>
@@ -106,6 +110,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
                 id="routeDstnc"
                 placeholder="예: 123.5km"
                 maxlength="50"
+                readonly
               />
             </div>
             <div class="illegal-register-field">
@@ -151,13 +156,6 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
                   maxlength="255"
                   readonly
                 />
-                <button
-                  class="illegal-register-button illegal-register-button--ghost"
-                  type="button"
-                  id="lndsLdnoAddrSearchBtn"
-                >
-                  검색
-                </button>
               </div>
             </div>
           </div>
@@ -629,7 +627,8 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
   }
 
-  .illegal-register-input[readonly] {
+  .illegal-register-input[readonly],
+  .illegal-register-select[disabled] {
     background-color: #f3f4f6;
     cursor: not-allowed;
   }
