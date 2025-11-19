@@ -21,64 +21,6 @@ pageEncoding="UTF-8"%>
     </button>
   </div>
   <div class="slide-panel__body">
-    <!-- 이미지 레이어 제어 영역 -->
-    <div id="kml-layer-controls" class="kml-layer-controls">
-      <h3 class="kml-layer-controls__title">필지 항공사진</h3>
-      <div class="kml-layer-controls__list">
-        <div class="kml-layer-control">
-          <label class="kml-layer-control__label">
-            <input type="checkbox" id="layer-field1" checked />
-            <span class="kml-layer-control__name">필지1</span>
-            <span
-              class="kml-layer-control__color"
-              style="background-color: #ff0000"
-            ></span>
-          </label>
-          <button
-            type="button"
-            class="kml-layer-control__goto-btn"
-            data-field="field1"
-          >
-            <i class="fas fa-crosshairs"></i>
-          </button>
-        </div>
-        <div class="kml-layer-control">
-          <label class="kml-layer-control__label">
-            <input type="checkbox" id="layer-field2" checked />
-            <span class="kml-layer-control__name">필지2</span>
-            <span
-              class="kml-layer-control__color"
-              style="background-color: #00ff00"
-            ></span>
-          </label>
-          <button
-            type="button"
-            class="kml-layer-control__goto-btn"
-            data-field="field2"
-          >
-            <i class="fas fa-crosshairs"></i>
-          </button>
-        </div>
-        <div class="kml-layer-control">
-          <label class="kml-layer-control__label">
-            <input type="checkbox" id="layer-field3" checked />
-            <span class="kml-layer-control__name">필지3</span>
-            <span
-              class="kml-layer-control__color"
-              style="background-color: #0000ff"
-            ></span>
-          </label>
-          <button
-            type="button"
-            class="kml-layer-control__goto-btn"
-            data-field="field3"
-          >
-            <i class="fas fa-crosshairs"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- 검색 영역 -->
     <div id="slide-panel-search-wrapper" class="slide-panel-search-wrapper">
       <input

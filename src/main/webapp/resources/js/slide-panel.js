@@ -338,21 +338,43 @@
 
       // GPS 좌표가 있는 경우에만 지도 이동
       if (gpsLgtd && gpsLttd && !isNaN(gpsLgtd) && !isNaN(gpsLttd)) {
-        this.moveMapToLocation(parseFloat(gpsLgtd), parseFloat(gpsLttd));
+        var self = this;
+        var longitude = parseFloat(gpsLgtd);
+        var latitude = parseFloat(gpsLttd);
+        var lndsUnqNo = $item.data("lnds-unq-no"); // 필지번호
+
+        // 지도 이동
+        this.moveMapToLocation(longitude, latitude);
 
         // 클릭된 아이템 하이라이트
         this.$listContainer.find(".slide-panel-list-item").removeClass("slide-panel-list-item--selected");
         $item.addClass("slide-panel-list-item--selected");
 
-        // 조회 모달 열기
-        if (window.illegalInquiryModal && typeof window.illegalInquiryModal.open === "function") {
-          // LNDS_UNQ_NO를 추출해야 함 - 현재는 ID를 사용하지만 실제로는 LNDS_UNQ_NO가 필요
-          // 임시로 ID를 사용하되, 실제 구현에서는 적절한 LNDS_UNQ_NO를 전달해야 함
-          var lndsUnqNo = $item.data("lnds-unq-no"); // data-lnds-unq-no 속성 사용
-          window.illegalInquiryModal.open(lndsUnqNo);
-        } else {
-          console.warn("조회 모달이 초기화되지 않았습니다.");
-        }
+        // 지도 이동 애니메이션 완료 후 팝업 표시 (1초 후)
+        setTimeout(function () {
+          // 공통 함수로 팝업 표시
+          if (typeof window.showMapPopupAndHighlight === "function") {
+            // 레이어와 팝업 오버레이가 초기화되었는지 확인
+            if (!window.cadastralLayer) {
+              console.warn("cadastralLayer가 아직 초기화되지 않았습니다.");
+              return;
+            }
+            if (!window.popupOverlay) {
+              console.warn("popupOverlay가 아직 초기화되지 않았습니다.");
+              return;
+            }
+
+            window.showMapPopupAndHighlight({
+              coordinate: [longitude, latitude],
+              layer: window.cadastralLayer,
+              layerName: "lp_pa_cbnd_bubun",
+              checkDataExistence: true,
+              pnu: lndsUnqNo || null,
+            });
+          } else {
+            console.warn("showMapPopupAndHighlight 함수를 찾을 수 없습니다.");
+          }
+        }, 1000);
 
         // 이벤트 발생 (다른 모듈에서 사용할 수 있도록)
         $(document).trigger("slidePanel:itemClicked", {
