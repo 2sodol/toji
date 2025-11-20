@@ -67,4 +67,13 @@ public interface RegionService {
    * @return 사진 리스트를 포함한 맵
    */
   Map<String, Object> findPhotosBySeq(Long ilglPrvuInfoSeq);
+
+  /**
+   * 지역 정보를 수정한다.
+   *
+   * @param ilglPrvuInfoSeq 수정할 불법점용정보 SEQ
+   * @param request 수정 요청 DTO
+   * @return 수정 결과
+   */
+  Long updateRegion(Long ilglPrvuInfoSeq, RegionRegisterRequest request);
 }

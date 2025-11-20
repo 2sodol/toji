@@ -308,4 +308,80 @@ public class RegionServiceImpl implements RegionService {
 
     return result;
   }
+
+  /**
+   * 지역 정보를 수정한다.
+   *
+   * @param ilglPrvuInfoSeq 수정할 불법점용정보 SEQ
+   * @param request 수정 요청 DTO
+   * @return 수정된 기본 정보의 식별자
+   */
+  @Override
+  @Transactional(rollbackFor = Exception.class)
+  public Long updateRegion(Long ilglPrvuInfoSeq, RegionRegisterRequest request) {
+    LocalDateTime now = LocalDateTime.now();
+    String currentUserId = "SYSTEM"; // TODO: 실제 사용자 ID로 변경 필요
+
+    // 기존 데이터 조회
+    BasicInfo existingBasicInfo = regionMapper.findDetailBySeq(ilglPrvuInfoSeq);
+    if (existingBasicInfo == null) {
+      throw new IllegalArgumentException("수정할 데이터를 찾을 수 없습니다. ilglPrvuInfoSeq: " + ilglPrvuInfoSeq);
+    }
+
+    // 기본 정보 업데이트
+    BasicInfo basicInfo = buildBasicInfoForUpdate(request, ilglPrvuInfoSeq, currentUserId, now);
+    regionMapper.updateBasicInfo(basicInfo);
+
+    // 기존 조치 이력 삭제 (USE_YN = 'N')
+    regionMapper.deleteActionHistoriesByBasicInfoId(ilglPrvuInfoSeq);
+
+    // 새로운 조치 이력 등록
+    insertActionHistories(ilglPrvuInfoSeq, request.getActionHistories(), currentUserId, now);
+
+    // 첨부파일(이미지) 추가 (기존 이미지는 유지, 새 이미지만 추가)
+    if (request.getFiles() != null && request.getFiles().getImages() != null) {
+      log.info("첨부파일 추가 시작: basicInfoId={}, 이미지 개수={}", ilglPrvuInfoSeq,
+          request.getFiles().getImages().size());
+      insertAttachments(ilglPrvuInfoSeq, request.getFiles().getImages(), currentUserId, now);
+    }
+
+    return ilglPrvuInfoSeq;
+  }
+
+  /**
+   * 수정 요청으로부터 기본 정보를 구성한다.
+   *
+   * @param request 등록 요청 DTO
+   * @param ilglPrvuInfoSeq 수정할 기본 정보 식별자
+   * @param userId 수정자 ID
+   * @param now 현재 시각
+   * @return 구성된 기본 정보 엔티티
+   */
+  private BasicInfo buildBasicInfoForUpdate(RegionRegisterRequest request, Long ilglPrvuInfoSeq,
+      String userId, LocalDateTime now) {
+    BasicInfo basicInfo = new BasicInfo();
+    basicInfo.setIlglPrvuInfoSeq(ilglPrvuInfoSeq);
+    basicInfo.setHdqrNm(request.getHdqrNm());
+    basicInfo.setMtnofNm(request.getMtnofNm());
+    basicInfo.setRouteCd(request.getRouteCd());
+    basicInfo.setDrveDrctCd(request.getDrveDrctCd());
+    basicInfo.setRouteDstnc(normalizeDecimal(request.getRouteDstnc()));
+    basicInfo.setStrcClssCd(request.getStrcClssCd());
+    basicInfo.setOcrnDates(request.getOcrnDates());
+    basicInfo.setPrchEmno(request.getPrchEmno());
+    basicInfo.setTrnrNm(request.getTrnrNm());
+    basicInfo.setRltrNm(request.getRltrNm());
+    basicInfo.setTrnrAddr(request.getTrnrAddr());
+    basicInfo.setRltrAddr(request.getRltrAddr());
+    basicInfo.setIlglPssrt(normalizeDecimal(request.getIlglPssrt()));
+    basicInfo.setIlglPssnSqms(normalizeDecimal(request.getIlglPssnSqms()));
+    basicInfo.setIlglPrvuActnStatVal(request.getIlglPrvuActnStatVal());
+    basicInfo.setLndsUnqNo(request.getLndsUnqNo());
+    basicInfo.setGpsLgtd(normalizeDecimal(request.getGpsLgtd()));
+    basicInfo.setGpsLttd(normalizeDecimal(request.getGpsLttd()));
+    basicInfo.setLndsLdnoAddr(request.getLndsLdnoAddr());
+    basicInfo.setLsttmModfrId(userId);
+    basicInfo.setLsttmAltrDttm(now);
+    return basicInfo;
+  }
 }

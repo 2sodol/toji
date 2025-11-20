@@ -13,10 +13,12 @@
   /**
    * 모듈 내부에서 공유되는 UI 상태 값.
    * currentLndsUnqNo: 현재 선택된 토지 고유번호
+   * currentSeq: 현재 선택된 불법점용정보 SEQ
    * $modal: 모달 jQuery 객체
    */
   var state = {
     currentLndsUnqNo: null,
+    currentSeq: null,
     $modal: null,
   };
 
@@ -276,6 +278,7 @@
 
     // 데이터 초기화
     state.currentLndsUnqNo = null;
+    state.currentSeq = null;
     clearAllData();
   }
 
@@ -327,9 +330,15 @@
     }
 
     dates.forEach(function (dateInfo, index) {
-      var dateStr = dateInfo.OCRNDATES;
-      var managerName = dateInfo.PRCHEMNO || "";
-      var seq = dateInfo.ILGLPRVUINFOSEQ;
+      // 대소문자 구분 없이 키 접근
+      var dateStr = dateInfo.OCRNDATES || dateInfo.ocrnDates || dateInfo.ocrn_dates;
+      var managerName = dateInfo.PRCHEMNO || dateInfo.prchEmno || dateInfo.prch_emno || "";
+      var seq = dateInfo.ILGLPRVUINFOSEQ || dateInfo.ilglPrvuInfoSeq || dateInfo.ilgl_prvu_info_seq;
+      
+      if (!seq) {
+        return;
+      }
+      
       var formattedDate = formatDate(dateStr);
       var displayText = formattedDate + " (" + escapeHtml(managerName) + ")";
 
@@ -355,8 +364,18 @@
    * @param {string|Object} date - 날짜 문자열 또는 날짜 정보 객체 {OCRNDATES, ILGLPRVUINFOSEQ}
    */
   function selectDetailDate(date) {
-    var dateStr = typeof date === "string" ? date : date.OCRNDATES;
-    var seq = typeof date === "object" ? date.ILGLPRVUINFOSEQ : null;
+    var dateStr = null;
+    var seq = null;
+    
+    if (typeof date === "string") {
+      dateStr = date;
+      seq = null;
+    } else if (typeof date === "object" && date !== null) {
+      // 대소문자 구분 없이 키 접근
+      dateStr = date.OCRNDATES || date.ocrnDates || date.ocrn_dates || null;
+      seq = date.ILGLPRVUINFOSEQ || date.ilglPrvuInfoSeq || date.ilgl_prvu_info_seq || null;
+    }
+    
 
     // 모든 버튼에서 active 클래스 제거
     $("#detailDateList .illegal-inquiry-date-item").removeClass(
@@ -392,6 +411,9 @@
       showInquiryAlert("warning", "상세정보를 조회할 수 없습니다.");
       return;
     }
+
+    // 현재 선택된 seq 저장
+    state.currentSeq = seq;
 
     // 상세정보 로드
     loadDetailBySeq(seq);
@@ -499,12 +521,75 @@
   }
 
   /**
+   * 수정 버튼 클릭 이벤트 처리
+   */
+  function handleEditClick() {
+    // 현재 선택된 날짜 버튼에서 seq 가져오기
+    var $activeButton = $("#detailDateList .illegal-inquiry-date-item--active");
+    var seq = null;
+
+    if ($activeButton.length > 0) {
+      seq = $activeButton.data("seq");
+    } else if (state.currentSeq) {
+      seq = state.currentSeq;
+    } else {
+      // 활성화된 버튼이 없으면 첫 번째 버튼 사용
+      var $firstButton = $("#detailDateList .illegal-inquiry-date-item").first();
+      if ($firstButton.length > 0) {
+        var firstSeq = $firstButton.data("seq");
+        if (firstSeq) {
+          seq = firstSeq;
+          var firstDateStr = $firstButton.data("date");
+          try {
+            selectDetailDate({
+              OCRNDATES: firstDateStr,
+              ILGLPRVUINFOSEQ: firstSeq,
+            });
+          } catch (error) {
+            // 오류 무시하고 계속 진행
+          }
+        }
+      }
+    }
+
+    if (!seq) {
+      showInquiryAlert("warning", "수정할 데이터가 선택되지 않았습니다.");
+      return;
+    }
+
+    // seq 값을 변수에 저장 (closeModal 호출 전에)
+    var editSeq = seq;
+    
+    // 조회 모달 닫기 (state가 초기화되지만 editSeq는 유지됨)
+    closeModal();
+
+    // 등록 모달을 수정 모드로 열기
+    if (window.RegisterModule && typeof window.RegisterModule.openEditMode === "function") {
+      // 약간의 지연을 두어 모달이 완전히 닫힌 후 열기
+      setTimeout(function() {
+        try {
+          window.RegisterModule.openEditMode(editSeq);
+        } catch (error) {
+          showInquiryAlert("danger", "수정 모달을 열 수 없습니다: " + error.message);
+        }
+      }, 100);
+    } else {
+      showInquiryAlert("danger", "수정 기능을 사용할 수 없습니다.");
+    }
+  }
+
+  /**
    * 모달 관련 이벤트를 바인딩한다.
    */
   function bindModalEvents() {
     // 모달 닫기 이벤트
     state.$modal.on("click", "[data-inquiry-modal-close]", function () {
       closeModal();
+    });
+
+    // 수정 버튼 클릭 이벤트
+    state.$modal.on("click", "#inquiryEditBtn", function () {
+      handleEditClick();
     });
 
     // 모달 외부 클릭 시 닫기
@@ -532,9 +617,12 @@
       "#detailDateList .illegal-inquiry-date-item",
       function () {
         var $button = $(this);
+        var dateStr = $button.data("date");
+        var seq = $button.data("seq");
+        
         selectDetailDate({
-          OCRNDATES: $button.data("date"),
-          ILGLPRVUINFOSEQ: $button.data("seq"),
+          OCRNDATES: dateStr,
+          ILGLPRVUINFOSEQ: seq,
         });
       }
     );

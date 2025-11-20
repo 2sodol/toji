@@ -23,6 +23,8 @@
       kml: null,
     },
     imageItemCounter: 0, // 이미지 아이템 ID 생성용 카운터
+    editMode: false, // 수정 모드 여부
+    editSeq: null, // 수정할 불법점용정보 SEQ
   };
 
   /**
@@ -111,7 +113,8 @@
     });
     var $fileBtn = $("<button>", {
       type: "button",
-      class: "illegal-register-button illegal-register-button--outline image-file-btn",
+      class:
+        "illegal-register-button illegal-register-button--outline image-file-btn",
       id: "imageFileBtn_" + itemId,
       "data-image-item-id": itemId,
     });
@@ -174,7 +177,8 @@
     });
 
     var $icon = $("<div>", {
-      class: "illegal-register-file-upload__item-icon illegal-register-file-upload__item-icon--image",
+      class:
+        "illegal-register-file-upload__item-icon illegal-register-file-upload__item-icon--image",
     });
     var $iconElement = $("<i>", {
       class: "fas fa-image",
@@ -228,6 +232,7 @@
     });
     var $dateInput = $("<input>", {
       type: "date",
+      name: "actnDttm",
       class: "illegal-register-input illegal-register-history__date-input",
       value: safeDate,
     });
@@ -238,6 +243,7 @@
     });
     var $descInput = $("<input>", {
       type: "text",
+      name: "actnCtnt",
       class: "illegal-register-input illegal-register-history__desc-input",
       placeholder: "예: 구두주의, 경고 등",
       maxlength: "500",
@@ -392,7 +398,8 @@
     });
 
     var $icon = $("<div>", {
-      class: "illegal-register-file-upload__item-icon illegal-register-file-upload__item-icon--kml",
+      class:
+        "illegal-register-file-upload__item-icon illegal-register-file-upload__item-icon--kml",
     });
     var $iconElement = $("<i>", {
       class: "fas fa-map",
@@ -444,7 +451,10 @@
     }
 
     $('input[name="strcClssCd"][value="GENERAL"]').prop("checked", true);
-    $('input[name="ilglPrvuActnStatVal"][value="IN_PROGRESS"]').prop("checked", true);
+    $('input[name="ilglPrvuActnStatVal"][value="IN_PROGRESS"]').prop(
+      "checked",
+      true
+    );
 
     resetActionHistoryList();
     state.selectedFiles = {
@@ -470,8 +480,13 @@
     var histories = [];
 
     $("#actionHistoryList .illegal-register-history__item").each(function () {
-      var dateValue = $(this).find(".illegal-register-history__date-input").val();
-      var descValue = $(this).find(".illegal-register-history__desc-input").val().trim();
+      var dateValue = $(this)
+        .find(".illegal-register-history__date-input")
+        .val();
+      var descValue = $(this)
+        .find(".illegal-register-history__desc-input")
+        .val()
+        .trim();
 
       if (dateValue && descValue) {
         // 날짜 문자열을 ISO 8601 형식으로 변환 (LocalDateTime 형식)
@@ -618,7 +633,8 @@
       return;
     }
 
-    var resolvedAddress = region.address || region.roadAddress || region.jibunAddress || "";
+    var resolvedAddress =
+      region.address || region.roadAddress || region.jibunAddress || "";
     $detailAddressInput.val(resolvedAddress);
 
     // PNU 및 좌표 정보를 히든 필드에 설정
@@ -718,17 +734,21 @@
       $("#actionHistoryList").append(createActionHistoryRow());
     });
 
-    $("#actionHistoryList").on("click", ".remove-action-history-btn", function () {
-      var $targetItem = $(this).closest(".illegal-register-history__item");
-      var $items = $("#actionHistoryList .illegal-register-history__item");
+    $("#actionHistoryList").on(
+      "click",
+      ".remove-action-history-btn",
+      function () {
+        var $targetItem = $(this).closest(".illegal-register-history__item");
+        var $items = $("#actionHistoryList .illegal-register-history__item");
 
-      if ($items.length <= 1) {
-        $targetItem.find("input").val("");
-        return;
+        if ($items.length <= 1) {
+          $targetItem.find("input").val("");
+          return;
+        }
+
+        $targetItem.remove();
       }
-
-      $targetItem.remove();
-    });
+    );
   }
 
   /**
@@ -834,7 +854,9 @@
       $item.remove();
 
       // 상태에서도 제거
-      state.selectedFiles.images = state.selectedFiles.images.filter(function (img) {
+      state.selectedFiles.images = state.selectedFiles.images.filter(function (
+        img
+      ) {
         return img.id !== itemId;
       });
     });
@@ -886,11 +908,15 @@
     });
 
     // KML 파일 삭제 버튼 이벤트
-    $(document).on("click", ".illegal-register-file-upload__item-remove[data-file-type='kml']", function () {
-      state.selectedFiles.kml = null;
-      updateKmlPreview();
-      $("#kmlFileInput").val("");
-    });
+    $(document).on(
+      "click",
+      ".illegal-register-file-upload__item-remove[data-file-type='kml']",
+      function () {
+        state.selectedFiles.kml = null;
+        updateKmlPreview();
+        $("#kmlFileInput").val("");
+      }
+    );
   }
 
   /**
@@ -1026,12 +1052,20 @@
       return;
     }
 
-    var occupancyRate = parseOptionalNumber(occupancyRateValue, "점유율은 숫자로 입력해주세요.", $occupancyRateInput);
+    var occupancyRate = parseOptionalNumber(
+      occupancyRateValue,
+      "점유율은 숫자로 입력해주세요.",
+      $occupancyRateInput
+    );
     if (occupancyRate === undefined) {
       return;
     }
 
-    var occupancyArea = parseOptionalNumber(occupancyAreaValue, "점유면적은 숫자로 입력해주세요.", $occupancyAreaInput);
+    var occupancyArea = parseOptionalNumber(
+      occupancyAreaValue,
+      "점유면적은 숫자로 입력해주세요.",
+      $occupancyAreaInput
+    );
     if (occupancyArea === undefined) {
       return;
     }
@@ -1039,12 +1073,20 @@
     var actionHistories = collectActionHistories();
 
     // GPS 좌표 파싱
-    var gpsLgtd = parseOptionalNumber(gpsLgtdValue, "경도는 숫자로 입력해주세요.", $gpsLgtdInput);
+    var gpsLgtd = parseOptionalNumber(
+      gpsLgtdValue,
+      "경도는 숫자로 입력해주세요.",
+      $gpsLgtdInput
+    );
     if (gpsLgtd === undefined && gpsLgtdValue) {
       return;
     }
 
-    var gpsLttd = parseOptionalNumber(gpsLttdValue, "위도는 숫자로 입력해주세요.", $gpsLttdInput);
+    var gpsLttd = parseOptionalNumber(
+      gpsLttdValue,
+      "위도는 숫자로 입력해주세요.",
+      $gpsLttdInput
+    );
     if (gpsLttd === undefined && gpsLttdValue) {
       return;
     }
@@ -1062,7 +1104,11 @@
     // 거리표지판을 BigDecimal로 변환
     var routeDstnc = null;
     if (distanceMark) {
-      routeDstnc = parseOptionalNumber(distanceMark, "거리표지판은 숫자로 입력해주세요.", $distanceMarkInput);
+      routeDstnc = parseOptionalNumber(
+        distanceMark,
+        "거리표지판은 숫자로 입력해주세요.",
+        $distanceMarkInput
+      );
       if (routeDstnc === undefined) {
         return;
       }
@@ -1168,7 +1214,11 @@
     });
 
     // 기존 state.selectedFiles.images도 확인 (하위 호환성)
-    if (state.selectedFiles && state.selectedFiles.images && state.selectedFiles.images.length > 0) {
+    if (
+      state.selectedFiles &&
+      state.selectedFiles.images &&
+      state.selectedFiles.images.length > 0
+    ) {
       state.selectedFiles.images.forEach(function (imageItem) {
         if (!imageItem.fileData) {
           return;
@@ -1243,25 +1293,48 @@
 
     toggleSubmitLoading(true);
 
+    // 모드에 따라 URL과 메서드 결정
+    var url = state.editMode ? "/regions/update" : "/regions/register";
+    var method = state.editMode ? "PUT" : "POST";
+    var successMessage = state.editMode
+      ? "수정이 완료되었습니다."
+      : "등록이 완료되었습니다.";
+
+    // 수정 모드인 경우 ilglPrvuInfoSeq를 파라미터로 추가
+    if (state.editMode && state.editSeq) {
+      url += "?ilglPrvuInfoSeq=" + state.editSeq;
+    }
+
     $.ajax({
-      url: "/regions/register",
-      method: "POST",
+      url: url,
+      method: method,
       contentType: "application/json",
       data: JSON.stringify(payload),
       dataType: "json",
     })
       .done(function () {
         // 성공 토스트 메시지 표시
-        showRegisterAlert("success", "등록이 완료되었습니다.");
+        showRegisterAlert("success", successMessage);
 
         // 최근 등록 목록 갱신
         if (typeof window.loadRecentRegions === "function") {
           window.loadRecentRegions();
         }
 
+        // 슬라이드 패널 목록 갱신
+        if (
+          window.SlidePanel &&
+          typeof window.SlidePanel.loadList === "function"
+        ) {
+          window.SlidePanel.loadList(1);
+        }
+
         // 모달 닫기 (토스트가 표시된 후 약간의 지연을 두고 닫음)
         setTimeout(function () {
-          if (window.IllegalRegisterModal && typeof window.IllegalRegisterModal.close === "function") {
+          if (
+            window.IllegalRegisterModal &&
+            typeof window.IllegalRegisterModal.close === "function"
+          ) {
             window.IllegalRegisterModal.close();
           }
         }, 500);
@@ -1304,11 +1377,384 @@
   $(initialize);
 
   /**
+   * 수정 모드로 모달을 열고 기존 데이터를 로드한다.
+   * @param {number} seq - 불법점용정보 SEQ
+   */
+  function openEditMode(seq) {
+    try {
+      // seq 파라미터 검증
+      if (seq === undefined || seq === null) {
+        showRegisterAlert("warning", "수정할 데이터 정보가 없습니다.");
+        return;
+      }
+
+      // seq가 문자열이면 숫자로 변환
+      var editSeq = seq;
+      if (typeof editSeq === "string") {
+        editSeq = parseInt(editSeq, 10);
+      }
+
+      if (!editSeq || isNaN(editSeq)) {
+        showRegisterAlert("warning", "수정할 데이터 정보가 없습니다.");
+        return;
+      }
+
+      // 수정 모드 설정
+      state.editMode = true;
+      state.editSeq = editSeq;
+
+      // 모달 제목 변경
+      $("#illegalRegisterModalTitle").text("불법점용 용지 수정");
+
+      // 저장 버튼 텍스트 변경
+      $("#illegalRegisterSubmitBtn").text("수정");
+
+      // 모달 열기
+      if (
+        window.IllegalRegisterModal &&
+        typeof window.IllegalRegisterModal.open === "function"
+      ) {
+        window.IllegalRegisterModal.open();
+      } else {
+        showRegisterAlert("danger", "모달을 열 수 없습니다.");
+        return;
+      }
+
+      // 기존 데이터 로드 (editSeq를 명시적으로 전달)
+      loadEditData(editSeq);
+    } catch (error) {
+      showRegisterAlert(
+        "danger",
+        "수정 모달을 열 수 없습니다: " + error.message
+      );
+    }
+  }
+
+  /**
+   * 수정할 데이터를 서버에서 로드한다.
+   * @param {number} seq - 불법점용정보 SEQ
+   */
+  function loadEditData(seq) {
+    $.ajax({
+      url: "/regions/details",
+      method: "GET",
+      data: {
+        ilglPrvuInfoSeq: seq,
+      },
+      dataType: "json",
+    })
+      .done(function (response) {
+        if (response.success && response.data) {
+          fillEditForm(response.data);
+        } else {
+          showRegisterAlert("warning", "데이터를 불러올 수 없습니다.");
+        }
+      })
+      .fail(function (xhr, status, error) {
+        showRegisterAlert("danger", "서버 오류가 발생했습니다.");
+      });
+  }
+
+  /**
+   * 수정 모드에서 기존 데이터로 폼을 채운다.
+   * @param {Object} data - 상세정보 데이터
+   */
+  function fillEditForm(data) {
+    var basicInfo = data.basicInfo;
+    var actionHistories = data.actionHistories || [];
+    var photos = data.photos || [];
+
+    if (!basicInfo) {
+      return;
+    }
+
+    // 기본정보 필드 채우기
+    $("#hdqrNm").val(basicInfo.hdqrNm || "");
+    $("#mtnofNm").val(basicInfo.mtnofNm || "");
+    $("#routeCd").val(basicInfo.routeCd || "");
+    $("#drveDrctCd")
+      .val(basicInfo.drveDrctCd || "")
+      .prop("disabled", false);
+    $("#routeDstnc")
+      .val(basicInfo.routeDstnc || "")
+      .prop("readonly", false);
+    $(
+      'input[name="strcClssCd"][value="' +
+        (basicInfo.strcClssCd || "GENERAL") +
+        '"]'
+    ).prop("checked", true);
+    $("#lndsLdnoAddr")
+      .val(basicInfo.lndsLdnoAddr || "")
+      .prop("readonly", false);
+    $("#lndsUnqNo").val(basicInfo.lndsUnqNo || "");
+    $("#gpsLgtd").val(basicInfo.gpsLgtd || "");
+    $("#gpsLttd").val(basicInfo.gpsLttd || "");
+
+    // 발생 및 관계자 정보
+    var ocrnDates = basicInfo.ocrnDates;
+    if (ocrnDates && ocrnDates.length === 8) {
+      // yyyyMMdd -> yyyy-MM-dd 변환
+      ocrnDates =
+        ocrnDates.substring(0, 4) +
+        "-" +
+        ocrnDates.substring(4, 6) +
+        "-" +
+        ocrnDates.substring(6, 8);
+    }
+    $("#ocrnDates").val(ocrnDates || "");
+    $("#prchEmno").val(basicInfo.prchEmno || "");
+    $("#trnrNm").val(basicInfo.trnrNm || "");
+    $("#rltrNm").val(basicInfo.rltrNm || "");
+    $("#trnrAddr")
+      .val(basicInfo.trnrAddr || "")
+      .prop("readonly", false);
+    $("#rltrAddr")
+      .val(basicInfo.rltrAddr || "")
+      .prop("readonly", false);
+
+    // 점유 및 조치 정보
+    $("#ilglPssrt").val(basicInfo.ilglPssrt || "");
+    $("#ilglPssnSqms").val(basicInfo.ilglPssnSqms || "");
+    $(
+      'input[name="ilglPrvuActnStatVal"][value="' +
+        (basicInfo.ilglPrvuActnStatVal || "IN_PROGRESS") +
+        '"]'
+    ).prop("checked", true);
+
+    // 조치 이력 채우기
+    $("#actionHistoryList").empty();
+    if (actionHistories && actionHistories.length > 0) {
+      actionHistories.forEach(function (history) {
+        var actnDttm = history.actnDttm;
+        var formattedDate = "";
+
+        if (actnDttm) {
+          // LocalDateTime을 yyyy-MM-dd 형식으로 변환
+          // 조회 모달의 formatDateTime 함수와 동일한 로직 사용
+          try {
+            if (typeof actnDttm === "string") {
+              // ISO 형식 (2024-01-15T10:30:00) 또는 다른 형식 처리
+              if (actnDttm.indexOf("T") !== -1) {
+                formattedDate = actnDttm.substring(0, 10); // yyyy-MM-dd
+              } else if (actnDttm.length >= 10) {
+                formattedDate = actnDttm.substring(0, 10);
+              } else {
+                // Date 객체로 변환 시도
+                var date = new Date(actnDttm);
+                if (!isNaN(date.getTime())) {
+                  formattedDate =
+                    date.getFullYear() +
+                    "-" +
+                    String(date.getMonth() + 1).padStart(2, "0") +
+                    "-" +
+                    String(date.getDate()).padStart(2, "0");
+                } else {
+                  formattedDate = actnDttm;
+                }
+              }
+            } else if (actnDttm instanceof Date) {
+              // Date 객체인 경우
+              formattedDate =
+                actnDttm.getFullYear() +
+                "-" +
+                String(actnDttm.getMonth() + 1).padStart(2, "0") +
+                "-" +
+                String(actnDttm.getDate()).padStart(2, "0");
+            } else {
+              // 다른 타입인 경우 문자열로 변환 후 처리
+              var date = new Date(actnDttm);
+              if (!isNaN(date.getTime())) {
+                formattedDate =
+                  date.getFullYear() +
+                  "-" +
+                  String(date.getMonth() + 1).padStart(2, "0") +
+                  "-" +
+                  String(date.getDate()).padStart(2, "0");
+              }
+            }
+          } catch (error) {
+            formattedDate = "";
+          }
+        }
+
+        // createActionHistoryRow에 날짜와 내용을 직접 전달
+        var $row = createActionHistoryRow(
+          formattedDate,
+          history.actnCtnt || ""
+        );
+        $("#actionHistoryList").append($row);
+      });
+    } else {
+      $("#actionHistoryList").append(createActionHistoryRow());
+    }
+
+    // 이미지 로드 (state.editSeq 사용)
+    if (state.editSeq) {
+      loadEditImages(state.editSeq);
+    }
+  }
+
+  /**
+   * 수정 모드에서 기존 이미지를 로드한다.
+   * @param {number} seq - 불법점용정보 SEQ
+   */
+  function loadEditImages(seq) {
+    $.ajax({
+      url: "/regions/photos",
+      method: "GET",
+      data: {
+        ilglPrvuInfoSeq: seq,
+      },
+      dataType: "json",
+    })
+      .done(function (response) {
+        if (response.success && response.data && response.data.photos) {
+          renderEditImages(response.data.photos);
+        }
+      })
+      .fail(function (xhr, status, error) {
+        // 이미지 로드 실패 시 무시
+      });
+  }
+
+  /**
+   * 수정 모드에서 기존 이미지를 렌더링한다.
+   * @param {Array} photos - 이미지 배열
+   */
+  function renderEditImages(photos) {
+    // 이미지 리스트 초기화
+    $("#imageList").empty();
+    state.selectedFiles.images = [];
+
+    if (!photos || photos.length === 0) {
+      // 이미지가 없으면 기본 아이템 하나 추가
+      $("#addImageBtn").trigger("click");
+      return;
+    }
+
+    // 날짜별로 그룹화
+    var imagesByDate = {};
+    photos.forEach(function (photo) {
+      var date = photo.ocrnDates || "";
+      if (!imagesByDate[date]) {
+        imagesByDate[date] = [];
+      }
+      imagesByDate[date].push(photo);
+    });
+
+    // 각 날짜별로 이미지 아이템 생성
+    var dateKeys = Object.keys(imagesByDate).sort().reverse(); // 최신 날짜부터
+    dateKeys.forEach(function (date) {
+      var datePhotos = imagesByDate[date];
+      if (datePhotos.length === 0) return;
+
+      // 날짜를 yyyy-MM-dd 형식으로 변환
+      var formattedDate = date;
+      if (date && date.length === 8) {
+        formattedDate =
+          date.substring(0, 4) +
+          "-" +
+          date.substring(4, 6) +
+          "-" +
+          date.substring(6, 8);
+      }
+
+      // 이미지 아이템 생성 (register-modal.jsp의 createImageItem 사용)
+      // register-modal.jsp의 IllegalRegisterImage API를 사용하여 아이템 추가
+      if (
+        window.IllegalRegisterImage &&
+        typeof window.IllegalRegisterImage.createItem === "function"
+      ) {
+        window.IllegalRegisterImage.createItem(formattedDate, datePhotos);
+      } else {
+        // 기본 방식: 날짜 입력 필드가 있는 아이템 생성
+        // register-modal.jsp의 스크립트가 자동으로 아이템을 생성하므로
+        // 여기서는 날짜만 설정
+        $("#addImageBtn").trigger("click");
+        var $lastItem = $("#imageList .illegal-register-image-item").last();
+        var $dateInput = $lastItem.find('input[type="date"]');
+        if ($dateInput.length) {
+          $dateInput.val(formattedDate);
+        }
+
+        // 기존 이미지 표시는 서버에서 파일을 읽어서 base64로 변환해야 하므로
+        // 일단은 새 이미지만 추가 가능하도록 처리
+        // TODO: 서버에서 이미지를 base64로 제공하는 API 추가 필요
+      }
+    });
+
+    // 이미지가 없으면 기본 아이템 하나 추가
+    if ($("#imageList .illegal-register-image-item").length === 0) {
+      $("#addImageBtn").trigger("click");
+    }
+  }
+
+  /**
+   * 모달이 닫힐 때 수정 모드 초기화
+   */
+  function resetEditMode() {
+    state.editMode = false;
+    state.editSeq = null;
+    $("#illegalRegisterModalTitle").text("불법점용 용지 등록");
+    $("#illegalRegisterSubmitBtn").text("저장");
+  }
+
+  /**
+   * 모달 표시/숨김 시점에 대한 이벤트를 등록한다.
+   * - 모달이 열릴 때 오늘 날짜 기본 설정 및 포커스 이동
+   * - 모달이 닫힐 때 폼 초기화
+   */
+  function registerModalEvents() {
+    var $modal = $("#illegalRegisterModal");
+    if (!$modal.length) {
+      return;
+    }
+
+    // 모달이 열릴 때만 실행되는 이벤트 리스너
+    $modal.on("illegalRegisterModal:open", function () {
+      updateAllFilePreviews();
+
+      // 수정 모드가 아닐 때만 초기 데이터 로드
+      if (!state.editMode) {
+        // 모달이 열릴 때 서버에서 초기 데이터를 가져오는 Ajax 호출
+        $.ajax({
+          url: "/api/initial-data", // 실제 엔드포인트로 변경 필요
+          method: "GET",
+          dataType: "json",
+        })
+          .done(function (response) {
+            if (response.defaultValues) {
+              var $branchInput = $("#mtnofNm");
+              var $routeInput = $("#routeCd");
+
+              if (response.defaultValues.mtnofNm && $branchInput.length) {
+                $branchInput.val(response.defaultValues.mtnofNm);
+              }
+              if (response.defaultValues.routeCd && $routeInput.length) {
+                $routeInput.val(response.defaultValues.routeCd);
+              }
+            }
+          })
+          .fail(function (xhr, status, error) {
+            // 에러가 발생해도 모달은 정상적으로 열리도록 함
+          });
+      }
+    });
+
+    // 모달이 닫힐 때만 실행되는 이벤트 리스너
+    $modal.on("illegalRegisterModal:close", function () {
+      resetRegisterForm();
+      resetEditMode();
+    });
+  }
+
+  /**
    * 외부에서 접근 가능한 공개 메서드 모음.
    */
   window.RegisterModule = {
     fillForm: fillRegisterForm,
     resetForm: resetRegisterForm,
+    openEditMode: openEditMode,
   };
 
   window.escapeHtml = escapeHtml;

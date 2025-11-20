@@ -205,6 +205,13 @@
       >
         닫기
       </button>
+      <button
+        type="button"
+        id="inquiryEditBtn"
+        class="illegal-inquiry-modal__button illegal-inquiry-modal__button--primary"
+      >
+        수정
+      </button>
     </footer>
   </div>
 </div>
