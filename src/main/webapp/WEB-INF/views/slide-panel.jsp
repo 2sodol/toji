@@ -21,22 +21,6 @@ pageEncoding="UTF-8"%>
     </button>
   </div>
   <div class="slide-panel__body">
-    <!-- 검색 영역 -->
-    <div id="slide-panel-search-wrapper" class="slide-panel-search-wrapper">
-      <input
-        type="text"
-        id="slide-panel-search-input"
-        class="slide-panel-search-input"
-        placeholder="주소 검색"
-      />
-      <button
-        type="button"
-        id="slide-panel-search-btn"
-        class="slide-panel-search-btn"
-      >
-        <i class="fas fa-search"></i>
-      </button>
-    </div>
     <!-- 리스트 영역 -->
     <div id="slide-panel-list-wrapper" class="slide-panel-list-wrapper">
       <div id="slide-panel-list-container" class="slide-panel-list-container">
@@ -68,7 +52,9 @@ pageEncoding="UTF-8"%>
       id="slide-panel-loading"
       class="slide-panel-loading"
       style="display: none"
-    ></div>
+    >
+      <div class="slide-panel-loading__text">로딩 중...</div>
+    </div>
     <!-- 빈 상태 영역 -->
     <div id="slide-panel-empty" class="slide-panel-empty" style="display: none">
       <div class="slide-panel-empty__icon">
