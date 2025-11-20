@@ -29,17 +29,15 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
         <section class="illegal-register-form__section">
           <!-- 히든 필드: PNU 및 좌표 정보 -->
           <input id="lndsUnqNo" name="lndsUnqNo" />
-          <input  id="gpsLgtd" name="gpsLgtd" />
+          <input id="gpsLgtd" name="gpsLgtd" />
           <input id="gpsLttd" name="gpsLttd" />
-          
+
           <p class="illegal-register-form__section-title">
             기본정보<span class="illegal-register-form__required">*</span>
           </p>
           <div class="illegal-register-grid illegal-register-grid--cols-3">
             <div class="illegal-register-field">
-              <label class="illegal-register-label" for="hdqrNm"
-                >본부</label
-              >
+              <label class="illegal-register-label" for="hdqrNm">본부</label>
               <input
                 type="text"
                 class="illegal-register-input"
@@ -51,11 +49,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
               />
             </div>
             <div class="illegal-register-field">
-              <label
-                class="illegal-register-label"
-                for="mtnofNm"
-                >지사</label
-              >
+              <label class="illegal-register-label" for="mtnofNm">지사</label>
               <input
                 type="text"
                 class="illegal-register-input"
@@ -66,9 +60,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
               />
             </div>
             <div class="illegal-register-field">
-              <label class="illegal-register-label" for="routeCd"
-                >노선</label
-              >
+              <label class="illegal-register-label" for="routeCd">노선</label>
               <input
                 type="text"
                 class="illegal-register-input"
@@ -81,9 +73,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
           </div>
           <div class="illegal-register-grid illegal-register-grid--cols-3">
             <div class="illegal-register-field">
-              <label
-                class="illegal-register-label"
-                for="drveDrctCd"
+              <label class="illegal-register-label" for="drveDrctCd"
                 >주행방향</label
               >
               <select
@@ -99,10 +89,8 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
               </select>
             </div>
             <div class="illegal-register-field">
-              <label
-                class="illegal-register-label"
-                for="routeDstnc"
-                >이정</label
+              <label class="illegal-register-label" for="routeDstnc"
+                >이정 (km)</label
               >
               <input
                 type="text"
@@ -142,9 +130,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
           </div>
           <div class="illegal-register-grid illegal-register-grid--cols-2">
             <div class="illegal-register-field illegal-register-field--full">
-              <label
-                class="illegal-register-label"
-                for="lndsLdnoAddr"
+              <label class="illegal-register-label" for="lndsLdnoAddr"
                 >세부위치(주소)</label
               >
               <div class="illegal-register-input-group">
@@ -165,11 +151,11 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
           <p class="illegal-register-form__section-title">
             발생 및 관계자 정보
           </p>
-          <div class="illegal-register-grid illegal-register-grid--cols-4 illegal-register-grid--single-row">
+          <div
+            class="illegal-register-grid illegal-register-grid--cols-4 illegal-register-grid--single-row"
+          >
             <div class="illegal-register-field">
-              <label
-                class="illegal-register-label"
-                for="ocrnDates"
+              <label class="illegal-register-label" for="ocrnDates"
                 >발생일자</label
               >
               <input
@@ -181,9 +167,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
               />
             </div>
             <div class="illegal-register-field">
-              <label
-                class="illegal-register-label"
-                for="prchEmno"
+              <label class="illegal-register-label" for="prchEmno"
                 >담당자</label
               >
               <input
@@ -208,11 +192,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
               />
             </div>
             <div class="illegal-register-field">
-              <label
-                class="illegal-register-label"
-                for="rltrNm"
-                >관련자</label
-              >
+              <label class="illegal-register-label" for="rltrNm">관련자</label>
               <input
                 type="text"
                 class="illegal-register-input"
@@ -223,9 +203,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
           </div>
           <div class="illegal-register-grid illegal-register-grid--cols-2">
             <div class="illegal-register-field">
-              <label
-                class="illegal-register-label"
-                for="trnrAddr"
+              <label class="illegal-register-label" for="trnrAddr"
                 >행위자 주소</label
               >
               <div class="illegal-register-input-group">
@@ -247,9 +225,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
               </div>
             </div>
             <div class="illegal-register-field">
-              <label
-                class="illegal-register-label"
-                for="rltrAddr"
+              <label class="illegal-register-label" for="rltrAddr"
                 >관련자 주소</label
               >
               <div class="illegal-register-input-group">
@@ -277,9 +253,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
           <p class="illegal-register-form__section-title">점유 및 조치 정보</p>
           <div class="illegal-register-grid illegal-register-grid--cols-3">
             <div class="illegal-register-field">
-              <label
-                class="illegal-register-label"
-                for="ilglPssrt"
+              <label class="illegal-register-label" for="ilglPssrt"
                 >점유율 (%)</label
               >
               <input
@@ -293,9 +267,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
               />
             </div>
             <div class="illegal-register-field">
-              <label
-                class="illegal-register-label"
-                for="ilglPssnSqms"
+              <label class="illegal-register-label" for="ilglPssnSqms"
                 >점유면적 (㎡)</label
               >
               <input
@@ -359,10 +331,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
                 추가
               </button>
             </div>
-            <div
-              id="actionHistoryList"
-              class="illegal-register-history__list"
-            >
+            <div id="actionHistoryList" class="illegal-register-history__list">
               <div class="illegal-register-history__item">
                 <div class="illegal-register-history__date">
                   <input
@@ -388,7 +357,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
 
         <section class="illegal-register-form__section">
           <p class="illegal-register-form__section-title">사진 등록</p>
-          
+
           <!-- 이미지 파일 등록 섹션 (날짜와 이미지 매핑) -->
           <div class="illegal-register-image-section">
             <div class="illegal-register-image-section__header">
@@ -409,7 +378,6 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
               <!-- 이미지 아이템들이 동적으로 추가됩니다 -->
             </div>
           </div>
-
         </section>
       </form>
     </div>
@@ -677,7 +645,8 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     padding: 10px 18px;
     min-width: 70px;
     cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease,
+      border-color 0.2s ease, box-shadow 0.2s ease;
   }
 
   .illegal-register-button--primary {
@@ -722,7 +691,9 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
   }
 
   [data-register-address-target]:not(.illegal-register-button--outline):hover,
-  [data-register-address-target]:not(.illegal-register-button--outline):focus-visible {
+  [data-register-address-target]:not(
+      .illegal-register-button--outline
+    ):focus-visible {
     background-color: #1d4ed8;
     border-color: #1d4ed8;
     color: #ffffff;
@@ -1006,7 +977,8 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     overflow: hidden;
     background-color: #ffffff;
     cursor: pointer;
-    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color 0.2s ease, transform 0.2s ease,
+      box-shadow 0.2s ease;
     flex-shrink: 0;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
@@ -1039,7 +1011,8 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     height: 26px;
     border-radius: 50%;
     font-size: 12px;
-    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.2s ease,
+      box-shadow 0.2s ease;
     z-index: 10;
     backdrop-filter: blur(4px);
   }
@@ -1066,19 +1039,18 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
       width: 100%;
     }
   }
-
 </style>
 
 <script>
   (function (window, $) {
-    'use strict';
+    "use strict";
 
     // ===== 상수 정의 =====
     var CONSTANTS = {
       MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
-      ALLOWED_EXTENSIONS: ['png', 'jpg', 'jpeg'],
-      ALLOWED_MIME_TYPES: ['image/png', 'image/jpeg', 'image/jpg'],
-      EMPTY_PREVIEW_MESSAGE: '선택된 파일이 없습니다.'
+      ALLOWED_EXTENSIONS: ["png", "jpg", "jpeg"],
+      ALLOWED_MIME_TYPES: ["image/png", "image/jpeg", "image/jpg"],
+      EMPTY_PREVIEW_MESSAGE: "선택된 파일이 없습니다.",
     };
 
     // ===== DOM 요소 캐싱 =====
@@ -1094,7 +1066,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
 
     // ===== 상태 관리 =====
     var state = {
-      imageItemCounter: 0
+      imageItemCounter: 0,
     };
 
     // ===== 유틸리티 함수 =====
@@ -1103,13 +1075,13 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     }
 
     function fileToBase64(file) {
-      return new Promise(function(resolve, reject) {
+      return new Promise(function (resolve, reject) {
         var reader = new FileReader();
         reader.readAsDataURL(file);
-        reader.onload = function() {
+        reader.onload = function () {
           resolve(reader.result);
         };
-        reader.onerror = function(error) {
+        reader.onerror = function (error) {
           reject(error);
         };
       });
@@ -1117,74 +1089,110 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
 
     function getSelector(id, type) {
       var selectors = {
-        dateInput: '#imageDate_' + id,
-        fileInput: '#fileInput_' + id,
-        preview: '#preview_' + id,
-        mappingData: '#mappingData_' + id,
-        item: '[data-item-id="' + id + '"]'
+        dateInput: "#imageDate_" + id,
+        fileInput: "#fileInput_" + id,
+        preview: "#preview_" + id,
+        mappingData: "#mappingData_" + id,
+        item: '[data-item-id="' + id + '"]',
       };
-      return selectors[type] || '';
+      return selectors[type] || "";
     }
 
     // ===== HTML 템플릿 함수 =====
     function createRemoveButton(itemId) {
-      return '<button type="button" class="illegal-register-image-item__remove" onclick="IllegalRegisterImage.removeItem(\'' + itemId + '\')">' +
+      return (
+        '<button type="button" class="illegal-register-image-item__remove" onclick="IllegalRegisterImage.removeItem(\'' +
+        itemId +
+        "')\">" +
         '<i class="fas fa-times" aria-hidden="true"></i>' +
-      '</button>';
+        "</button>"
+      );
     }
 
     function createImageItemHtml(itemId, number) {
-      var removeButtonHtml = number > 1 ? createRemoveButton(itemId) : '';
-      
-      return '<div class="illegal-register-image-item" data-item-id="' + itemId + '">' +
+      var removeButtonHtml = number > 1 ? createRemoveButton(itemId) : "";
+
+      return (
+        '<div class="illegal-register-image-item" data-item-id="' +
+        itemId +
+        '">' +
         '<div class="illegal-register-image-item__content">' +
-          '<div class="illegal-register-image-item__header">' +
-            '<span class="illegal-register-image-item__number">#' + number + '</span>' +
-            removeButtonHtml +
-          '</div>' +
-          '<div class="illegal-register-image-item__row">' +
-            '<div class="illegal-register-field illegal-register-field--inline" style="position: relative;">' +
-              '<input type="date" class="illegal-register-input" id="imageDate_' + itemId + '" required />' +
-              '<span class="illegal-register-form__required" style="position: absolute; top: -5px; right: -10px;">*</span>' +
-            '</div>' +
-            '<button type="button" class="illegal-register-button illegal-register-button--outline illegal-register-button--sm illegal-register-image-item__select-btn" onclick="IllegalRegisterImage.selectFile(\'' + itemId + '\')">' +
-              '<i class="fas fa-upload" aria-hidden="true"></i>' +
-              '<span class="illegal-register-button__text">선택</span>' +
-            '</button>' +
-          '</div>' +
-          '<div class="illegal-register-image-item__preview-section">' +
-            '<div class="illegal-register-image-item__preview" id="preview_' + itemId + '">' +
-              createEmptyPreviewHtml() +
-            '</div>' +
-          '</div>' +
-          '<input type="file" id="fileInput_' + itemId + '" accept=".png,.jpg,.jpeg" data-item-id="' + itemId + '" multiple hidden />' +
-          '<input type="hidden" id="mappingData_' + itemId + '" name="imageMappingData[]" />' +
-        '</div>' +
-      '</div>';
+        '<div class="illegal-register-image-item__header">' +
+        '<span class="illegal-register-image-item__number">#' +
+        number +
+        "</span>" +
+        removeButtonHtml +
+        "</div>" +
+        '<div class="illegal-register-image-item__row">' +
+        '<div class="illegal-register-field illegal-register-field--inline" style="position: relative;">' +
+        '<input type="date" class="illegal-register-input" id="imageDate_' +
+        itemId +
+        '" required />' +
+        '<span class="illegal-register-form__required" style="position: absolute; top: -5px; right: -10px;">*</span>' +
+        "</div>" +
+        '<button type="button" class="illegal-register-button illegal-register-button--outline illegal-register-button--sm illegal-register-image-item__select-btn" onclick="IllegalRegisterImage.selectFile(\'' +
+        itemId +
+        "')\">" +
+        '<i class="fas fa-upload" aria-hidden="true"></i>' +
+        '<span class="illegal-register-button__text">선택</span>' +
+        "</button>" +
+        "</div>" +
+        '<div class="illegal-register-image-item__preview-section">' +
+        '<div class="illegal-register-image-item__preview" id="preview_' +
+        itemId +
+        '">' +
+        createEmptyPreviewHtml() +
+        "</div>" +
+        "</div>" +
+        '<input type="file" id="fileInput_' +
+        itemId +
+        '" accept=".png,.jpg,.jpeg" data-item-id="' +
+        itemId +
+        '" multiple hidden />' +
+        '<input type="hidden" id="mappingData_' +
+        itemId +
+        '" name="imageMappingData[]" />' +
+        "</div>" +
+        "</div>"
+      );
     }
 
     function createEmptyPreviewHtml() {
-      return '<span class="illegal-register-image-item__preview-empty">' +
+      return (
+        '<span class="illegal-register-image-item__preview-empty">' +
         '<i class="fas fa-image" aria-hidden="true"></i>' +
         CONSTANTS.EMPTY_PREVIEW_MESSAGE +
-      '</span>';
+        "</span>"
+      );
     }
 
     function createImageThumbnailHtml(imageId, base64Data, fileName) {
-      return '<div class="illegal-register-image-thumbnail" data-image-id="' + imageId + '">' +
-        '<img src="' + base64Data + '" alt="' + fileName + '" class="illegal-register-image-thumbnail__img" />' +
-        '<button type="button" class="illegal-register-image-thumbnail__remove" onclick="IllegalRegisterImage.removeImage(\'' + imageId + '\')" aria-label="삭제">' +
-          '<i class="fas fa-times" aria-hidden="true"></i>' +
-        '</button>' +
-      '</div>';
+      return (
+        '<div class="illegal-register-image-thumbnail" data-image-id="' +
+        imageId +
+        '">' +
+        '<img src="' +
+        base64Data +
+        '" alt="' +
+        fileName +
+        '" class="illegal-register-image-thumbnail__img" />' +
+        '<button type="button" class="illegal-register-image-thumbnail__remove" onclick="IllegalRegisterImage.removeImage(\'' +
+        imageId +
+        '\')" aria-label="삭제">' +
+        '<i class="fas fa-times" aria-hidden="true"></i>' +
+        "</button>" +
+        "</div>"
+      );
     }
 
     // ===== 이미지 아이템 관리 =====
     function createImageItem() {
       state.imageItemCounter++;
-      var itemId = 'imageItem_' + state.imageItemCounter;
+      var itemId = "imageItem_" + state.imageItemCounter;
       // 현재 리스트의 항목 수 + 1을 넘버링으로 사용
-      var currentItemCount = $imageList.find('.illegal-register-image-item').length;
+      var currentItemCount = $imageList.find(
+        ".illegal-register-image-item"
+      ).length;
       var number = currentItemCount + 1;
       var itemHtml = createImageItemHtml(itemId, number);
       $imageList.append(itemHtml);
@@ -1192,16 +1200,18 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     }
 
     function renumberImageItems() {
-      $imageList.find('.illegal-register-image-item').each(function(index) {
+      $imageList.find(".illegal-register-image-item").each(function (index) {
         var newNumber = index + 1;
         var $item = $(this);
-        var itemId = $item.data('item-id');
-        var $header = $item.find('.illegal-register-image-item__header');
-        var $removeBtn = $item.find('.illegal-register-image-item__remove');
-        
+        var itemId = $item.data("item-id");
+        var $header = $item.find(".illegal-register-image-item__header");
+        var $removeBtn = $item.find(".illegal-register-image-item__remove");
+
         // 넘버링 업데이트
-        $item.find('.illegal-register-image-item__number').text('#' + newNumber);
-        
+        $item
+          .find(".illegal-register-image-item__number")
+          .text("#" + newNumber);
+
         // 첫 번째 아이템은 삭제 버튼 제거
         if (newNumber === 1) {
           $removeBtn.remove();
@@ -1216,39 +1226,47 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     function validateFile(file) {
       // 파일명에서 확장자 추출
       var fileName = file.name.toLowerCase();
-      var fileExtension = fileName.split('.').pop();
-      
+      var fileExtension = fileName.split(".").pop();
+
       // 확장자 검증
-      if (!fileExtension || CONSTANTS.ALLOWED_EXTENSIONS.indexOf(fileExtension) === -1) {
-        alert('PNG, JPG 등 이미지 파일만 업로드 가능합니다.');
+      if (
+        !fileExtension ||
+        CONSTANTS.ALLOWED_EXTENSIONS.indexOf(fileExtension) === -1
+      ) {
+        alert("PNG, JPG 등 이미지 파일만 업로드 가능합니다.");
         return false;
       }
-      
+
       // MIME 타입 검증
-      if (!file.type || CONSTANTS.ALLOWED_MIME_TYPES.indexOf(file.type.toLowerCase()) === -1) {
-        alert('PNG, JPG 등 이미지 파일만 업로드 가능합니다. (파일 형식이 올바르지 않습니다)');
+      if (
+        !file.type ||
+        CONSTANTS.ALLOWED_MIME_TYPES.indexOf(file.type.toLowerCase()) === -1
+      ) {
+        alert(
+          "PNG, JPG 등 이미지 파일만 업로드 가능합니다. (파일 형식이 올바르지 않습니다)"
+        );
         return false;
       }
-      
+
       // 파일 크기 검증
       if (file.size > CONSTANTS.MAX_FILE_SIZE) {
-        alert('파일 크기는 10MB를 초과할 수 없습니다.');
+        alert("파일 크기는 10MB를 초과할 수 없습니다.");
         return false;
       }
-      
+
       // 파일이 비어있는지 확인
       if (file.size === 0) {
-        alert('빈 파일은 업로드할 수 없습니다.');
+        alert("빈 파일은 업로드할 수 없습니다.");
         return false;
       }
-      
+
       return true;
     }
 
     function validateImageDate(itemId) {
-      var imageDate = $(getSelector(itemId, 'dateInput')).val();
+      var imageDate = $(getSelector(itemId, "dateInput")).val();
       if (!imageDate) {
-        alert('이미지 등록일을 먼저 선택해주세요.');
+        alert("이미지 등록일을 먼저 선택해주세요.");
         return false;
       }
       return imageDate;
@@ -1257,14 +1275,14 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     // ===== 파일 처리 =====
     function handleImageFileSelect(event) {
       var fileInput = event.target;
-      var itemId = $(fileInput).data('item-id');
+      var itemId = $(fileInput).data("item-id");
       var files = fileInput.files;
 
       if (!files || files.length === 0) return;
 
       var imageDate = validateImageDate(itemId);
       if (!imageDate) {
-        $(fileInput).val('');
+        $(fileInput).val("");
         return;
       }
 
@@ -1276,54 +1294,71 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
       }
 
       if (validFiles.length === 0) {
-        $(fileInput).val('');
+        $(fileInput).val("");
         return;
       }
 
       // 모든 유효한 파일 처리
-      var promises = validFiles.map(function(file) {
-        return fileToBase64(file).then(function(base64Data) {
+      var promises = validFiles.map(function (file) {
+        return fileToBase64(file).then(function (base64Data) {
           return {
             file: file,
             base64Data: base64Data,
-            base64Content: base64Data.split(',')[1]
+            base64Content: base64Data.split(",")[1],
           };
         });
       });
 
-      Promise.all(promises).then(function(results) {
-        var $preview = $(getSelector(itemId, 'preview'));
-        var currentMapping = $(getSelector(itemId, 'mappingData')).val() || '';
-        var mappings = currentMapping ? currentMapping.split('||') : [];
+      Promise.all(promises)
+        .then(function (results) {
+          var $preview = $(getSelector(itemId, "preview"));
+          var currentMapping =
+            $(getSelector(itemId, "mappingData")).val() || "";
+          var mappings = currentMapping ? currentMapping.split("||") : [];
 
-        results.forEach(function(result, index) {
-          var imageId = itemId + '_img_' + Date.now() + '_' + index + '_' + Math.random().toString(36).substr(2, 9);
-          var mapping = imageDate + ':' + result.base64Content;
-          mappings.push(mapping);
+          results.forEach(function (result, index) {
+            var imageId =
+              itemId +
+              "_img_" +
+              Date.now() +
+              "_" +
+              index +
+              "_" +
+              Math.random().toString(36).substr(2, 9);
+            var mapping = imageDate + ":" + result.base64Content;
+            mappings.push(mapping);
 
-          // 썸네일 추가
-          var thumbnailHtml = createImageThumbnailHtml(imageId, result.base64Data, result.file.name);
-          if ($preview.find('.illegal-register-image-item__preview-empty').length > 0) {
-            $preview.empty();
-            $preview.addClass('has-images');
-          }
-          $preview.append(thumbnailHtml);
+            // 썸네일 추가
+            var thumbnailHtml = createImageThumbnailHtml(
+              imageId,
+              result.base64Data,
+              result.file.name
+            );
+            if (
+              $preview.find(".illegal-register-image-item__preview-empty")
+                .length > 0
+            ) {
+              $preview.empty();
+              $preview.addClass("has-images");
+            }
+            $preview.append(thumbnailHtml);
 
-          // 이미지 데이터 저장 (나중에 삭제를 위해)
-          $preview.data('images-' + imageId, {
-            mapping: mapping,
-            fileName: result.file.name
+            // 이미지 데이터 저장 (나중에 삭제를 위해)
+            $preview.data("images-" + imageId, {
+              mapping: mapping,
+              fileName: result.file.name,
+            });
           });
-        });
 
-        // 모든 매핑 데이터 업데이트
-        $(getSelector(itemId, 'mappingData')).val(mappings.join('||'));
-        $(fileInput).val('');
-      }).catch(function(error) {
-        console.error('파일 변환 중 오류 발생:', error);
-        alert('파일 처리 중 오류가 발생했습니다.');
-        $(fileInput).val('');
-      });
+          // 모든 매핑 데이터 업데이트
+          $(getSelector(itemId, "mappingData")).val(mappings.join("||"));
+          $(fileInput).val("");
+        })
+        .catch(function (error) {
+          console.error("파일 변환 중 오류 발생:", error);
+          alert("파일 처리 중 오류가 발생했습니다.");
+          $(fileInput).val("");
+        });
     }
 
     // ===== 모달 관리 =====
@@ -1347,67 +1382,77 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
 
     // ===== 이미지 삭제 =====
     function removeImageFromPreview(imageId) {
-      var $thumbnail = $('.illegal-register-image-thumbnail[data-image-id="' + imageId + '"]');
-      var $preview = $thumbnail.closest('.illegal-register-image-item__preview');
-      var itemId = $preview.closest('.illegal-register-image-item').data('item-id');
-      
+      var $thumbnail = $(
+        '.illegal-register-image-thumbnail[data-image-id="' + imageId + '"]'
+      );
+      var $preview = $thumbnail.closest(
+        ".illegal-register-image-item__preview"
+      );
+      var itemId = $preview
+        .closest(".illegal-register-image-item")
+        .data("item-id");
+
       // 저장된 이미지 데이터 가져오기
-      var imageData = $preview.data('images-' + imageId);
+      var imageData = $preview.data("images-" + imageId);
       if (imageData && imageData.mapping) {
         // 매핑 데이터에서 해당 이미지 제거
-        var currentMapping = $(getSelector(itemId, 'mappingData')).val() || '';
-        var mappings = currentMapping.split('||').filter(function(mapping) {
+        var currentMapping = $(getSelector(itemId, "mappingData")).val() || "";
+        var mappings = currentMapping.split("||").filter(function (mapping) {
           return mapping !== imageData.mapping;
         });
-        $(getSelector(itemId, 'mappingData')).val(mappings.join('||'));
+        $(getSelector(itemId, "mappingData")).val(mappings.join("||"));
       }
 
       // 썸네일 제거
       $thumbnail.remove();
 
       // 저장된 데이터 제거
-      $preview.removeData('images-' + imageId);
+      $preview.removeData("images-" + imageId);
 
       // 이미지가 없으면 빈 상태 메시지 표시
-      if ($preview.find('.illegal-register-image-thumbnail').length === 0) {
-        $preview.removeClass('has-images');
+      if ($preview.find(".illegal-register-image-thumbnail").length === 0) {
+        $preview.removeClass("has-images");
         $preview.html(createEmptyPreviewHtml());
       }
     }
 
     // ===== 공개 API =====
     window.IllegalRegisterImage = {
-      selectFile: function(itemId) {
-        $(getSelector(itemId, 'fileInput')).click();
+      selectFile: function (itemId) {
+        $(getSelector(itemId, "fileInput")).click();
       },
-      
-      clearFile: function(itemId) {
-        $(getSelector(itemId, 'fileInput')).val('');
-        $(getSelector(itemId, 'mappingData')).val('');
-        var $preview = $(getSelector(itemId, 'preview'));
-        $preview.removeClass('has-images');
+
+      clearFile: function (itemId) {
+        $(getSelector(itemId, "fileInput")).val("");
+        $(getSelector(itemId, "mappingData")).val("");
+        var $preview = $(getSelector(itemId, "preview"));
+        $preview.removeClass("has-images");
         $preview.html(createEmptyPreviewHtml());
       },
-      
-      removeImage: function(imageId) {
+
+      removeImage: function (imageId) {
         removeImageFromPreview(imageId);
       },
-      
-      removeItem: function(itemId) {
-        $(getSelector(itemId, 'item')).remove();
+
+      removeItem: function (itemId) {
+        $(getSelector(itemId, "item")).remove();
         renumberImageItems();
-      }
+      },
     };
 
     // ===== 이벤트 바인딩 =====
     function bindEvents() {
-      $addImageBtn.on('click', function() {
+      $addImageBtn.on("click", function () {
         createImageItem();
       });
 
-      $(document).on('change', 'input[type="file"][accept*=".png"]', handleImageFileSelect);
+      $(document).on(
+        "change",
+        'input[type="file"][accept*=".png"]',
+        handleImageFileSelect
+      );
 
-      $modal.on("click", function(event) {
+      $modal.on("click", function (event) {
         if (event.target === $modal[0]) {
           closeModal();
         }
@@ -1415,13 +1460,13 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
 
       $closeButtons.on("click", closeModal);
 
-      $(document).on("keydown", function(event) {
+      $(document).on("keydown", function (event) {
         if (event.key === "Escape" && $modal.hasClass("is-open")) {
           closeModal();
         }
       });
 
-      $modal.on('illegalRegisterModal:open', function() {
+      $modal.on("illegalRegisterModal:open", function () {
         if ($imageList.children().length === 0) {
           createImageItem();
         }
@@ -1434,14 +1479,14 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     window.IllegalRegisterModal = {
       open: openModal,
       close: closeModal,
-      toggle: function(force) {
+      toggle: function (force) {
         if (typeof force === "boolean") {
           force ? openModal() : closeModal();
           return;
         }
         $modal.hasClass("is-open") ? closeModal() : openModal();
       },
-      element: $modal[0]
+      element: $modal[0],
     };
   })(window, window.jQuery);
 </script>
