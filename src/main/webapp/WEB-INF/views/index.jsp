@@ -437,42 +437,38 @@ pageEncoding="UTF-8"%>
           zIndex: 10, // 이미지 위에 표시되도록 높은 zIndex
         });
 
-        // 타일 레이어 생성 (tile1, tile2, tile3)
+        // 이미지 레이어 생성 - ImageStatic 사용
         var contextPath = "<%=request.getContextPath()%>";
-        var tile1Layer = new ol.layer.Tile({
-          source: new ol.source.XYZ({
-            url: contextPath + "/data/tile1/{z}/{x}/{y}.png",
-            minZoom: 15,
-            maxZoom: 22,
-            projection: 'EPSG:3857'
-          }),
-          zIndex: 1
+        
+        // 이미지 좌표 정보 (EPSG:3857) - 참조 코드에서 가져온 값
+        var GEOTIFF_CENTER_X = 14239470.615841;
+        var GEOTIFF_CENTER_Y = 4331334.304951; // 4331333.304951 + 1
+        var IMAGE_HALF_SIZE_RANGE = 29;
+        var IMAGE_EXTENT = [
+          GEOTIFF_CENTER_X - IMAGE_HALF_SIZE_RANGE, // Xmin
+          GEOTIFF_CENTER_Y - IMAGE_HALF_SIZE_RANGE, // Ymin
+          GEOTIFF_CENTER_X + IMAGE_HALF_SIZE_RANGE, // Xmax
+          GEOTIFF_CENTER_Y + IMAGE_HALF_SIZE_RANGE  // Ymax
+        ];
+        
+        // 이미지 레이어 (field1.png 사용)
+        var imageSource = new ol.source.ImageStatic({
+          url: contextPath + "/data/field1.png",
+          imageExtent: IMAGE_EXTENT,
+          projection: 'EPSG:3857',
+          crossOrigin: 'anonymous'
         });
-
-        var tile2Layer = new ol.layer.Tile({
-          source: new ol.source.XYZ({
-            url: contextPath + "/data/tile2/{z}/{x}/{y}.png",
-            minZoom: 15,
-            maxZoom: 22,
-            projection: 'EPSG:3857'
-          }),
-          zIndex: 1
-        });
-
-        var tile3Layer = new ol.layer.Tile({
-          source: new ol.source.XYZ({
-            url: contextPath + "/data/tile3/{z}/{x}/{y}.png",
-            minZoom: 15,
-            maxZoom: 22,
-            projection: 'EPSG:3857'
-          }),
+        var imageLayer = new ol.layer.Image({
+          source: imageSource,
+          title: 'Image Overlay',
+          opacity: 0.8,
           zIndex: 1
         });
         //window.cadastralLayer
         // 지도 객체 생성 (전역 변수로 선언)
         window.map = new ol.Map({
           target: "map",
-          layers: [baseLayer, tile1Layer, tile2Layer, tile3Layer, highlightLayer],
+          layers: [baseLayer, imageLayer, highlightLayer],
           view: view,
           // 이미지 렌더링 최적화 설정
           pixelRatio: window.devicePixelRatio || 1, // 고해상도 디스플레이 지원

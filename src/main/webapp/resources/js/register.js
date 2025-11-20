@@ -14,14 +14,15 @@
   /**
    * 모듈 내부에서 공유되는 UI 상태 값.
    * selectedFiles: 각 파일 타입별로 선택된 파일 정보
-   *   - image: 이미지 파일 (갤러리용 및 레이어용으로 공통 사용)
+   *   - images: 이미지 파일 배열 (날짜와 매핑) [{ date: string, file: File, base64: string, preview: string, id: string }]
    *   - kml: KML 파일
    */
   var state = {
     selectedFiles: {
-      image: null, // { file: File, base64: string, preview: string }
+      images: [], // 날짜와 매핑된 이미지 파일 배열
       kml: null,
     },
+    imageItemCounter: 0, // 이미지 아이템 ID 생성용 카운터
   };
 
   /**
@@ -39,6 +40,174 @@
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
+  }
+
+  /**
+   * 이미지 아이템 DOM 요소를 생성한다.
+   * @param {string} itemId - 아이템 고유 ID
+   * @param {string} date - 이미지 등록일 (yyyy-MM-dd)
+   * @param {Object} fileData - 파일 데이터 (없으면 null)
+   * @returns {jQuery} - 생성된 이미지 아이템의 jQuery 객체
+   */
+  function createImageItem(itemId, date, fileData) {
+    var safeDate = escapeHtml(date || "");
+    var $item = $("<div>", {
+      class: "illegal-register-image-item",
+      "data-image-item-id": itemId,
+    });
+
+    var $header = $("<div>", {
+      class: "illegal-register-image-item__header",
+    });
+    var $title = $("<label>", {
+      class: "illegal-register-label",
+      text: "이미지 #" + (state.selectedFiles.images.length + 1),
+    });
+    var $removeBtn = $("<button>", {
+      type: "button",
+      class: "illegal-register-image-item__remove remove-image-item-btn",
+      "data-image-item-id": itemId,
+      title: "삭제",
+      "aria-label": "삭제",
+    });
+    var $removeIcon = $("<i>", {
+      class: "fas fa-times",
+    });
+    $removeBtn.append($removeIcon);
+    $header.append($title).append($removeBtn);
+
+    var $content = $("<div>", {
+      class: "illegal-register-image-item__content",
+    });
+
+    var $fields = $("<div>", {
+      class: "illegal-register-image-item__fields",
+    });
+    var $dateField = $("<div>", {
+      class: "illegal-register-field",
+    });
+    var $dateLabel = $("<label>", {
+      class: "illegal-register-label",
+      for: "imageDate_" + itemId,
+      html: '이미지 등록일 <span class="illegal-register-form__required">*</span>',
+    });
+    var $dateInput = $("<input>", {
+      type: "date",
+      class: "illegal-register-input image-date-input",
+      id: "imageDate_" + itemId,
+      "data-image-item-id": itemId,
+      value: safeDate,
+      required: true,
+    });
+    $dateField.append($dateLabel).append($dateInput);
+
+    var $fileField = $("<div>", {
+      class: "illegal-register-field",
+    });
+    var $fileLabel = $("<label>", {
+      class: "illegal-register-label",
+      for: "imageFileBtn_" + itemId,
+      text: "파일 선택",
+    });
+    var $fileBtn = $("<button>", {
+      type: "button",
+      class: "illegal-register-button illegal-register-button--outline image-file-btn",
+      id: "imageFileBtn_" + itemId,
+      "data-image-item-id": itemId,
+    });
+    var $fileIcon = $("<i>", {
+      class: "fas fa-upload",
+      "aria-hidden": "true",
+    });
+    var $fileText = $("<span>", {
+      class: "illegal-register-button__text",
+      text: "PNG 파일 선택",
+    });
+    $fileBtn.append($fileIcon).append($fileText);
+    $fileField.append($fileLabel).append($fileBtn);
+
+    var $fileInput = $("<input>", {
+      type: "file",
+      class: "image-file-input",
+      id: "imageFileInput_" + itemId,
+      "data-image-item-id": itemId,
+      accept: ".png",
+      hidden: true,
+    });
+
+    $fields.append($dateField).append($fileField);
+
+    var $preview = $("<div>", {
+      class: "illegal-register-image-item__preview",
+      id: "imagePreview_" + itemId,
+    });
+
+    if (fileData && fileData.preview) {
+      var $previewItem = createImagePreviewItem(fileData);
+      $preview.append($previewItem);
+    } else {
+      var $placeholder = $("<div>", {
+        class: "illegal-register-image-item__preview-empty",
+        text: "선택된 파일이 없습니다.",
+      });
+      $preview.append($placeholder);
+    }
+
+    $content.append($fields).append($preview).append($fileInput);
+    $item.append($header).append($content);
+
+    return $item;
+  }
+
+  /**
+   * 이미지 미리보기 아이템을 생성한다.
+   * @param {Object} fileData - 파일 데이터 객체
+   * @returns {jQuery} - 생성된 미리보기 아이템의 jQuery 객체
+   */
+  function createImagePreviewItem(fileData) {
+    var $item = $("<div>", {
+      class: "illegal-register-file-upload__item",
+    });
+
+    var $itemInfo = $("<div>", {
+      class: "illegal-register-file-upload__item-info",
+    });
+
+    var $icon = $("<div>", {
+      class: "illegal-register-file-upload__item-icon illegal-register-file-upload__item-icon--image",
+    });
+    var $iconElement = $("<i>", {
+      class: "fas fa-image",
+    });
+    $icon.append($iconElement);
+
+    var $details = $("<div>", {
+      class: "illegal-register-file-upload__item-details",
+    });
+    var $name = $("<div>", {
+      class: "illegal-register-file-upload__item-name",
+      text: escapeHtml(fileData.file.name),
+    });
+    var $size = $("<div>", {
+      class: "illegal-register-file-upload__item-size",
+      text: formatFileSize(fileData.file.size),
+    });
+    $details.append($name).append($size);
+
+    $itemInfo.append($icon).append($details);
+
+    if (fileData.preview) {
+      var $previewImg = $("<img>", {
+        class: "illegal-register-file-upload__item-preview",
+        src: fileData.preview,
+        alt: escapeHtml(fileData.file.name),
+      });
+      $itemInfo.append($previewImg);
+    }
+
+    $item.append($itemInfo);
+
+    return $item;
   }
 
   /**
@@ -157,12 +326,51 @@
   }
 
   /**
-   * 특정 파일 타입의 미리보기 UI를 갱신한다.
-   * @param {string} fileType - 파일 타입 ('tif', 'png', 'kml')
+   * 특정 이미지 아이템의 미리보기를 갱신한다.
+   * @param {string} itemId - 이미지 아이템 ID
    */
-  function updateFilePreview(fileType) {
-    var $preview = $("#" + fileType + "FilePreview");
-    var fileData = state.selectedFiles[fileType];
+  function updateImageItemPreview(itemId) {
+    var $preview = $("#imagePreview_" + itemId);
+    var imageItem = state.selectedFiles.images.find(function (img) {
+      return img.id === itemId;
+    });
+
+    $preview.empty();
+
+    if (!imageItem || !imageItem.fileData) {
+      var $placeholder = $("<div>", {
+        class: "illegal-register-image-item__preview-empty",
+        text: "선택된 파일이 없습니다.",
+      });
+      $preview.append($placeholder);
+      return;
+    }
+
+    var $previewItem = createImagePreviewItem(imageItem.fileData);
+    $preview.append($previewItem);
+  }
+
+  /**
+   * 모든 파일 미리보기를 갱신한다.
+   */
+  function updateAllFilePreviews() {
+    // 이미지 아이템들의 미리보기를 갱신
+    $("#imageList .illegal-register-image-item").each(function () {
+      var itemId = $(this).data("image-item-id");
+      if (itemId) {
+        updateImageItemPreview(itemId);
+      }
+    });
+    // KML 파일 미리보기 갱신
+    updateKmlPreview();
+  }
+
+  /**
+   * KML 파일 미리보기를 갱신한다.
+   */
+  function updateKmlPreview() {
+    var $preview = $("#kmlFilePreview");
+    var fileData = state.selectedFiles.kml;
 
     $preview.empty();
 
@@ -184,10 +392,10 @@
     });
 
     var $icon = $("<div>", {
-      class: "illegal-register-file-upload__item-icon illegal-register-file-upload__item-icon--" + fileType,
+      class: "illegal-register-file-upload__item-icon illegal-register-file-upload__item-icon--kml",
     });
     var $iconElement = $("<i>", {
-      class: getFileIconClass(fileType),
+      class: "fas fa-map",
     });
     $icon.append($iconElement);
 
@@ -206,22 +414,10 @@
 
     $itemInfo.append($icon).append($details);
 
-    // 이미지 파일인 경우 미리보기 추가
-    if (fileType === "image") {
-      if (fileData.preview) {
-        var $previewImg = $("<img>", {
-          class: "illegal-register-file-upload__item-preview",
-          src: fileData.preview,
-          alt: escapeHtml(fileData.file.name),
-        });
-        $itemInfo.append($previewImg);
-      }
-    }
-
     var $removeBtn = $("<button>", {
       type: "button",
       class: "illegal-register-file-upload__item-remove",
-      "data-file-type": fileType,
+      "data-file-type": "kml",
       title: "삭제",
       "aria-label": "삭제",
     });
@@ -232,14 +428,6 @@
 
     $item.append($itemInfo).append($removeBtn);
     $preview.append($item);
-  }
-
-  /**
-   * 모든 파일 미리보기를 갱신한다.
-   */
-  function updateAllFilePreviews() {
-    updateFilePreview("image");
-    updateFilePreview("kml");
   }
 
   /**
@@ -260,16 +448,13 @@
 
     resetActionHistoryList();
     state.selectedFiles = {
-      image: null,
+      images: [],
       kml: null,
     };
+    state.imageItemCounter = 0;
+    $("#imageList").empty();
     updateAllFilePreviews();
-    $("#imageFileInput").val("");
     $("#kmlFileInput").val("");
-    
-    // 이미지 등록일 초기화 (오늘 날짜로 설정)
-    var today = new Date().toISOString().split("T")[0];
-    $("#imageOcrnDates").val(today);
 
     // 히든 필드 초기화
     $("#lndsUnqNo").val("");
@@ -488,12 +673,6 @@
     // 모달이 열릴 때만 실행되는 이벤트 리스너
     $modal.on("illegalRegisterModal:open", function () {
       updateAllFilePreviews();
-      
-      // 이미지 등록일 초기화 (오늘 날짜로 설정)
-      if (!$("#imageOcrnDates").val()) {
-        var today = new Date().toISOString().split("T")[0];
-        $("#imageOcrnDates").val(today);
-      }
 
       // 모달이 열릴 때 서버에서 초기 데이터를 가져오는 Ajax 호출
       $.ajax({
@@ -559,35 +738,35 @@
    * - 미리보기 갱신 및 삭제 버튼 처리
    */
   function bindFileUploadEvents() {
-    // 각 파일 타입별 업로드 버튼 이벤트
-    $("#imageFileUploadBtn, #kmlFileUploadBtn").on("click", function () {
-      var fileType = $(this).data("file-upload-type");
-      var $fileInput = $("#" + fileType + "FileInput");
+    // 이미지 추가 버튼 이벤트는 register-modal.jsp에서 처리하므로 제거
+    // $("#addImageBtn").on("click", function () {
+    //   var itemId = "image_" + (++state.imageItemCounter);
+    //   var today = new Date().toISOString().split("T")[0];
+    //   var $imageItem = createImageItem(itemId, today, null);
+    //   $("#imageList").append($imageItem);
+    // });
+
+    // 동적으로 추가된 이미지 파일 버튼 클릭 이벤트
+    $(document).on("click", ".image-file-btn", function () {
+      var itemId = $(this).data("image-item-id");
+      var $fileInput = $("#imageFileInput_" + itemId);
       $fileInput.trigger("click");
     });
 
-    // 각 파일 타입별 파일 선택 이벤트
-    $("#imageFileInput, #kmlFileInput").on("change", function () {
+    // 동적으로 추가된 이미지 파일 선택 이벤트
+    $(document).on("change", ".image-file-input", function () {
       var $input = $(this);
-      var fileType = $input.data("file-type");
+      var itemId = $input.data("image-item-id");
       var file = $input[0].files && $input[0].files[0];
 
       if (!file) {
         return;
       }
 
-      // 파일 타입 검증
-      var isValid = false;
-      if (fileType === "image") {
-        var fileName = file.name.toLowerCase();
-        isValid = fileName.endsWith(".tif") || fileName.endsWith(".tiff") || fileName.endsWith(".png");
-      } else if (fileType === "kml") {
-        isValid = file.name.toLowerCase().endsWith(".kml");
-      }
-
-      if (!isValid) {
-        var fileTypeLabel = fileType === "image" ? "이미지 (TIF/PNG)" : "KML";
-        showRegisterAlert("warning", "올바른 " + fileTypeLabel + " 파일을 선택해주세요.");
+      // PNG 파일만 허용
+      var fileName = file.name.toLowerCase();
+      if (!fileName.endsWith(".png")) {
+        showRegisterAlert("warning", "PNG 파일만 선택할 수 있습니다.");
         $input.val("");
         return;
       }
@@ -606,16 +785,26 @@
           var fileData = {
             file: file,
             base64: base64,
-            preview: null,
+            preview: base64, // PNG 이미지는 base64를 그대로 사용
           };
 
-          // 이미지 파일인 경우 미리보기 URL 생성
-          if (fileType === "image") {
-            fileData.preview = base64;
+          // 이미지 아이템 찾기 또는 생성
+          var imageItem = state.selectedFiles.images.find(function (img) {
+            return img.id === itemId;
+          });
+
+          if (!imageItem) {
+            imageItem = {
+              id: itemId,
+              date: $("#imageDate_" + itemId).val() || "",
+              fileData: fileData,
+            };
+            state.selectedFiles.images.push(imageItem);
+          } else {
+            imageItem.fileData = fileData;
           }
 
-          state.selectedFiles[fileType] = fileData;
-          updateFilePreview(fileType);
+          updateImageItemPreview(itemId);
           $input.val("");
         })
         .catch(function (error) {
@@ -625,16 +814,82 @@
         });
     });
 
-    // 파일 삭제 버튼 이벤트
-    $(document).on("click", ".illegal-register-file-upload__item-remove", function () {
-      var $btn = $(this);
-      var fileType = $btn.data("file-type");
+    // 이미지 날짜 변경 이벤트
+    $(document).on("change", ".image-date-input", function () {
+      var itemId = $(this).data("image-item-id");
+      var date = $(this).val();
+      var imageItem = state.selectedFiles.images.find(function (img) {
+        return img.id === itemId;
+      });
 
-      if (fileType && state.selectedFiles[fileType]) {
-        state.selectedFiles[fileType] = null;
-        updateFilePreview(fileType);
-        $("#" + fileType + "FileInput").val("");
+      if (imageItem) {
+        imageItem.date = date || "";
       }
+    });
+
+    // 이미지 아이템 삭제 버튼 이벤트
+    $(document).on("click", ".remove-image-item-btn", function () {
+      var itemId = $(this).data("image-item-id");
+      var $item = $("[data-image-item-id='" + itemId + "']");
+      $item.remove();
+
+      // 상태에서도 제거
+      state.selectedFiles.images = state.selectedFiles.images.filter(function (img) {
+        return img.id !== itemId;
+      });
+    });
+
+    // KML 파일 업로드 버튼 이벤트
+    $("#kmlFileUploadBtn").on("click", function () {
+      $("#kmlFileInput").trigger("click");
+    });
+
+    // KML 파일 선택 이벤트
+    $("#kmlFileInput").on("change", function () {
+      var $input = $(this);
+      var file = $input[0].files && $input[0].files[0];
+
+      if (!file) {
+        return;
+      }
+
+      // KML 파일 검증
+      if (!file.name.toLowerCase().endsWith(".kml")) {
+        showRegisterAlert("warning", "올바른 KML 파일을 선택해주세요.");
+        $input.val("");
+        return;
+      }
+
+      // 파일 크기 제한 (예: 50MB)
+      var maxSize = 50 * 1024 * 1024; // 50MB
+      if (file.size > maxSize) {
+        showRegisterAlert("warning", "파일 크기는 50MB 이하여야 합니다.");
+        $input.val("");
+        return;
+      }
+
+      // base64 인코딩
+      encodeFileToBase64(file)
+        .then(function (base64) {
+          state.selectedFiles.kml = {
+            file: file,
+            base64: base64,
+          };
+          updateKmlPreview();
+          $input.val("");
+        })
+        .catch(function (error) {
+          console.error("파일 인코딩 오류:", error);
+          showRegisterAlert("danger", "파일을 읽는 중 오류가 발생했습니다.");
+          $input.val("");
+        });
+    });
+
+    // KML 파일 삭제 버튼 이벤트
+    $(document).on("click", ".illegal-register-file-upload__item-remove[data-file-type='kml']", function () {
+      state.selectedFiles.kml = null;
+      updateKmlPreview();
+      $("#kmlFileInput").val("");
     });
   }
 
@@ -813,53 +1068,54 @@
       }
     }
 
-    // 이미지 등록일 검증
-    var $imageOcrnDatesInput = $("#imageOcrnDates");
-    var imageOcrnDates = $imageOcrnDatesInput.val();
-    
-    if (state.selectedFiles.image && !imageOcrnDates) {
-      showRegisterAlert("warning", "이미지 등록일을 선택해주세요.");
-      $imageOcrnDatesInput.trigger("focus");
-      return;
-    }
+    // 이미지 데이터 검증 및 수집
+    var images = [];
+    var hasInvalidImage = false;
 
-    // 이미지 등록일을 yyyyMMdd 형식으로 변환
-    var imageOcrnDatesFormatted = null;
-    if (imageOcrnDates) {
-      var date = new Date(imageOcrnDates);
+    state.selectedFiles.images.forEach(function (imageItem) {
+      if (!imageItem.fileData) {
+        return; // 파일이 없는 경우 건너뛰기
+      }
+
+      if (!imageItem.date || imageItem.date.trim() === "") {
+        showRegisterAlert("warning", "모든 이미지의 등록일을 선택해주세요.");
+        $("#imageDate_" + imageItem.id).trigger("focus");
+        hasInvalidImage = true;
+        return;
+      }
+
+      // 이미지 등록일을 yyyyMMdd 형식으로 변환
+      var date = new Date(imageItem.date);
       var year = date.getFullYear();
       var month = String(date.getMonth() + 1).padStart(2, "0");
       var day = String(date.getDate()).padStart(2, "0");
-      imageOcrnDatesFormatted = year + month + day;
+      var imageOcrnDatesFormatted = year + month + day;
+
+      images.push({
+        filename: imageItem.fileData.file.name,
+        base64: imageItem.fileData.base64, // base64 인코딩된 이미지 데이터
+        size: imageItem.fileData.file.size,
+        extension: "png", // PNG로 고정
+        ocrnDates: imageOcrnDatesFormatted, // 이미지 등록일 (yyyyMMdd 형식)
+        date: imageItem.date, // 원본 날짜 (yyyy-MM-dd 형식, 필요시 사용)
+      });
+    });
+
+    if (hasInvalidImage) {
+      return;
     }
 
     // 파일 데이터 수집 (base64 인코딩된 데이터)
-    // 실제 파일은 NAS에 저장하고, DB에는 메타데이터만 저장
     var files = {
-      image: null, // 갤러리용 및 레이어용으로 공통 사용
+      images: images, // 날짜와 매핑된 이미지 배열
       kml: null,
     };
 
-    if (state.selectedFiles.image) {
-      files.image = {
-        filename: state.selectedFiles.image.file.name,
-        base64: state.selectedFiles.image.base64,
-        size: state.selectedFiles.image.file.size,
-        // 서버에서 갤러리용과 레이어용으로 구분하여 사용할 수 있도록
-        // 파일 확장자 정보도 포함
-        extension: state.selectedFiles.image.file.name.split('.').pop().toLowerCase(),
-        // 이미지 등록일 (DB의 OCRN_DATES에 저장될 값)
-        ocrnDates: imageOcrnDatesFormatted,
-        // 서버에서 NAS 경로를 생성할 때 사용할 정보
-        // 실제 파일은 NAS에 저장하고, DB에는 경로만 저장
-      };
-    }
     if (state.selectedFiles.kml) {
       files.kml = {
         filename: state.selectedFiles.kml.file.name,
         base64: state.selectedFiles.kml.base64,
         size: state.selectedFiles.kml.file.size,
-        // KML 파일은 등록일이 필요 없을 수도 있지만, 필요시 추가 가능
       };
     }
 
@@ -938,6 +1194,13 @@
     bindFileUploadEvents();
     bindAddressEvents();
     $("#illegalRegisterSubmitBtn").on("click", handleSubmit);
+
+    // 모달이 열릴 때 이미지 아이템 하나 자동 추가
+    $("#illegalRegisterModal").on("illegalRegisterModal:open", function () {
+      if ($("#imageList .illegal-register-image-item").length === 0) {
+        $("#addImageBtn").trigger("click");
+      }
+    });
   }
 
   $(initialize);

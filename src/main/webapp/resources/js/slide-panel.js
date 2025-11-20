@@ -202,8 +202,11 @@
       list.forEach(function (item, index) {
         var sequenceNumber = (self.currentPage - 1) * self.pageSize + index + 1;
         var address = item.lndsLdnoAddr || "-";
+        // gpsLgtd = GEOTIFF_CENTER_X, gpsLttd = GEOTIFF_CENTER_Y
         var gpsLgtd = item.gpsLgtd || "";
         var gpsLttd = item.gpsLttd || "";
+        // fieldNumber 추출 (여러 필드명 시도)
+        var fieldNumber = item.fieldNumber || item.field_number || item.fieldNum || item.field_num || item.field || 1;
         var itemHtml =
           '<div class="slide-panel-list-item" data-id="' +
           (item.ilglPrvuInfoSeq || "") +
@@ -213,6 +216,8 @@
           gpsLgtd +
           '" data-gps-lttd="' +
           gpsLttd +
+          '" data-field-number="' +
+          fieldNumber +
           '">' +
           '<div class="slide-panel-list-item__cell slide-panel-list-item__cell--sequence">' +
           sequenceNumber +
@@ -333,18 +338,26 @@
     handleItemClick: function (e) {
       var $item = $(e.currentTarget);
       var id = $item.data("id");
+      // gpsLgtd = GEOTIFF_CENTER_X, gpsLttd = GEOTIFF_CENTER_Y
       var gpsLgtd = $item.data("gps-lgtd");
       var gpsLttd = $item.data("gps-lttd");
+      var fieldNumber = $item.data("field-number") || 1;
 
-      // GPS 좌표가 있는 경우에만 지도 이동
+      // GEOTIFF 중심 좌표가 있는 경우에만 처리
       if (gpsLgtd && gpsLttd && !isNaN(gpsLgtd) && !isNaN(gpsLttd)) {
         var self = this;
-        var longitude = parseFloat(gpsLgtd);
-        var latitude = parseFloat(gpsLttd);
+        // gpsLgtd, gpsLttd가 GEOTIFF_CENTER_X, GEOTIFF_CENTER_Y 값
+        var geotiffCenterX = parseFloat(gpsLgtd);
+        var geotiffCenterY = parseFloat(gpsLttd);
         var lndsUnqNo = $item.data("lnds-unq-no"); // 필지번호
 
-        // 지도 이동
-        this.moveMapToLocation(longitude, latitude);
+        // 지도 이동 (GEOTIFF 중심 좌표로 이동)
+        this.moveMapToLocation(geotiffCenterX, geotiffCenterY);
+
+        // 이미지 레이어 좌표 업데이트 (GEOTIFF 중심 좌표 사용)
+        if (typeof window.updateImageLayerExtent === "function") {
+          window.updateImageLayerExtent(geotiffCenterX, geotiffCenterY, fieldNumber);
+        }
 
         // 클릭된 아이템 하이라이트
         this.$listContainer.find(".slide-panel-list-item").removeClass("slide-panel-list-item--selected");
@@ -365,7 +378,7 @@
             }
 
             window.showMapPopupAndHighlight({
-              coordinate: [longitude, latitude],
+              coordinate: [geotiffCenterX, geotiffCenterY],
               layer: window.cadastralLayer,
               layerName: "lp_pa_cbnd_bubun",
               checkDataExistence: true,

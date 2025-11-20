@@ -238,7 +238,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
                   readonly
                 />
                 <button
-                  class="illegal-register-button illegal-register-button--ghost"
+                  class="illegal-register-button illegal-register-button--outline"
                   type="button"
                   data-register-address-target="actor"
                 >
@@ -262,7 +262,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
                   readonly
                 />
                 <button
-                  class="illegal-register-button illegal-register-button--ghost"
+                  class="illegal-register-button illegal-register-button--outline"
                   type="button"
                   data-register-address-target="related"
                 >
@@ -353,10 +353,10 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
               </div>
               <button
                 type="button"
-                class="illegal-register-button illegal-register-button--primary illegal-register-button--sm"
+                class="illegal-register-button illegal-register-button--outline illegal-register-button--sm"
                 id="addActionHistoryBtn"
               >
-                조치사항 추가
+                추가
               </button>
             </div>
             <div
@@ -387,105 +387,29 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
         </section>
 
         <section class="illegal-register-form__section">
-          <p class="illegal-register-form__section-title">파일 등록</p>
+          <p class="illegal-register-form__section-title">사진 등록</p>
           
-          <!-- 이미지 파일 (갤러리용 및 레이어용으로 공통 사용) -->
-          <div class="illegal-register-file-upload">
-            <div class="illegal-register-file-upload__header">
-              <label class="illegal-register-label">
-                이미지 파일
-                <span class="illegal-register-file-upload__format">(TIF 또는 PNG 파일)</span>
-              </label>
-              <small class="illegal-register-file-upload__description">
-                조회 모달 갤러리 및 레이어 표시에 사용됩니다.
-              </small>
+          <!-- 이미지 파일 등록 섹션 (날짜와 이미지 매핑) -->
+          <div class="illegal-register-image-section">
+            <div class="illegal-register-image-section__header">
+              <div>
+                <small class="illegal-register-file-upload__description">
+                  날짜와 함께 이미지를 등록하세요. 여러 개 추가할 수 있습니다.
+                </small>
+              </div>
+              <button
+                type="button"
+                class="illegal-register-button illegal-register-button--outline illegal-register-button--sm"
+                id="addImageBtn"
+              >
+                <span class="illegal-register-button__text">추가</span>
+              </button>
             </div>
-            <div class="illegal-register-file-upload__content">
-              <div class="illegal-register-grid illegal-register-grid--cols-2">
-                <div class="illegal-register-field">
-                  <label
-                    class="illegal-register-label"
-                    for="imageOcrnDates"
-                  >
-                    이미지 등록일
-                    <span class="illegal-register-form__required">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    class="illegal-register-input"
-                    id="imageOcrnDates"
-                    required
-                  />
-                </div>
-                <div class="illegal-register-field">
-                  <label class="illegal-register-label">
-                    파일 선택
-                  </label>
-                  <button
-                    type="button"
-                    class="illegal-register-button illegal-register-button--outline"
-                    data-file-upload-type="image"
-                    id="imageFileUploadBtn"
-                  >
-                    <i class="fas fa-upload" aria-hidden="true"></i>
-                    <span class="illegal-register-button__text">이미지 파일 선택</span>
-                  </button>
-                </div>
-              </div>
-              <div class="illegal-register-file-upload__preview" id="imageFilePreview">
-                <div class="illegal-register-file-upload__placeholder">
-                  선택된 파일이 없습니다.
-                </div>
-              </div>
-              <input
-                type="file"
-                id="imageFileInput"
-                accept=".tif,.tiff,.png"
-                data-file-type="image"
-                hidden
-              />
+            <div id="imageList" class="illegal-register-image-list">
+              <!-- 이미지 아이템들이 동적으로 추가됩니다 -->
             </div>
           </div>
 
-          <!-- KML 파일 -->
-          <div class="illegal-register-file-upload">
-            <div class="illegal-register-file-upload__header">
-              <label class="illegal-register-label">
-                KML 파일
-                <span class="illegal-register-file-upload__format">(KML 파일)</span>
-              </label>
-            </div>
-            <div class="illegal-register-file-upload__content">
-              <div class="illegal-register-grid illegal-register-grid--cols-2">
-                <div class="illegal-register-field">
-                  <label class="illegal-register-label">
-                    파일 선택
-                  </label>
-                  <button
-                    type="button"
-                    class="illegal-register-button illegal-register-button--outline"
-                    data-file-upload-type="kml"
-                    id="kmlFileUploadBtn"
-                  >
-                    <i class="fas fa-upload" aria-hidden="true"></i>
-                    <span class="illegal-register-button__text">KML 파일 선택</span>
-                  </button>
-                </div>
-              </div>
-              <div class="illegal-register-file-upload__preview" id="kmlFilePreview">
-                <div class="illegal-register-file-upload__placeholder">
-                  선택된 파일이 없습니다.
-                </div>
-              </div>
-              <input
-                type="file"
-                id="kmlFileInput"
-                accept=".kml"
-                data-file-type="kml"
-                hidden
-              />
-            </div>
-          </div>
         </section>
       </form>
     </div>
@@ -648,10 +572,6 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     min-width: 0;
   }
 
-  .illegal-register-field--wide {
-    flex: 1 1 calc(66.666% - 12px);
-  }
-
   .illegal-register-field--full {
     flex: 1 1 100%;
   }
@@ -795,17 +715,14 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     border-color: #9ca3af;
   }
 
-  #lndsLdnoAddrSearchBtn,
-  [data-register-address-target] {
+  [data-register-address-target]:not(.illegal-register-button--outline) {
     background-color: #2563eb;
     color: #ffffff;
     border-color: #2563eb;
   }
 
-  #lndsLdnoAddrSearchBtn:hover,
-  #lndsLdnoAddrSearchBtn:focus-visible,
-  [data-register-address-target]:hover,
-  [data-register-address-target]:focus-visible {
+  [data-register-address-target]:not(.illegal-register-button--outline):hover,
+  [data-register-address-target]:not(.illegal-register-button--outline):focus-visible {
     background-color: #1d4ed8;
     border-color: #1d4ed8;
     color: #ffffff;
@@ -889,95 +806,12 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
   }
 
-  .illegal-register-photo {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 16px;
-  }
-
-  .illegal-register-photo__list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .illegal-register-photo__item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 8px 12px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    background-color: #ffffff;
-  }
-
-  .illegal-register-photo__name {
-    flex: 1 1 auto;
-    color: #111827;
-    word-break: break-all;
-  }
-
-  .illegal-register-photo__placeholder {
-    color: #9ca3af;
-  }
-
-  .illegal-register-photo__list-wrapper {
-    flex: 1 1 240px;
-  }
-
-  .illegal-register-photo__remove {
-    background: none;
-    border: none;
-    color: #dc2626;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 600;
-  }
-
-  .illegal-register-photo__remove:hover,
-  .illegal-register-photo__remove:focus-visible {
-    text-decoration: underline;
-  }
-
   .illegal-register-button__text {
     font-weight: 600;
   }
 
   .illegal-register-button i {
     margin-right: 6px;
-  }
-
-  .illegal-register-file-upload {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 16px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    background-color: #f9fafb;
-  }
-
-  .illegal-register-file-upload + .illegal-register-file-upload {
-    margin-top: 16px;
-  }
-
-  .illegal-register-file-upload__header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .illegal-register-file-upload__format {
-    font-size: 13px;
-    font-weight: 400;
-    color: #6b7280;
   }
 
   .illegal-register-file-upload__description {
@@ -988,98 +822,64 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     line-height: 1.4;
   }
 
-  .illegal-register-file-upload__content {
+  body.illegal-register-modal-open {
+    overflow: hidden;
+  }
+
+  .illegal-register-image-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .illegal-register-image-section__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .illegal-register-image-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .illegal-register-image-item {
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background-color: #f9fafb;
     display: flex;
     flex-direction: column;
     gap: 12px;
   }
 
-  .illegal-register-file-upload__preview {
-    min-height: 60px;
-    padding: 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    background-color: #ffffff;
+  .illegal-register-image-item__content {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    gap: 5px;
   }
 
-  .illegal-register-file-upload__placeholder {
-    color: #9ca3af;
-    font-size: 14px;
-  }
-
-  .illegal-register-file-upload__item {
+  .illegal-register-image-item__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 10px 14px;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    background-color: #ffffff;
   }
 
-  .illegal-register-file-upload__item-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
-  .illegal-register-file-upload__item-icon {
-    width: 40px;
-    height: 40px;
-    display: flex;
+  .illegal-register-image-item__number {
+    font-size: 16px;
+    font-weight: 600;
+    color: #374151;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
-    background-color: #f3f4f6;
-    color: #6b7280;
-    font-size: 18px;
-    flex-shrink: 0;
+    min-width: 24px;
   }
 
-  .illegal-register-file-upload__item-icon--image {
-    background-color: #dbeafe;
-    color: #2563eb;
-  }
-
-  .illegal-register-file-upload__item-icon--kml {
-    background-color: #e9d5ff;
-    color: #9333ea;
-  }
-
-  .illegal-register-file-upload__item-details {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
-  .illegal-register-file-upload__item-name {
-    font-size: 14px;
-    font-weight: 500;
-    color: #111827;
-    word-break: break-all;
-    margin-bottom: 4px;
-  }
-
-  .illegal-register-file-upload__item-size {
-    font-size: 12px;
-    color: #6b7280;
-  }
-
-  .illegal-register-file-upload__item-preview {
-    width: 60px;
-    height: 60px;
-    border-radius: 6px;
-    object-fit: cover;
-    border: 1px solid #e5e7eb;
-    flex-shrink: 0;
-  }
-
-  .illegal-register-file-upload__item-remove {
+  .illegal-register-image-item__remove {
     background: none;
     border: none;
     color: #dc2626;
@@ -1095,19 +895,193 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     flex-shrink: 0;
   }
 
-  .illegal-register-file-upload__item-remove:hover,
-  .illegal-register-file-upload__item-remove:focus-visible {
+  .illegal-register-image-item__remove:hover,
+  .illegal-register-image-item__remove:focus-visible {
     background-color: rgba(220, 38, 38, 0.1);
     color: #b91c1c;
   }
 
-  body.illegal-register-modal-open {
-    overflow: hidden;
+  .illegal-register-image-item__row {
+    display: flex;
+    gap: 16px;
+    align-items: end;
+    flex-wrap: wrap;
   }
+
+  .illegal-register-image-item__row .illegal-register-field {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  .illegal-register-image-item__row .illegal-register-field:first-child {
+    width: auto;
+  }
+
+  .illegal-register-image-item__row .illegal-register-field:nth-child(2) {
+    width: 100px;
+  }
+
+  .illegal-register-field--inline {
+    flex-direction: row !important;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .illegal-register-field--inline .illegal-register-label {
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  .illegal-register-field--inline .illegal-register-input {
+    width: auto;
+    min-width: 150px;
+  }
+
+  .illegal-register-image-item__select-btn {
+    margin-left: auto;
+    align-self: flex-end;
+  }
+
+  /* 모든 input 요소와 버튼의 높이를 통일 */
+  .illegal-register-image-item__row .illegal-register-input,
+  .illegal-register-image-item__row .illegal-register-button {
+    height: 40px;
+    box-sizing: border-box;
+  }
+
+  .illegal-register-image-item__preview-section {
+    margin-top: 12px;
+  }
+
+  .illegal-register-image-item__preview-section .illegal-register-label {
+    padding-bottom: 8px;
+  }
+
+  .illegal-register-image-item__preview {
+    min-height: 120px;
+    padding: 16px;
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    background-color: #fafbfc;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-start;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .illegal-register-image-item__preview.has-images {
+    border-style: solid;
+    border-color: #e5e7eb;
+    background-color: #ffffff;
+  }
+
+  .illegal-register-image-item__preview-empty {
+    color: #6b7280;
+    font-size: 14px;
+    width: 100%;
+    text-align: center;
+    padding: 32px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .illegal-register-image-item__preview-empty i {
+    font-size: 32px;
+    color: #d1d5db;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  .illegal-register-image-thumbnail {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+  .illegal-register-image-thumbnail:hover {
+    border-color: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+  }
+
+  .illegal-register-image-thumbnail__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .illegal-register-image-thumbnail__remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    font-size: 12px;
+    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    z-index: 10;
+    backdrop-filter: blur(4px);
+  }
+
+  .illegal-register-image-thumbnail__remove:hover,
+  .illegal-register-image-thumbnail__remove:focus-visible {
+    background-color: rgba(220, 38, 38, 0.95);
+    transform: scale(1.15);
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+  }
+
+  .illegal-register-image-thumbnail__remove i {
+    pointer-events: none;
+  }
+
+  @media (max-width: 768px) {
+    .illegal-register-image-item__row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .illegal-register-image-item__row .illegal-register-field:first-child,
+    .illegal-register-image-item__row .illegal-register-field:nth-child(2) {
+      width: 100%;
+    }
+  }
+
 </style>
 
 <script>
   (function (window, $) {
+    'use strict';
+
+    // ===== 상수 정의 =====
+    var CONSTANTS = {
+      MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
+      ALLOWED_EXTENSIONS: ['png', 'jpg', 'jpeg'],
+      ALLOWED_MIME_TYPES: ['image/png', 'image/jpeg', 'image/jpg'],
+      EMPTY_PREVIEW_MESSAGE: '선택된 파일이 없습니다.'
+    };
+
+    // ===== DOM 요소 캐싱 =====
     var $modal = $("#illegalRegisterModal");
     if (!$modal.length) {
       return;
@@ -1115,11 +1089,244 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
 
     var $body = $("body");
     var $closeButtons = $modal.find("[data-register-modal-close]");
+    var $addImageBtn = $("#addImageBtn");
+    var $imageList = $("#imageList");
 
+    // ===== 상태 관리 =====
+    var state = {
+      imageItemCounter: 0
+    };
+
+    // ===== 유틸리티 함수 =====
     function triggerEvent(eventName) {
       $modal.trigger($.Event(eventName, { bubbles: true }));
     }
 
+    function fileToBase64(file) {
+      return new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function() {
+          resolve(reader.result);
+        };
+        reader.onerror = function(error) {
+          reject(error);
+        };
+      });
+    }
+
+    function getSelector(id, type) {
+      var selectors = {
+        dateInput: '#imageDate_' + id,
+        fileInput: '#fileInput_' + id,
+        preview: '#preview_' + id,
+        mappingData: '#mappingData_' + id,
+        item: '[data-item-id="' + id + '"]'
+      };
+      return selectors[type] || '';
+    }
+
+    // ===== HTML 템플릿 함수 =====
+    function createRemoveButton(itemId) {
+      return '<button type="button" class="illegal-register-image-item__remove" onclick="IllegalRegisterImage.removeItem(\'' + itemId + '\')">' +
+        '<i class="fas fa-times" aria-hidden="true"></i>' +
+      '</button>';
+    }
+
+    function createImageItemHtml(itemId, number) {
+      var removeButtonHtml = number > 1 ? createRemoveButton(itemId) : '';
+      
+      return '<div class="illegal-register-image-item" data-item-id="' + itemId + '">' +
+        '<div class="illegal-register-image-item__content">' +
+          '<div class="illegal-register-image-item__header">' +
+            '<span class="illegal-register-image-item__number">#' + number + '</span>' +
+            removeButtonHtml +
+          '</div>' +
+          '<div class="illegal-register-image-item__row">' +
+            '<div class="illegal-register-field illegal-register-field--inline" style="position: relative;">' +
+              '<input type="date" class="illegal-register-input" id="imageDate_' + itemId + '" required />' +
+              '<span class="illegal-register-form__required" style="position: absolute; top: -5px; right: -10px;">*</span>' +
+            '</div>' +
+            '<button type="button" class="illegal-register-button illegal-register-button--outline illegal-register-button--sm illegal-register-image-item__select-btn" onclick="IllegalRegisterImage.selectFile(\'' + itemId + '\')">' +
+              '<i class="fas fa-upload" aria-hidden="true"></i>' +
+              '<span class="illegal-register-button__text">선택</span>' +
+            '</button>' +
+          '</div>' +
+          '<div class="illegal-register-image-item__preview-section">' +
+            '<div class="illegal-register-image-item__preview" id="preview_' + itemId + '">' +
+              createEmptyPreviewHtml() +
+            '</div>' +
+          '</div>' +
+          '<input type="file" id="fileInput_' + itemId + '" accept=".png,.jpg,.jpeg" data-item-id="' + itemId + '" multiple hidden />' +
+          '<input type="hidden" id="mappingData_' + itemId + '" name="imageMappingData[]" />' +
+        '</div>' +
+      '</div>';
+    }
+
+    function createEmptyPreviewHtml() {
+      return '<span class="illegal-register-image-item__preview-empty">' +
+        '<i class="fas fa-image" aria-hidden="true"></i>' +
+        CONSTANTS.EMPTY_PREVIEW_MESSAGE +
+      '</span>';
+    }
+
+    function createImageThumbnailHtml(imageId, base64Data, fileName) {
+      return '<div class="illegal-register-image-thumbnail" data-image-id="' + imageId + '">' +
+        '<img src="' + base64Data + '" alt="' + fileName + '" class="illegal-register-image-thumbnail__img" />' +
+        '<button type="button" class="illegal-register-image-thumbnail__remove" onclick="IllegalRegisterImage.removeImage(\'' + imageId + '\')" aria-label="삭제">' +
+          '<i class="fas fa-times" aria-hidden="true"></i>' +
+        '</button>' +
+      '</div>';
+    }
+
+    // ===== 이미지 아이템 관리 =====
+    function createImageItem() {
+      state.imageItemCounter++;
+      var itemId = 'imageItem_' + state.imageItemCounter;
+      // 현재 리스트의 항목 수 + 1을 넘버링으로 사용
+      var currentItemCount = $imageList.find('.illegal-register-image-item').length;
+      var number = currentItemCount + 1;
+      var itemHtml = createImageItemHtml(itemId, number);
+      $imageList.append(itemHtml);
+      return itemId;
+    }
+
+    function renumberImageItems() {
+      $imageList.find('.illegal-register-image-item').each(function(index) {
+        var newNumber = index + 1;
+        var $item = $(this);
+        var itemId = $item.data('item-id');
+        var $header = $item.find('.illegal-register-image-item__header');
+        var $removeBtn = $item.find('.illegal-register-image-item__remove');
+        
+        // 넘버링 업데이트
+        $item.find('.illegal-register-image-item__number').text('#' + newNumber);
+        
+        // 첫 번째 아이템은 삭제 버튼 제거
+        if (newNumber === 1) {
+          $removeBtn.remove();
+        } else if ($removeBtn.length === 0) {
+          // 두 번째 이상은 삭제 버튼 추가
+          $header.append(createRemoveButton(itemId));
+        }
+      });
+    }
+
+    // ===== 파일 검증 =====
+    function validateFile(file) {
+      // 파일명에서 확장자 추출
+      var fileName = file.name.toLowerCase();
+      var fileExtension = fileName.split('.').pop();
+      
+      // 확장자 검증
+      if (!fileExtension || CONSTANTS.ALLOWED_EXTENSIONS.indexOf(fileExtension) === -1) {
+        alert('PNG, JPG 등 이미지 파일만 업로드 가능합니다.');
+        return false;
+      }
+      
+      // MIME 타입 검증
+      if (!file.type || CONSTANTS.ALLOWED_MIME_TYPES.indexOf(file.type.toLowerCase()) === -1) {
+        alert('PNG, JPG 등 이미지 파일만 업로드 가능합니다. (파일 형식이 올바르지 않습니다)');
+        return false;
+      }
+      
+      // 파일 크기 검증
+      if (file.size > CONSTANTS.MAX_FILE_SIZE) {
+        alert('파일 크기는 10MB를 초과할 수 없습니다.');
+        return false;
+      }
+      
+      // 파일이 비어있는지 확인
+      if (file.size === 0) {
+        alert('빈 파일은 업로드할 수 없습니다.');
+        return false;
+      }
+      
+      return true;
+    }
+
+    function validateImageDate(itemId) {
+      var imageDate = $(getSelector(itemId, 'dateInput')).val();
+      if (!imageDate) {
+        alert('이미지 등록일을 먼저 선택해주세요.');
+        return false;
+      }
+      return imageDate;
+    }
+
+    // ===== 파일 처리 =====
+    function handleImageFileSelect(event) {
+      var fileInput = event.target;
+      var itemId = $(fileInput).data('item-id');
+      var files = fileInput.files;
+
+      if (!files || files.length === 0) return;
+
+      var imageDate = validateImageDate(itemId);
+      if (!imageDate) {
+        $(fileInput).val('');
+        return;
+      }
+
+      var validFiles = [];
+      for (var i = 0; i < files.length; i++) {
+        if (validateFile(files[i])) {
+          validFiles.push(files[i]);
+        }
+      }
+
+      if (validFiles.length === 0) {
+        $(fileInput).val('');
+        return;
+      }
+
+      // 모든 유효한 파일 처리
+      var promises = validFiles.map(function(file) {
+        return fileToBase64(file).then(function(base64Data) {
+          return {
+            file: file,
+            base64Data: base64Data,
+            base64Content: base64Data.split(',')[1]
+          };
+        });
+      });
+
+      Promise.all(promises).then(function(results) {
+        var $preview = $(getSelector(itemId, 'preview'));
+        var currentMapping = $(getSelector(itemId, 'mappingData')).val() || '';
+        var mappings = currentMapping ? currentMapping.split('||') : [];
+
+        results.forEach(function(result, index) {
+          var imageId = itemId + '_img_' + Date.now() + '_' + index + '_' + Math.random().toString(36).substr(2, 9);
+          var mapping = imageDate + ':' + result.base64Content;
+          mappings.push(mapping);
+
+          // 썸네일 추가
+          var thumbnailHtml = createImageThumbnailHtml(imageId, result.base64Data, result.file.name);
+          if ($preview.find('.illegal-register-image-item__preview-empty').length > 0) {
+            $preview.empty();
+            $preview.addClass('has-images');
+          }
+          $preview.append(thumbnailHtml);
+
+          // 이미지 데이터 저장 (나중에 삭제를 위해)
+          $preview.data('images-' + imageId, {
+            mapping: mapping,
+            fileName: result.file.name
+          });
+        });
+
+        // 모든 매핑 데이터 업데이트
+        $(getSelector(itemId, 'mappingData')).val(mappings.join('||'));
+        $(fileInput).val('');
+      }).catch(function(error) {
+        console.error('파일 변환 중 오류 발생:', error);
+        alert('파일 처리 중 오류가 발생했습니다.');
+        $(fileInput).val('');
+      });
+    }
+
+    // ===== 모달 관리 =====
     function openModal() {
       if ($modal.hasClass("is-open")) {
         return;
@@ -1138,37 +1345,103 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
       triggerEvent("illegalRegisterModal:close");
     }
 
-    $modal.on("click", function (event) {
-      if (event.target === $modal[0]) {
-        closeModal();
+    // ===== 이미지 삭제 =====
+    function removeImageFromPreview(imageId) {
+      var $thumbnail = $('.illegal-register-image-thumbnail[data-image-id="' + imageId + '"]');
+      var $preview = $thumbnail.closest('.illegal-register-image-item__preview');
+      var itemId = $preview.closest('.illegal-register-image-item').data('item-id');
+      
+      // 저장된 이미지 데이터 가져오기
+      var imageData = $preview.data('images-' + imageId);
+      if (imageData && imageData.mapping) {
+        // 매핑 데이터에서 해당 이미지 제거
+        var currentMapping = $(getSelector(itemId, 'mappingData')).val() || '';
+        var mappings = currentMapping.split('||').filter(function(mapping) {
+          return mapping !== imageData.mapping;
+        });
+        $(getSelector(itemId, 'mappingData')).val(mappings.join('||'));
       }
-    });
 
-    $closeButtons.on("click", function () {
-      closeModal();
-    });
+      // 썸네일 제거
+      $thumbnail.remove();
 
-    $(document).on("keydown", function (event) {
-      if (event.key === "Escape" && $modal.hasClass("is-open")) {
-        closeModal();
+      // 저장된 데이터 제거
+      $preview.removeData('images-' + imageId);
+
+      // 이미지가 없으면 빈 상태 메시지 표시
+      if ($preview.find('.illegal-register-image-thumbnail').length === 0) {
+        $preview.removeClass('has-images');
+        $preview.html(createEmptyPreviewHtml());
       }
-    });
+    }
+
+    // ===== 공개 API =====
+    window.IllegalRegisterImage = {
+      selectFile: function(itemId) {
+        $(getSelector(itemId, 'fileInput')).click();
+      },
+      
+      clearFile: function(itemId) {
+        $(getSelector(itemId, 'fileInput')).val('');
+        $(getSelector(itemId, 'mappingData')).val('');
+        var $preview = $(getSelector(itemId, 'preview'));
+        $preview.removeClass('has-images');
+        $preview.html(createEmptyPreviewHtml());
+      },
+      
+      removeImage: function(imageId) {
+        removeImageFromPreview(imageId);
+      },
+      
+      removeItem: function(itemId) {
+        $(getSelector(itemId, 'item')).remove();
+        renumberImageItems();
+      }
+    };
+
+    // ===== 이벤트 바인딩 =====
+    function bindEvents() {
+      $addImageBtn.on('click', function() {
+        createImageItem();
+      });
+
+      $(document).on('change', 'input[type="file"][accept*=".png"]', handleImageFileSelect);
+
+      $modal.on("click", function(event) {
+        if (event.target === $modal[0]) {
+          closeModal();
+        }
+      });
+
+      $closeButtons.on("click", closeModal);
+
+      $(document).on("keydown", function(event) {
+        if (event.key === "Escape" && $modal.hasClass("is-open")) {
+          closeModal();
+        }
+      });
+
+      $modal.on('illegalRegisterModal:open', function() {
+        if ($imageList.children().length === 0) {
+          createImageItem();
+        }
+      });
+    }
+
+    // ===== 초기화 =====
+    bindEvents();
 
     window.IllegalRegisterModal = {
       open: openModal,
       close: closeModal,
-      toggle: function (force) {
+      toggle: function(force) {
         if (typeof force === "boolean") {
           force ? openModal() : closeModal();
           return;
         }
-        if ($modal.hasClass("is-open")) {
-          closeModal();
-        } else {
-          openModal();
-        }
+        $modal.hasClass("is-open") ? closeModal() : openModal();
       },
-      element: $modal[0],
+      element: $modal[0]
     };
   })(window, window.jQuery);
 </script>
