@@ -599,35 +599,44 @@ pageEncoding="UTF-8"%>
                   console.log("이미지 경로:", fullImagePath);
                   console.log("좌표 개수:", coords.length);
 
-                  // 첫 번째 필지(field1/0/0/0)에만 타일 레이어 사용
-                  var imageLayer;
-                  if (overlay.name === "field1/0/0/0") {
-                    // 타일 레이어 생성
-                    imageLayer = new ol.layer.Tile({
-                      source: new ol.source.XYZ({
-                        // 1. QGIS가 만들어준 타일 폴더 경로
-                        // {z}, {x}, {y}는 오픈레이어스가 알아서 숫자로 바꿔서 요청합니다.
-                        url: "<%=request.getContextPath()%>/data/tiles/{z}/{x}/{y}.png",
-                        // 2. 타일 설정 (QGIS에서 설정한 줌 레벨과 맞춰주세요)
-                        minZoom: 15,
-                        maxZoom: 21,
-                        projection: 'EPSG:3857'
-                      }),
-                      zIndex: 1 // 지적도(5)보다 아래, 배경지도 위
-                    });
-                  } else {
-                    // 나머지 필지는 기존 이미지 레이어 사용
-                    imageLayer = new ol.layer.Image({
-                      source: new ol.source.ImageStatic({
-                        url: fullImagePath,
-                        imageExtent: ol.extent.boundingExtent(transformedCoords),
-                        projection: "EPSG:3857",
-                      }),
-                      opacity: 1.0, // 완전 불투명으로 설정하여 선명도 향상
-                      zIndex: 1,
-                      visible: true,
-                    });
+                  // field1, field2, field3 모두 타일 레이어 사용
+                  // overlay.name에서 필드 번호 추출 (예: "field1/0/0/0" -> "1", "field2/0/0/0" -> "2", "filed3/0/0/0" -> "3")
+                  var fieldNumber = "1"; // 기본값
+                  if (overlay.name) {
+                    // field 또는 filed(오타) 모두 처리 - "field" 또는 "filed" 다음의 숫자 추출
+                    var fieldMatch = overlay.name.match(/(?:field|filed)(\d+)/i);
+                    if (fieldMatch && fieldMatch[1]) {
+                      fieldNumber = fieldMatch[1];
+                    } else {
+                      // 디버깅을 위한 로그
+                      console.log("필드 번호 추출 실패:", overlay.name);
+                    }
                   }
+                  
+                  // 필드 번호에 맞는 타일 폴더 선택
+                  var tileFolder = "tile" + fieldNumber;
+                  
+                  // 디버깅을 위한 로그
+                  console.log("필드:", overlay.name, "-> 필드 번호:", fieldNumber, "-> 타일 폴더:", tileFolder);
+                  
+                  // 필드 번호에 맞는 타일 폴더 선택
+                  var tileFolder = "tile" + fieldNumber;
+                  
+                  var imageLayer;
+                  // 타일 레이어 생성
+                  imageLayer = new ol.layer.Tile({
+                    source: new ol.source.XYZ({
+                      // 1. QGIS가 만들어준 타일 폴더 경로
+                      // {z}, {x}, {y}는 오픈레이어스가 알아서 숫자로 바꿔서 요청합니다.
+                      url: "<%=request.getContextPath()%>/data/" + tileFolder + "/{z}/{x}/{y}.png",
+                      // 2. 타일 설정 (QGIS에서 설정한 줌 레벨과 맞춰주세요)
+                      minZoom: 15,
+                      maxZoom: 22,
+                      projection: 'EPSG:3857'
+                    }),
+                    zIndex: 1 // 지적도(5)보다 아래, 배경지도 위
+                  });
+              
 
                   imageLayer.set("name", overlay.name || imagePath);
                   imageLayers.push(imageLayer);
