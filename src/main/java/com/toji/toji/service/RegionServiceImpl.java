@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
 public class RegionServiceImpl implements RegionService {
 
   private final RegionMapper regionMapper;
-  private static final String NAS_UPLOAD_PATH = "/CDIGIT_CCTV01/attach/extension/illegalLands";
+  private static final String UPLOAD_PATH = "src/main/resources/static/CDIGIT_CCTV01/attach/extension/illegalLands";
 
   /**
    * 지역 등록 요청을 받아 기본 정보 및 관련 이력을 저장한다.
@@ -146,15 +146,16 @@ public class RegionServiceImpl implements RegionService {
 
     log.info("insertAttachments 시작: basicInfoId={}, 이미지 개수={}", basicInfoId, images.size());
 
-    // NAS 업로드 경로 디렉토리 생성
-    Path uploadPath = Paths.get(NAS_UPLOAD_PATH);
+    // 파일 업로드 경로 디렉토리 생성 (프로젝트 루트 기준)
+    String projectRoot = System.getProperty("user.dir");
+    Path uploadPath = Paths.get(projectRoot, UPLOAD_PATH);
     try {
       if (!Files.exists(uploadPath)) {
         Files.createDirectories(uploadPath);
-        log.info("NAS 업로드 경로 생성: {}", NAS_UPLOAD_PATH);
+        log.info("파일 업로드 경로 생성: {}", uploadPath.toAbsolutePath());
       }
     } catch (IOException e) {
-      log.error("NAS 업로드 경로 생성 실패: {}", NAS_UPLOAD_PATH, e);
+      log.error("파일 업로드 경로 생성 실패: {}", uploadPath.toAbsolutePath(), e);
       throw new RuntimeException("파일 저장 경로를 생성할 수 없습니다.", e);
     }
 
@@ -191,12 +192,12 @@ public class RegionServiceImpl implements RegionService {
         Attachment attachment = new Attachment();
         attachment.setIlglPrvuAddrSeq(basicInfoId);
         attachment.setAttflNm(filename);
-        attachment.setAttflPath(NAS_UPLOAD_PATH);
+        attachment.setAttflPath(UPLOAD_PATH);
         attachment.setAttflCpct((long) imageBytes.length);
         attachment.setOcrnDates(imageRequest.getOcrnDates());
 
         int result = regionMapper.insertAttachment(attachment);
-        log.info("첨부파일 저장 완료: {} -> {}, DB insert 결과={}, ilglAttflSeq={}", filename, NAS_UPLOAD_PATH, result,
+        log.info("첨부파일 저장 완료: {} -> {}, DB insert 결과={}, ilglAttflSeq={}", filename, uploadPath.toAbsolutePath(), result,
             attachment.getIlglAttflSeq());
 
       } catch (Exception e) {
@@ -292,7 +293,7 @@ public class RegionServiceImpl implements RegionService {
     List<ActionHistory> actionHistories = regionMapper.findActionHistoriesByBasicInfoId(ilglPrvuInfoSeq);
 
     Map<String, Object> result = new HashMap<>();
-    result.put("detail", detail);
+    result.put("basicInfo", detail);
     result.put("actionHistories", actionHistories);
 
     return result;
