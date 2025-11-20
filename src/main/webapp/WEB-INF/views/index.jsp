@@ -468,11 +468,11 @@ pageEncoding="UTF-8"%>
           }),
           zIndex: 1
         });
-
+        //window.cadastralLayer
         // 지도 객체 생성 (전역 변수로 선언)
         window.map = new ol.Map({
           target: "map",
-          layers: [baseLayer, tile1Layer, tile2Layer, tile3Layer, window.cadastralLayer, highlightLayer],
+          layers: [baseLayer, tile1Layer, tile2Layer, tile3Layer, highlightLayer],
           view: view,
           // 이미지 렌더링 최적화 설정
           pixelRatio: window.devicePixelRatio || 1, // 고해상도 디스플레이 지원
