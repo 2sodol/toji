@@ -744,6 +744,14 @@ pageEncoding="UTF-8"%>
         if (typeof IllegalInquiryModal === "function") {
           illegalInquiryModal = new IllegalInquiryModal();
         }
+
+        // 페이지 로드 시 패널 데이터 조회
+        if (
+          window.SlidePanel &&
+          typeof window.SlidePanel.loadList === "function"
+        ) {
+          window.SlidePanel.loadList(1);
+        }
       };
     </script>
   </body>
