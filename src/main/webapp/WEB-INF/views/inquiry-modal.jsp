@@ -21,32 +21,13 @@
     </header>
 
     <div class="illegal-inquiry-modal__body">
-      <!-- 탭 네비게이션 -->
-      <div class="illegal-inquiry-tabs">
-        <button
-          type="button"
-          class="illegal-inquiry-tab illegal-inquiry-tab--active"
-          data-tab="detail"
-        >
-          상세정보
-        </button>
-        <button type="button" class="illegal-inquiry-tab" data-tab="photo">
-          사진
-        </button>
-      </div>
-
-      <!-- 상세정보 탭 콘텐츠 -->
-      <div
-        class="illegal-inquiry-tab-content illegal-inquiry-tab-content--active"
-        id="detailTabContent"
-      >
+      <!-- 상세정보 콘텐츠 -->
+      <div class="illegal-inquiry-content-wrapper">
         <div class="illegal-inquiry-content">
           <!-- 좌측: 등록일 리스트 -->
           <div class="illegal-inquiry-sidebar">
             <h3 class="illegal-inquiry-sidebar__title">등록일 목록</h3>
-            <div class="illegal-inquiry-date-list" id="detailDateList">
-              <!-- 동적으로 생성될 날짜 리스트 -->
-            </div>
+            <div class="illegal-inquiry-date-list" id="detailDateList"></div>
           </div>
 
           <!-- 우측: 상세정보 -->
@@ -58,30 +39,48 @@
                 <div class="illegal-inquiry-grid illegal-inquiry-grid--cols-3">
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">본부</label>
-                    <span class="illegal-inquiry-text" id="detail_hdqrNm"></span>
+                    <span
+                      class="illegal-inquiry-text"
+                      id="detail_hdqrNm"
+                    ></span>
                   </div>
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">지사</label>
-                    <span class="illegal-inquiry-text" id="detail_mtnofNm"></span>
+                    <span
+                      class="illegal-inquiry-text"
+                      id="detail_mtnofNm"
+                    ></span>
                   </div>
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">노선</label>
-                    <span class="illegal-inquiry-text" id="detail_routeCd"></span>
+                    <span
+                      class="illegal-inquiry-text"
+                      id="detail_routeCd"
+                    ></span>
                   </div>
                 </div>
 
                 <div class="illegal-inquiry-grid illegal-inquiry-grid--cols-3">
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">주행방향</label>
-                    <span class="illegal-inquiry-text" id="detail_drveDrctCd"></span>
+                    <span
+                      class="illegal-inquiry-text"
+                      id="detail_drveDrctCd"
+                    ></span>
                   </div>
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">이정(km)</label>
-                    <span class="illegal-inquiry-text" id="detail_routeDstnc"></span>
+                    <span
+                      class="illegal-inquiry-text"
+                      id="detail_routeDstnc"
+                    ></span>
                   </div>
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">구분</label>
-                    <span class="illegal-inquiry-text" id="detail_strcClssCd"></span>
+                    <span
+                      class="illegal-inquiry-text"
+                      id="detail_strcClssCd"
+                    ></span>
                   </div>
                 </div>
               </section>
@@ -92,7 +91,10 @@
                 <div class="illegal-inquiry-grid illegal-inquiry-grid--cols-1">
                   <div class="illegal-inquiry-field illegal-inquiry-field--row">
                     <label class="illegal-inquiry-label">세부위치(주소)</label>
-                    <span class="illegal-inquiry-text" id="detail_lndsLdnoAddr"></span>
+                    <span
+                      class="illegal-inquiry-text"
+                      id="detail_lndsLdnoAddr"
+                    ></span>
                   </div>
                 </div>
               </section>
@@ -105,30 +107,48 @@
                 <div class="illegal-inquiry-grid illegal-inquiry-grid--cols-4">
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">발생일자</label>
-                    <span class="illegal-inquiry-text" id="detail_ocrnDates"></span>
+                    <span
+                      class="illegal-inquiry-text"
+                      id="detail_ocrnDates"
+                    ></span>
                   </div>
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">담당자</label>
-                    <span class="illegal-inquiry-text" id="detail_prchEmno"></span>
+                    <span
+                      class="illegal-inquiry-text"
+                      id="detail_prchEmno"
+                    ></span>
                   </div>
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">행위자명</label>
-                    <span class="illegal-inquiry-text" id="detail_trnrNm"></span>
+                    <span
+                      class="illegal-inquiry-text"
+                      id="detail_trnrNm"
+                    ></span>
                   </div>
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">관련자</label>
-                    <span class="illegal-inquiry-text" id="detail_rltrNm"></span>
+                    <span
+                      class="illegal-inquiry-text"
+                      id="detail_rltrNm"
+                    ></span>
                   </div>
                 </div>
 
                 <div class="illegal-inquiry-grid illegal-inquiry-grid--cols-2">
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">행위자 주소</label>
-                    <span class="illegal-inquiry-text" id="detail_trnrAddr"></span>
+                    <span
+                      class="illegal-inquiry-text"
+                      id="detail_trnrAddr"
+                    ></span>
                   </div>
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">관련자 주소</label>
-                    <span class="illegal-inquiry-text" id="detail_rltrAddr"></span>
+                    <span
+                      class="illegal-inquiry-text"
+                      id="detail_rltrAddr"
+                    ></span>
                   </div>
                 </div>
               </section>
@@ -141,15 +161,24 @@
                 <div class="illegal-inquiry-grid illegal-inquiry-grid--cols-3">
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">점유율 (%)</label>
-                    <span class="illegal-inquiry-text" id="detail_ilglPssrt"></span>
+                    <span
+                      class="illegal-inquiry-text"
+                      id="detail_ilglPssrt"
+                    ></span>
                   </div>
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">점유면적 (㎡)</label>
-                    <span class="illegal-inquiry-text" id="detail_ilglPssnSqms"></span>
+                    <span
+                      class="illegal-inquiry-text"
+                      id="detail_ilglPssnSqms"
+                    ></span>
                   </div>
                   <div class="illegal-inquiry-field">
                     <label class="illegal-inquiry-label">조치상태</label>
-                    <span class="illegal-inquiry-text" id="detail_ilglPrvuActnStatVal"></span>
+                    <span
+                      class="illegal-inquiry-text"
+                      id="detail_ilglPrvuActnStatVal"
+                    ></span>
                   </div>
                 </div>
               </section>
@@ -160,53 +189,8 @@
                 <div
                   class="illegal-inquiry-action-history"
                   id="detailActionHistory"
-                >
-                  <!-- 동적으로 생성될 조치이력 -->
-                </div>
+                ></div>
               </section>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 사진 탭 콘텐츠 -->
-      <div class="illegal-inquiry-tab-content" id="photoTabContent">
-        <div class="illegal-inquiry-content">
-          <!-- 좌측: 등록일 리스트 -->
-          <div class="illegal-inquiry-sidebar">
-            <h3 class="illegal-inquiry-sidebar__title">등록일 목록</h3>
-            <div class="illegal-inquiry-date-list" id="photoDateList">
-              <!-- 동적으로 생성될 날짜 리스트 -->
-            </div>
-          </div>
-
-          <!-- 우측: 사진 갤러리 -->
-          <div class="illegal-inquiry-main">
-            <div class="illegal-inquiry-photo-gallery" id="photoGallery">
-              <div class="illegal-inquiry-photo-header">
-                <h3 class="illegal-inquiry-photo-title">첨부 사진</h3>
-                <div class="illegal-inquiry-photo-controls">
-                  <button
-                    type="button"
-                    class="illegal-inquiry-photo-btn"
-                    id="downloadAllBtn"
-                  >
-                    전체 다운로드
-                  </button>
-                </div>
-              </div>
-
-              <div class="illegal-inquiry-photo-grid" id="photoGrid">
-                <!-- 동적으로 생성될 사진들 -->
-              </div>
-
-              <div
-                class="illegal-inquiry-photo-empty"
-                id="photoEmpty"
-                style="display: none"
-              >
-                <p>선택된 날짜에 등록된 사진이 없습니다.</p>
-              </div>
             </div>
           </div>
         </div>
