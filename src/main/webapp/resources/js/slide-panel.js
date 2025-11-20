@@ -465,6 +465,7 @@
         layerName: "lp_pa_cbnd_bubun",
         checkDataExistence: true,
         pnu: lndsUnqNo || null,
+        useOriginalCoordinate: true, // 패널 호출 시 DB에 저장된 원본 좌표 사용
       });
     },
 

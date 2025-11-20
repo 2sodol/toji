@@ -335,9 +335,7 @@
 
       var $item = $("<button>", {
         type: "button",
-        class:
-          "illegal-inquiry-date-item" +
-          (index === 0 ? " illegal-inquiry-date-item--active" : ""),
+        class: "illegal-inquiry-date-item",
         "data-seq": seq,
         "data-date": dateStr,
         html: displayText,
@@ -354,26 +352,42 @@
 
   /**
    * 상세정보 날짜 선택
-   * @param {string|Object} date - 날짜 문자열 또는 날짜 정보 객체
+   * @param {string|Object} date - 날짜 문자열 또는 날짜 정보 객체 {OCRNDATES, ILGLPRVUINFOSEQ}
    */
   function selectDetailDate(date) {
     var dateStr = typeof date === "string" ? date : date.OCRNDATES;
     var seq = typeof date === "object" ? date.ILGLPRVUINFOSEQ : null;
 
-    // 날짜 버튼 활성화
+    // 모든 버튼에서 active 클래스 제거
     $("#detailDateList .illegal-inquiry-date-item").removeClass(
       "illegal-inquiry-date-item--active"
     );
-    var $activeButton = $(
-      "#detailDateList .illegal-inquiry-date-item[data-date='" + dateStr + "']"
-    );
-    $activeButton.addClass("illegal-inquiry-date-item--active");
 
-    // seq 값을 버튼에서 가져오기
-    if (!seq) {
-      seq = $activeButton.data("seq");
+    // seq 값으로 정확한 버튼 찾기 (같은 날짜가 여러 개일 수 있으므로 seq 사용)
+    var $activeButton = null;
+    if (seq) {
+      $activeButton = $(
+        "#detailDateList .illegal-inquiry-date-item[data-seq='" + seq + "']"
+      );
+    } else if (dateStr) {
+      // seq가 없으면 날짜로 찾되, 첫 번째 것만 선택
+      $activeButton = $(
+        "#detailDateList .illegal-inquiry-date-item[data-date='" +
+          dateStr +
+          "']"
+      ).first();
+      // 버튼에서 seq 값 가져오기
+      if ($activeButton.length > 0) {
+        seq = $activeButton.data("seq");
+      }
     }
 
+    // 버튼 활성화
+    if ($activeButton && $activeButton.length > 0) {
+      $activeButton.addClass("illegal-inquiry-date-item--active");
+    }
+
+    // seq 값이 없으면 오류 처리
     if (!seq) {
       showInquiryAlert("warning", "상세정보를 조회할 수 없습니다.");
       return;

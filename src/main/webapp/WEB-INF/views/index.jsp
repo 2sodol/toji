@@ -61,7 +61,11 @@ pageEncoding="UTF-8"%>
         <button id="popup-register-btn" class="map-register-btn">
           <i class="fas fa-plus"></i>등록
         </button>
-        <button id="popup-inquiry-btn" class="map-inquiry-btn" style="display: none;">
+        <button
+          id="popup-inquiry-btn"
+          class="map-inquiry-btn"
+          style="display: none"
+        >
           <i class="fas fa-search"></i>조회
         </button>
       </div>
@@ -100,8 +104,69 @@ pageEncoding="UTF-8"%>
         return null;
       }
 
+      // 폴리곤의 내부점을 계산하는 함수
+      function getPolygonInteriorPoint(geometry) {
+        try {
+          var type = geometry.getType();
+          if (type === "Polygon") {
+            var coordinates = geometry.getCoordinates();
+            if (coordinates && coordinates.length > 0) {
+              // 첫 번째 링(외곽선)의 좌표들
+              var ring = coordinates[0];
+              if (ring && ring.length > 0) {
+                // 폴리곤의 좌표들의 평균점 계산
+                var sumX = 0;
+                var sumY = 0;
+                var count = 0;
+                for (var i = 0; i < ring.length - 1; i++) {
+                  // 마지막 점은 첫 번째 점과 같으므로 제외
+                  sumX += ring[i][0];
+                  sumY += ring[i][1];
+                  count++;
+                }
+                if (count > 0) {
+                  var avgX = sumX / count;
+                  var avgY = sumY / count;
+
+                  // extent 중심점과의 중간점을 사용하여 더 안전한 내부점 찾기
+                  var extent = geometry.getExtent();
+                  if (extent && extent.length >= 4) {
+                    var center = ol.extent.getCenter(extent);
+                    // 평균점과 중심점의 중간점 사용
+                    var interiorX = (avgX + center[0]) / 2;
+                    var interiorY = (avgY + center[1]) / 2;
+                    return [interiorX, interiorY];
+                  }
+                  return [avgX, avgY];
+                }
+              }
+            }
+          } else if (type === "MultiPolygon") {
+            // MultiPolygon의 경우 첫 번째 폴리곤 사용
+            var coordinates = geometry.getCoordinates();
+            if (coordinates && coordinates.length > 0) {
+              return getPolygonInteriorPoint(
+                new ol.geom.Polygon(coordinates[0])
+              );
+            }
+          }
+        } catch (e) {
+          // 폴리곤 내부점 계산 실패
+        }
+        return null;
+      }
+
       // 팝업 및 등록 폼에서 사용될 주소 데이터 구성
-      function buildRegionData(props, feature, coordinate) {
+      // @param {Object} props - feature 속성
+      // @param {ol.Feature} feature - OpenLayers feature 객체
+      // @param {Array} coordinate - 좌표 [x, y]
+      // @param {Boolean} useOriginalCoordinate - 원본 좌표를 그대로 사용할지 여부 (패널 호출 시 true)
+      function buildRegionData(
+        props,
+        feature,
+        coordinate,
+        useOriginalCoordinate
+      ) {
         var region = {};
         region.address = getFirstAvailable(props, [
           "addr",
@@ -116,10 +181,48 @@ pageEncoding="UTF-8"%>
         ]);
         // PNU 값 추출
         region.pnu = getFirstAvailable(props, ["pnu", "PNU", "pnu_code"]);
-        // 좌표 정보 (coordinate가 있을 경우)
-        if (coordinate && Array.isArray(coordinate) && coordinate.length >= 2) {
-          region.coordinateX = coordinate[0];
-          region.coordinateY = coordinate[1];
+
+        // 좌표 정보: feature의 geometry에서 폴리곤 내부점 계산하여 사용
+        // 경계선 근처 클릭 시 인접 용지가 선택되는 문제 방지
+        // 영역 등록 시 폴리곤 내부 좌표를 저장하기 위함
+        // 단, useOriginalCoordinate가 true인 경우(패널 호출) 원본 좌표를 그대로 사용
+        var safeCoordinate = coordinate;
+        if (!useOriginalCoordinate && feature) {
+          try {
+            var geometry = feature.getGeometry();
+            if (geometry) {
+              // 폴리곤의 내부점 계산
+              var interiorPoint = getPolygonInteriorPoint(geometry);
+              if (
+                interiorPoint &&
+                Array.isArray(interiorPoint) &&
+                interiorPoint.length >= 2
+              ) {
+                safeCoordinate = interiorPoint;
+              } else {
+                // 내부점 계산 실패 시 extent 중심점 사용
+                var extent = geometry.getExtent();
+                if (extent && extent.length >= 4) {
+                  var center = ol.extent.getCenter(extent);
+                  if (center && Array.isArray(center) && center.length >= 2) {
+                    safeCoordinate = center;
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            // 실패 시 원본 coordinate 사용
+          }
+        }
+
+        // 좌표 저장
+        if (
+          safeCoordinate &&
+          Array.isArray(safeCoordinate) &&
+          safeCoordinate.length >= 2
+        ) {
+          region.coordinateX = safeCoordinate[0];
+          region.coordinateY = safeCoordinate[1];
         }
 
         return region;
@@ -131,7 +234,7 @@ pageEncoding="UTF-8"%>
           resetPopupButtons();
           // feature에 데이터 없음 표시
           if (feature) {
-            feature.set('hasData', false);
+            feature.set("hasData", false);
           }
           return;
         }
@@ -142,46 +245,46 @@ pageEncoding="UTF-8"%>
           method: "GET",
           data: {
             lndsUnqNo: pnu,
-            type: "detail"
+            type: "detail",
           },
-          dataType: "json"
+          dataType: "json",
         })
-        .done(function(response) {
-          if (response.success && response.data && response.data.dates) {
-            var dates = response.data.dates;
-            if (Array.isArray(dates) && dates.length > 0) {
-              // 데이터가 존재하는 경우 - 등록 버튼과 조회 버튼 모두 표시
-              showBothButtons();
-              // feature에 데이터 있음 표시 (붉은색 테두리)
-              if (feature) {
-                feature.set('hasData', true);
-                feature.changed(); // 지도 다시 렌더링
+          .done(function (response) {
+            if (response.success && response.data && response.data.dates) {
+              var dates = response.data.dates;
+              if (Array.isArray(dates) && dates.length > 0) {
+                // 데이터가 존재하는 경우 - 등록 버튼과 조회 버튼 모두 표시
+                showBothButtons();
+                // feature에 데이터 있음 표시 (붉은색 테두리)
+                if (feature) {
+                  feature.set("hasData", true);
+                  feature.changed(); // 지도 다시 렌더링
+                }
+              } else {
+                // 데이터가 없는 경우 - 등록 버튼만 표시
+                resetPopupButtons();
+                // feature에 데이터 없음 표시 (파란색 기본 스타일)
+                if (feature) {
+                  feature.set("hasData", false);
+                  feature.changed(); // 지도 다시 렌더링
+                }
               }
             } else {
-              // 데이터가 없는 경우 - 등록 버튼만 표시
+              // API 호출은 성공했지만 데이터가 없는 경우
               resetPopupButtons();
-              // feature에 데이터 없음 표시 (파란색 기본 스타일)
               if (feature) {
-                feature.set('hasData', false);
-                feature.changed(); // 지도 다시 렌더링
+                feature.set("hasData", false);
               }
             }
-          } else {
-            // API 호출은 성공했지만 데이터가 없는 경우
+          })
+          .fail(function (xhr, status, error) {
+            console.warn("데이터 존재 여부 확인 실패:", status, error);
+            // 실패 시에도 등록 버튼은 표시
             resetPopupButtons();
             if (feature) {
-              feature.set('hasData', false);
+              feature.set("hasData", false);
             }
-          }
-        })
-        .fail(function(xhr, status, error) {
-          console.warn("데이터 존재 여부 확인 실패:", status, error);
-          // 실패 시에도 등록 버튼은 표시
-          resetPopupButtons();
-          if (feature) {
-            feature.set('hasData', false);
-          }
-        });
+          });
       }
 
       // 팝업 버튼을 기본 상태로 리셋 (등록 버튼만 표시)
@@ -197,7 +300,7 @@ pageEncoding="UTF-8"%>
       }
 
       // HTML 이스케이프 함수 (전역에 등록)
-      window.escapeHtml = function(value) {
+      window.escapeHtml = function (value) {
         if (value === undefined || value === null) {
           return "";
         }
@@ -217,26 +320,39 @@ pageEncoding="UTF-8"%>
        * @param {String} options.layerName - 레이어명 (기본값: "lp_pa_cbnd_bubun")
        * @param {Boolean} options.checkDataExistence - 데이터 존재 여부 확인 여부 (기본값: true)
        * @param {String} options.pnu - 필지번호 (선택, 있으면 버튼 체크에 사용)
+       * @param {Boolean} options.useOriginalCoordinate - 원본 좌표를 그대로 사용할지 여부 (패널 호출 시 true)
        */
-      window.showMapPopupAndHighlight = function(options) {
+      window.showMapPopupAndHighlight = function (options) {
         var coordinate = options.coordinate;
         var layer = options.layer || window.cadastralLayer;
         var layerName = options.layerName || "lp_pa_cbnd_bubun";
         var checkDataExistence = options.checkDataExistence !== false; // 기본값: true
         var pnu = options.pnu || null;
+        var useOriginalCoordinate = options.useOriginalCoordinate === true; // 기본값: false
 
-        if (!coordinate || !Array.isArray(coordinate) || coordinate.length < 2) {
-          console.error("showMapPopupAndHighlight: 유효하지 않은 좌표입니다.", coordinate);
+        if (
+          !coordinate ||
+          !Array.isArray(coordinate) ||
+          coordinate.length < 2
+        ) {
+          console.error(
+            "showMapPopupAndHighlight: 유효하지 않은 좌표입니다.",
+            coordinate
+          );
           return;
         }
 
         if (!layer) {
-          console.error("showMapPopupAndHighlight: 레이어가 초기화되지 않았습니다.");
+          console.error(
+            "showMapPopupAndHighlight: 레이어가 초기화되지 않았습니다."
+          );
           return;
         }
 
         if (!window.popupOverlay || !window.popupContent) {
-          console.error("showMapPopupAndHighlight: 팝업 오버레이가 초기화되지 않았습니다.");
+          console.error(
+            "showMapPopupAndHighlight: 팝업 오버레이가 초기화되지 않았습니다."
+          );
           return;
         }
 
@@ -247,6 +363,7 @@ pageEncoding="UTF-8"%>
         selectedRegionData = null;
 
         // WMS GetFeatureInfo 호출 URL 생성
+        // PNU가 있는 경우(패널 호출) 여러 feature를 조회하여 PNU로 필터링
         var viewResolution = window.map.getView().getResolution();
         var source = layer.getSource();
         var url = source.getGetFeatureInfoUrl(
@@ -263,7 +380,9 @@ pageEncoding="UTF-8"%>
         );
 
         if (!url) {
-          console.error("showMapPopupAndHighlight: GetFeatureInfo URL을 생성할 수 없습니다.");
+          console.error(
+            "showMapPopupAndHighlight: GetFeatureInfo URL을 생성할 수 없습니다."
+          );
           return;
         }
 
@@ -275,54 +394,99 @@ pageEncoding="UTF-8"%>
         })
           .done(function (json) {
             window.highlightSource.clear();
-            
+
             if (json.features && json.features.length > 0) {
-              // 지적 정보가 있는 경우
-              var featureData = json.features[0];
+              // PNU가 있는 경우 일치하는 feature 찾기
+              var featureData = null;
+              if (pnu) {
+                for (var i = 0; i < json.features.length; i++) {
+                  var props = json.features[i].properties || {};
+                  var featurePnu = props.pnu || props.PNU || props.pnu_code;
+
+                  if (
+                    featurePnu &&
+                    String(featurePnu).trim() === String(pnu).trim()
+                  ) {
+                    featureData = json.features[i];
+                    break;
+                  }
+                }
+
+                // PNU로 찾지 못한 경우 첫 번째 feature 사용
+                if (!featureData) {
+                  featureData = json.features[0];
+                }
+              } else {
+                // PNU가 없으면 첫 번째 feature 사용
+                featureData = json.features[0];
+              }
+
               selectedProperties = featureData.properties || {};
               var format = new ol.format.GeoJSON();
               selectedFeature = format.readFeature(featureData, {
                 dataProjection: "EPSG:3857",
                 featureProjection: "EPSG:3857",
               });
-              
+
               // regionData 구성
               selectedRegionData = buildRegionData(
                 selectedProperties,
                 selectedFeature,
-                coordinate
+                coordinate,
+                useOriginalCoordinate
               );
-              
+
               // PNU가 파라미터로 전달된 경우 사용 (패널에서 클릭한 경우)
               if (pnu && !selectedRegionData.pnu) {
                 selectedRegionData.pnu = pnu;
               }
-              
+
               // 초기에는 데이터 없음으로 설정 (기본 파란색 스타일)
-              selectedFeature.set('hasData', false);
-              
+              selectedFeature.set("hasData", false);
+
               // 영역 하이라이트 표시
               window.highlightSource.addFeature(selectedFeature);
-              
+
               // 팝업 내용 생성
-              window.popupContent.innerHTML = buildPopupContent(selectedRegionData);
-              
+              window.popupContent.innerHTML =
+                buildPopupContent(selectedRegionData);
+
               // 데이터 존재 여부 확인 후 버튼 표시 및 스타일 업데이트
               if (checkDataExistence) {
                 var pnuToCheck = selectedRegionData.pnu || pnu;
                 if (pnuToCheck) {
-                  checkDataExistenceAndUpdateButtons(pnuToCheck, selectedFeature);
+                  checkDataExistenceAndUpdateButtons(
+                    pnuToCheck,
+                    selectedFeature
+                  );
                 } else {
                   resetPopupButtons();
-                  selectedFeature.set('hasData', false);
+                  selectedFeature.set("hasData", false);
                 }
               } else {
                 resetPopupButtons();
-                selectedFeature.set('hasData', false);
+                selectedFeature.set("hasData", false);
               }
-              
+
+              // 팝업 위치: 패널 클릭 시 저장된 좌표 사용, 지도 클릭 시 원본 좌표
+              var popupCoordinate = coordinate;
+
+              if (
+                useOriginalCoordinate &&
+                selectedRegionData &&
+                selectedRegionData.coordinateX &&
+                selectedRegionData.coordinateY
+              ) {
+                // 패널 클릭 시: DB에 저장된 좌표 사용
+                popupCoordinate = [
+                  selectedRegionData.coordinateX,
+                  selectedRegionData.coordinateY,
+                ];
+              }
+              // 지도 클릭 시(pnu가 없음): 원본 좌표(coordinate) 그대로 사용
+
               // 팝업 표시
-              window.popupOverlay.setPosition(coordinate);
+              window.popupOverlay.setPosition(popupCoordinate);
             } else {
               // 지적 정보가 없는 경우
               selectedProperties = null;
@@ -330,10 +494,10 @@ pageEncoding="UTF-8"%>
               selectedRegionData = null;
               window.popupContent.innerHTML =
                 "<span>선택한 위치의 지적 정보가 없습니다.</span>";
-              
+
               // 등록 버튼만 표시
               resetPopupButtons();
-              
+
               // 팝업 표시
               window.popupOverlay.setPosition(coordinate);
             }
@@ -365,7 +529,6 @@ pageEncoding="UTF-8"%>
 
       // 모달 폼을 초기 상태로 리셋
       window.onload = function () {
-        console.log("페이지 로드 완료");
         // VWorld API 키 (임시 키 - 실제 서비스에서는 환경 변수로 관리 권장)
         var VWORLD_API_KEY = "B13ADD16-4164-347A-A733-CD9022E8FB3B";
 
@@ -411,7 +574,7 @@ pageEncoding="UTF-8"%>
           }),
           fill: new ol.style.Fill({ color: "rgba(0, 153, 255, 0.1)" }),
         });
-        
+
         // 데이터 있을 때: 붉은색 테두리만 (fill 없음)
         var dataExistsHighlightStyle = new ol.style.Style({
           stroke: new ol.style.Stroke({
@@ -420,14 +583,14 @@ pageEncoding="UTF-8"%>
           }),
           // fill 없음
         });
-        
+
         // 하이라이트 소스를 전역 변수로 선언
         window.highlightSource = new ol.source.Vector();
         var highlightLayer = new ol.layer.Vector({
           source: window.highlightSource,
-          style: function(feature) {
+          style: function (feature) {
             // feature의 hasData 속성에 따라 스타일 반환
-            var hasData = feature.get('hasData');
+            var hasData = feature.get("hasData");
             if (hasData === true) {
               return dataExistsHighlightStyle;
             } else {
@@ -439,41 +602,40 @@ pageEncoding="UTF-8"%>
 
         // 이미지 레이어 생성 - ImageStatic 사용
         var contextPath = "<%=request.getContextPath()%>";
-        
+
         // 이미지 좌표 정보 (EPSG:3857) - 참조 코드에서 가져온 값
-        var GEOTIFF_CENTER_X = 14239470.615841;
-        var GEOTIFF_CENTER_Y = 4331334.304951; // 4331333.304951 + 1
-        var IMAGE_HALF_SIZE_RANGE = 29;
-        var IMAGE_EXTENT = [
-          GEOTIFF_CENTER_X - IMAGE_HALF_SIZE_RANGE, // Xmin
-          GEOTIFF_CENTER_Y - IMAGE_HALF_SIZE_RANGE, // Ymin
-          GEOTIFF_CENTER_X + IMAGE_HALF_SIZE_RANGE, // Xmax
-          GEOTIFF_CENTER_Y + IMAGE_HALF_SIZE_RANGE  // Ymax
-        ];
-        
+        // var GEOTIFF_CENTER_X = 14239470.615841;
+        // var GEOTIFF_CENTER_Y = 4331334.304951; // 4331333.304951 + 1
+        // var IMAGE_HALF_SIZE_RANGE = 29;
+        // var IMAGE_EXTENT = [
+        //   GEOTIFF_CENTER_X - IMAGE_HALF_SIZE_RANGE, // Xmin
+        //   GEOTIFF_CENTER_Y - IMAGE_HALF_SIZE_RANGE, // Ymin
+        //   GEOTIFF_CENTER_X + IMAGE_HALF_SIZE_RANGE, // Xmax
+        //   GEOTIFF_CENTER_Y + IMAGE_HALF_SIZE_RANGE, // Ymax
+        // ];
+
         // 이미지 레이어 (field1.png 사용)
-        var imageSource = new ol.source.ImageStatic({
-          url: contextPath + "/data/field1.png",
-          imageExtent: IMAGE_EXTENT,
-          projection: 'EPSG:3857',
-          crossOrigin: 'anonymous'
-        });
-        var imageLayer = new ol.layer.Image({
-          source: imageSource,
-          title: 'Image Overlay',
-          opacity: 0.8,
-          zIndex: 1
-        });
+        // var imageSource = new ol.source.ImageStatic({
+        //   url: contextPath + "/data/field1.png",
+        //   imageExtent: IMAGE_EXTENT,
+        //   projection: "EPSG:3857",
+        //   crossOrigin: "anonymous",
+        // });
+        // var imageLayer = new ol.layer.Image({
+        //   source: imageSource,
+        //   title: "Image Overlay",
+        //   opacity: 0.8,
+        //   zIndex: 1,
+        // });
         //window.cadastralLayer
         // 지도 객체 생성 (전역 변수로 선언)
         window.map = new ol.Map({
           target: "map",
-          layers: [baseLayer, imageLayer, highlightLayer],
+          layers: [baseLayer, highlightLayer], // imageLayer 주석처리
           view: view,
           // 이미지 렌더링 최적화 설정
           pixelRatio: window.devicePixelRatio || 1, // 고해상도 디스플레이 지원
         });
-
 
         // 팝업 관련 DOM 요소 레퍼런스 (전역 변수로 등록)
         var container = document.getElementById("popup");
@@ -520,7 +682,7 @@ pageEncoding="UTF-8"%>
             coordinate: evt.coordinate,
             layer: window.cadastralLayer,
             layerName: "lp_pa_cbnd_bubun",
-            checkDataExistence: true
+            checkDataExistence: true,
           });
         });
 
