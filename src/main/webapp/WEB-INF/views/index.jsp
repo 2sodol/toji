@@ -437,311 +437,47 @@ pageEncoding="UTF-8"%>
           zIndex: 10, // 이미지 위에 표시되도록 높은 zIndex
         });
 
-        // 이미지 오버레이 레이어들 생성
-        var imageLayers = [];
-        var allImageExtents = []; // 모든 이미지의 범위를 저장
-        // 이미지 오버레이 데이터 (동적으로 설정됨)
-        var imageOverlays = [];
+        // 타일 레이어 생성 (tile1, tile2, tile3)
+        var contextPath = "<%=request.getContextPath()%>";
+        var tile1Layer = new ol.layer.Tile({
+          source: new ol.source.XYZ({
+            url: contextPath + "/data/tile1/{z}/{x}/{y}.png",
+            minZoom: 15,
+            maxZoom: 22,
+            projection: 'EPSG:3857'
+          }),
+          zIndex: 1
+        });
 
-        // 각 이미지 오버레이를 처리하는 함수
-        function createImageOverlay(overlay, index) {
-          console.log("KML 로드 시도:", overlay.basePath + overlay.kmlPath);
-          $.ajax({
-            url: overlay.basePath + overlay.kmlPath,
-            method: "GET",
-            dataType: "text"
-          })
-            .done(function (kmlData) {
-              console.log("KML 로드 성공:", overlay.name);
-              
-              var kmlDoc = null;
-              
-              // kmlData가 이미 XML Document인지 확인
-              if (kmlData instanceof Document || kmlData instanceof XMLDocument) {
-                kmlDoc = kmlData;
-              } else if (typeof kmlData === "string") {
-                var parser = new DOMParser();
-                kmlDoc = parser.parseFromString(kmlData, "text/xml");
-                
-                // 파싱 오류 확인
-                var parserError = kmlDoc.querySelector("parsererror");
-                if (parserError) {
-                  console.error("XML 파싱 오류:", parserError.textContent);
-                  return;
-                }
-              } else {
-                console.error("알 수 없는 KML 데이터 타입:", typeof kmlData);
-                return;
-              }
-              
-              // GroundOverlay의 gx:LatLonQuad에서 좌표 찾기
-              
-              // KML 네임스페이스 정의
-              var kmlNamespace = "http://www.opengis.net/kml/2.2";
-              var gxNamespace = "http://www.google.com/kml/ext/2.2";
-              
-              // GroundOverlay 찾기 (네임스페이스 고려)
-              var groundOverlay = null;
-              
-              // 방법 1: getElementsByTagNameNS 시도
-              var groundOverlays = kmlDoc.getElementsByTagNameNS(kmlNamespace, "GroundOverlay");
-              if (groundOverlays && groundOverlays.length > 0) {
-                groundOverlay = groundOverlays[0];
-              } else {
-                // 방법 2: querySelector 시도
-                groundOverlay = kmlDoc.querySelector("GroundOverlay");
-                if (!groundOverlay) {
-                  // 방법 3: 모든 요소를 순회하면서 localName 확인
-                  var allDocElements = kmlDoc.getElementsByTagName("*");
-                  for (var i = 0; i < allDocElements.length; i++) {
-                    var elem = allDocElements[i];
-                    if (elem.localName === "GroundOverlay" || 
-                        elem.tagName === "GroundOverlay" ||
-                        elem.tagName === "kml:GroundOverlay") {
-                      groundOverlay = elem;
-                      break;
-                    }
-                  }
-                }
-              }
-              
-              var coordinates = null;
-              var latLonQuad = null;
-              var imagePath = null; // 이미지 경로 추출용 변수
+        var tile2Layer = new ol.layer.Tile({
+          source: new ol.source.XYZ({
+            url: contextPath + "/data/tile2/{z}/{x}/{y}.png",
+            minZoom: 15,
+            maxZoom: 22,
+            projection: 'EPSG:3857'
+          }),
+          zIndex: 1
+        });
 
-              if (groundOverlay) {
-                // Icon의 href에서 이미지 경로 추출
-                var iconElements = groundOverlay.getElementsByTagNameNS(kmlNamespace, "Icon");
-                if (iconElements && iconElements.length > 0) {
-                  var icon = iconElements[0];
-                  var hrefElements = icon.getElementsByTagNameNS(kmlNamespace, "href");
-                  if (hrefElements && hrefElements.length > 0) {
-                    imagePath = hrefElements[0].textContent.trim();
-                  } else {
-                    // 폴백: querySelector 사용
-                    var href = icon.querySelector("href");
-                    if (href) {
-                      imagePath = href.textContent.trim();
-                    }
-                  }
-                } else {
-                  // 폴백: querySelector 사용
-                  var icon = groundOverlay.querySelector("Icon");
-                  if (icon) {
-                    var href = icon.querySelector("href");
-                    if (href) {
-                      imagePath = href.textContent.trim();
-                    }
-                  }
-                }
-                
-                // gx:LatLonQuad 요소 찾기 (네임스페이스 고려)
-                var latLonQuadElements = groundOverlay.getElementsByTagNameNS(gxNamespace, "LatLonQuad");
-                
-                if (latLonQuadElements && latLonQuadElements.length > 0) {
-                  latLonQuad = latLonQuadElements[0];
-                } else {
-                  // 폴백: 모든 자식 요소를 순회하면서 localName 확인
-                  var allElements = groundOverlay.getElementsByTagName("*");
-                  for (var i = 0; i < allElements.length; i++) {
-                    if (allElements[i].localName === "LatLonQuad" || 
-                        allElements[i].tagName === "LatLonQuad" ||
-                        allElements[i].tagName === "gx:LatLonQuad") {
-                      latLonQuad = allElements[i];
-                      break;
-                    }
-                  }
-                }
-
-                if (latLonQuad) {
-                  // coordinates 요소 찾기 (네임스페이스 고려)
-                  var coordElements = latLonQuad.getElementsByTagNameNS(kmlNamespace, "coordinates");
-                  if (coordElements && coordElements.length > 0) {
-                    coordinates = coordElements[0];
-                  } else {
-                    coordinates = latLonQuad.querySelector("coordinates") || 
-                                 latLonQuad.getElementsByTagName("coordinates")[0];
-                  }
-                }
-              }
-
-              if (coordinates && imagePath) {
-                var coordText = coordinates.textContent.trim();
-
-                // 좌표 텍스트를 줄바꿈과 공백으로 분리
-                var coordPairs = coordText
-                  .split(/[\s\n\r\t]+/)
-                  .filter(function (item) {
-                    return item.trim().length > 0;
-                  });
-
-                var coords = [];
-                for (var i = 0; i < coordPairs.length; i++) {
-                  var parts = coordPairs[i].split(",");
-                  if (parts.length >= 2) {
-                    var lon = parseFloat(parts[0]);
-                    var lat = parseFloat(parts[1]);
-                    if (!isNaN(lon) && !isNaN(lat)) {
-                      coords.push([lon, lat]);
-                    }
-                  }
-                }
-
-                if (coords.length === 4) {
-                  // 좌표를 EPSG:3857로 변환
-                  var transformedCoords = coords.map(function (coord) {
-                    return ol.proj.transform(coord, "EPSG:4326", "EPSG:3857");
-                  });
-
-                  // 이미지 경로 구성 (KML 파일과 같은 디렉토리의 이미지 파일)
-                  var fullImagePath = overlay.basePath + imagePath;
-                  
-                  console.log("이미지 경로:", fullImagePath);
-                  console.log("좌표 개수:", coords.length);
-
-                  // field1, field2, field3 모두 타일 레이어 사용
-                  // overlay.name에서 필드 번호 추출 (예: "field1/0/0/0" -> "1", "field2/0/0/0" -> "2", "filed3/0/0/0" -> "3")
-                  var fieldNumber = "1"; // 기본값
-                  if (overlay.name) {
-                    // field 또는 filed(오타) 모두 처리 - "field" 또는 "filed" 다음의 숫자 추출
-                    var fieldMatch = overlay.name.match(/(?:field|filed)(\d+)/i);
-                    if (fieldMatch && fieldMatch[1]) {
-                      fieldNumber = fieldMatch[1];
-                    } else {
-                      // 디버깅을 위한 로그
-                      console.log("필드 번호 추출 실패:", overlay.name);
-                    }
-                  }
-                  
-                  // 필드 번호에 맞는 타일 폴더 선택
-                  var tileFolder = "tile" + fieldNumber;
-                  
-                  // 디버깅을 위한 로그
-                  console.log("필드:", overlay.name, "-> 필드 번호:", fieldNumber, "-> 타일 폴더:", tileFolder);
-                  
-                  // 필드 번호에 맞는 타일 폴더 선택
-                  var tileFolder = "tile" + fieldNumber;
-                  
-                  var imageLayer;
-                  // 타일 레이어 생성
-                  imageLayer = new ol.layer.Tile({
-                    source: new ol.source.XYZ({
-                      // 1. QGIS가 만들어준 타일 폴더 경로
-                      // {z}, {x}, {y}는 오픈레이어스가 알아서 숫자로 바꿔서 요청합니다.
-                      url: "<%=request.getContextPath()%>/data/" + tileFolder + "/{z}/{x}/{y}.png",
-                      // 2. 타일 설정 (QGIS에서 설정한 줌 레벨과 맞춰주세요)
-                      minZoom: 15,
-                      maxZoom: 22,
-                      projection: 'EPSG:3857'
-                    }),
-                    zIndex: 1 // 지적도(5)보다 아래, 배경지도 위
-                  });
-              
-
-                  imageLayer.set("name", overlay.name || imagePath);
-                  imageLayers.push(imageLayer);
-                  
-                  // 지도가 생성된 후에 레이어 추가
-                  if (window.map) {
-                    window.map.addLayer(imageLayer);
-                  } else {
-                    console.warn("지도가 아직 생성되지 않았습니다. 레이어는 나중에 추가됩니다.");
-                  }
-
-                  // 이미지 범위를 전체 범위 배열에 추가
-                  var extent = ol.extent.boundingExtent(transformedCoords);
-                  allImageExtents.push(extent);
-
-                  // 각 필지별 범위 저장
-                  var layerName = overlay.name || imagePath;
-                  window.imageExtents[layerName] = extent;
-
-                  console.log("이미지 레이어 생성 완료:", layerName);
-                } else {
-                  console.error("좌표가 4개가 아님:", coords.length, coords);
-                }
-              } else {
-                if (!coordinates) {
-                  console.error("좌표 요소를 찾을 수 없음:", overlay.name);
-                }
-                if (!imagePath) {
-                  console.error("이미지 경로를 찾을 수 없음:", overlay.name);
-                }
-              }
-            })
-            .fail(function (xhr, status, error) {
-              console.error("KML 로드 실패:", overlay.name);
-              console.error("상태:", status);
-              console.error("오류:", error);
-              console.error("응답:", xhr.responseText);
-            });
-        }
-
-        // KML 파일 경로를 기반으로 이미지 오버레이 생성
-        function addImageOverlayFromKml(kmlUrl, basePath, name) {
-          // KML 파일 경로에서 파일명 추출
-          var kmlPath = kmlUrl.replace(basePath, "");
-          if (kmlPath === kmlUrl) {
-            // basePath가 포함되지 않은 경우, 전체 URL에서 마지막 부분 추출
-            var parts = kmlUrl.split("/");
-            kmlPath = parts[parts.length - 1];
-          }
-          
-          var overlay = {
-            basePath: basePath,
-            kmlPath: kmlPath,
-            name: name || kmlUrl,
-            imagePath: "" // KML 파일에서 추출됨
-          };
-          
-          // imageOverlays 배열에 추가
-          imageOverlays.push(overlay);
-          
-          // createImageOverlay 함수 호출하여 KML 파일 읽기 및 이미지 설정
-          createImageOverlay(overlay, imageOverlays.length - 1);
-        }
+        var tile3Layer = new ol.layer.Tile({
+          source: new ol.source.XYZ({
+            url: contextPath + "/data/tile3/{z}/{x}/{y}.png",
+            minZoom: 15,
+            maxZoom: 22,
+            projection: 'EPSG:3857'
+          }),
+          zIndex: 1
+        });
 
         // 지도 객체 생성 (전역 변수로 선언)
         window.map = new ol.Map({
           target: "map",
-          //layers: [baseLayer, window.cadastralLayer, highlightLayer],
-          layers: [baseLayer, highlightLayer],
+          layers: [baseLayer, tile1Layer, tile2Layer, tile3Layer, window.cadastralLayer, highlightLayer],
           view: view,
           // 이미지 렌더링 최적화 설정
           pixelRatio: window.devicePixelRatio || 1, // 고해상도 디스플레이 지원
         });
 
-        // 이미지 레이어들을 전역 변수로 저장
-        window.imageLayers = imageLayers;
-        window.imageExtents = {}; // 각 필지별 범위 저장
-
-        // 지도 생성 후 KML 파일을 읽어서 이미지 오버레이 생성
-        var contextPath = "<%=request.getContextPath()%>";
-        var kmlFiles = [
-          {
-            basePath: contextPath + "/data/field1/0/0/",
-            kmlUrl: contextPath + "/data/field1/0/0/0.kml",
-            name: "field1/0/0/0"
-          },
-          {
-            basePath: contextPath + "/data/field2/0/0/",
-            kmlUrl: contextPath + "/data/field2/0/0/0.kml",
-            name: "field2/0/0/0"
-          },
-          {
-            basePath: contextPath + "/data/filed3/0/0/",
-            kmlUrl: contextPath + "/data/filed3/0/0/0.kml",
-            name: "filed3/0/0/0"
-          }
-        ];
-
-        console.log("KML 파일 로드 시작 - 총 " + kmlFiles.length + "개 파일");
-        
-        // 모든 KML 파일을 로드하여 이미지 오버레이 추가
-        kmlFiles.forEach(function(kmlConfig) {
-          console.log("KML 파일 로드:", kmlConfig.kmlUrl);
-          addImageOverlayFromKml(kmlConfig.kmlUrl, kmlConfig.basePath, kmlConfig.name);
-        });
 
         // 팝업 관련 DOM 요소 레퍼런스 (전역 변수로 등록)
         var container = document.getElementById("popup");
