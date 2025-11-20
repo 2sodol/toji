@@ -32,6 +32,13 @@ public class RegionController {
   public ResponseEntity<Map<String, Object>> registerRegion(@RequestBody RegionRegisterRequest request) {
     try {
       log.info("지역 등록 요청 수신: {}", request);
+      if (request.getFiles() != null) {
+        log.info("첨부파일 정보: images={}, kml={}",
+            request.getFiles().getImages() != null ? request.getFiles().getImages().size() : 0,
+            request.getFiles().getKml() != null ? "있음" : "없음");
+      } else {
+        log.warn("첨부파일 정보가 없습니다. request.getFiles() = null");
+      }
       Long id = regionService.registerRegion(request);
       Map<String, Object> response = new HashMap<>();
       response.put("success", true);
@@ -89,7 +96,7 @@ public class RegionController {
    * 특정 토지의 등록일 리스트를 조회한다.
    *
    * @param lndsUnqNo 토지고유번호
-   * @param type 조회 타입 (detail: 상세정보, photo: 사진)
+   * @param type      조회 타입 (detail: 상세정보, photo: 사진)
    * @return 등록일 리스트 응답
    */
   @RequestMapping(value = "/dates", method = RequestMethod.GET)
@@ -98,15 +105,15 @@ public class RegionController {
       @RequestParam String type) {
     try {
       log.info("등록일 리스트 조회 요청: lndsUnqNo={}, type={}", lndsUnqNo, type);
-      
+
       Map<String, Object> result = regionService.findDatesByLndsUnqNoAndType(lndsUnqNo, type);
       Map<String, Object> response = new HashMap<>();
       response.put("success", true);
       response.put("data", result);
-      
-      log.info("등록일 리스트 조회 성공: lndsUnqNo={}, type={}, count={}", 
+
+      log.info("등록일 리스트 조회 성공: lndsUnqNo={}, type={}, count={}",
           lndsUnqNo, type, result.get("dates") != null ? ((java.util.List<?>) result.get("dates")).size() : 0);
-      
+
       return ResponseEntity.ok(response);
     } catch (Exception ex) {
       String errorMessage = ex.getMessage();
@@ -132,14 +139,14 @@ public class RegionController {
       @RequestParam Long ilglPrvuInfoSeq) {
     try {
       log.info("상세정보 조회 요청: ilglPrvuInfoSeq={}", ilglPrvuInfoSeq);
-      
+
       Map<String, Object> result = regionService.findDetailBySeq(ilglPrvuInfoSeq);
       Map<String, Object> response = new HashMap<>();
       response.put("success", true);
       response.put("data", result);
-      
+
       log.info("상세정보 조회 성공: ilglPrvuInfoSeq={}", ilglPrvuInfoSeq);
-      
+
       return ResponseEntity.ok(response);
     } catch (Exception ex) {
       String errorMessage = ex.getMessage();
@@ -165,15 +172,15 @@ public class RegionController {
       @RequestParam Long ilglPrvuInfoSeq) {
     try {
       log.info("사진 리스트 조회 요청: ilglPrvuInfoSeq={}", ilglPrvuInfoSeq);
-      
+
       Map<String, Object> result = regionService.findPhotosBySeq(ilglPrvuInfoSeq);
       Map<String, Object> response = new HashMap<>();
       response.put("success", true);
       response.put("data", result);
-      
-      log.info("사진 리스트 조회 성공: ilglPrvuInfoSeq={}, count={}", 
+
+      log.info("사진 리스트 조회 성공: ilglPrvuInfoSeq={}, count={}",
           ilglPrvuInfoSeq, result.get("photos") != null ? ((java.util.List<?>) result.get("photos")).size() : 0);
-      
+
       return ResponseEntity.ok(response);
     } catch (Exception ex) {
       String errorMessage = ex.getMessage();

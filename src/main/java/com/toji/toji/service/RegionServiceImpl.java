@@ -5,12 +5,19 @@ import com.toji.toji.domain.Attachment;
 import com.toji.toji.domain.BasicInfo;
 import com.toji.toji.dto.RegionRegisterRequest;
 import com.toji.toji.mapper.RegionMapper;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -18,11 +25,13 @@ import org.springframework.util.StringUtils;
 /**
  * 지역 기본 정보와 이력을 등록하는 서비스 구현.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RegionServiceImpl implements RegionService {
 
   private final RegionMapper regionMapper;
+  private static final String NAS_UPLOAD_PATH = "/CDIGIT_CCTV01/attach/extension/illegalLands";
 
   /**
    * 지역 등록 요청을 받아 기본 정보 및 관련 이력을 저장한다.
@@ -31,7 +40,7 @@ public class RegionServiceImpl implements RegionService {
    * @return 생성된 기본 정보의 식별자
    */
   @Override
-  @Transactional
+  @Transactional(rollbackFor = Exception.class)
   public Long registerRegion(RegionRegisterRequest request) {
     LocalDateTime now = LocalDateTime.now();
     String currentUserId = "SYSTEM"; // TODO: 실제 사용자 ID로 변경 필요
@@ -40,6 +49,15 @@ public class RegionServiceImpl implements RegionService {
     regionMapper.insertBasicInfo(basicInfo);
 
     insertActionHistories(basicInfo.getIlglPrvuInfoSeq(), request.getActionHistories(), currentUserId, now);
+
+    // 첨부파일(이미지) 저장
+    if (request.getFiles() != null && request.getFiles().getImages() != null) {
+      log.info("첨부파일 저장 시작: basicInfoId={}, 이미지 개수={}", basicInfo.getIlglPrvuInfoSeq(),
+          request.getFiles().getImages().size());
+      insertAttachments(basicInfo.getIlglPrvuInfoSeq(), request.getFiles().getImages(), currentUserId, now);
+    } else {
+      log.warn("첨부파일 데이터가 없습니다. files={}", request.getFiles());
+    }
 
     return basicInfo.getIlglPrvuInfoSeq();
   }
@@ -112,6 +130,88 @@ public class RegionServiceImpl implements RegionService {
   }
 
   /**
+   * 첨부파일(이미지)을 NAS에 저장하고 메타데이터를 DB에 저장한다.
+   *
+   * @param basicInfoId 기본 정보 식별자 (FK)
+   * @param images      이미지 파일 요청 목록
+   * @param userId      등록자 ID
+   * @param now         생성 시각
+   */
+  private void insertAttachments(Long basicInfoId, List<RegionRegisterRequest.FileRequest.ImageFileRequest> images,
+      String userId, LocalDateTime now) {
+    if (basicInfoId == null || images == null || images.isEmpty()) {
+      log.warn("insertAttachments: 잘못된 파라미터. basicInfoId={}, images={}", basicInfoId, images);
+      return;
+    }
+
+    log.info("insertAttachments 시작: basicInfoId={}, 이미지 개수={}", basicInfoId, images.size());
+
+    // NAS 업로드 경로 디렉토리 생성
+    Path uploadPath = Paths.get(NAS_UPLOAD_PATH);
+    try {
+      if (!Files.exists(uploadPath)) {
+        Files.createDirectories(uploadPath);
+        log.info("NAS 업로드 경로 생성: {}", NAS_UPLOAD_PATH);
+      }
+    } catch (IOException e) {
+      log.error("NAS 업로드 경로 생성 실패: {}", NAS_UPLOAD_PATH, e);
+      throw new RuntimeException("파일 저장 경로를 생성할 수 없습니다.", e);
+    }
+
+    for (RegionRegisterRequest.FileRequest.ImageFileRequest imageRequest : images) {
+      if (imageRequest.getBase64() == null || imageRequest.getBase64().trim().isEmpty()) {
+        continue;
+      }
+
+      try {
+        // base64 디코딩
+        String base64Data = imageRequest.getBase64();
+        if (base64Data.contains(",")) {
+          base64Data = base64Data.split(",")[1];
+        }
+        byte[] imageBytes = Base64.getDecoder().decode(base64Data);
+
+        // 파일명 생성 (기본정보 ID + 타임스탬프 + 확장자)
+        String extension = StringUtils.hasText(imageRequest.getExtension()) ? imageRequest.getExtension() : "png";
+        String filename = imageRequest.getFilename();
+        if (!StringUtils.hasText(filename)) {
+          filename = basicInfoId + "_" + System.currentTimeMillis() + "_" + (int) (Math.random() * 10000) + "."
+              + extension;
+        }
+
+        // 파일 저장 경로
+        Path filePath = uploadPath.resolve(filename);
+
+        // 파일 저장
+        try (FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
+          fos.write(imageBytes);
+        }
+
+        // DB에 메타데이터 저장
+        Attachment attachment = new Attachment();
+        attachment.setIlglPrvuAddrSeq(basicInfoId);
+        attachment.setAttflNm(filename);
+        attachment.setAttflPath(NAS_UPLOAD_PATH);
+        attachment.setAttflCpct((long) imageBytes.length);
+        attachment.setOcrnDates(imageRequest.getOcrnDates());
+
+        int result = regionMapper.insertAttachment(attachment);
+        log.info("첨부파일 저장 완료: {} -> {}, DB insert 결과={}, ilglAttflSeq={}", filename, NAS_UPLOAD_PATH, result,
+            attachment.getIlglAttflSeq());
+
+      } catch (Exception e) {
+        log.error("첨부파일 저장 실패: filename={}, base64 길이={}, ocrnDates={}, 오류: {}",
+            imageRequest != null ? imageRequest.getFilename() : "null",
+            imageRequest != null && imageRequest.getBase64() != null ? imageRequest.getBase64().length() : 0,
+            imageRequest != null ? imageRequest.getOcrnDates() : "null",
+            e.getMessage(), e);
+        // 파일 저장 실패 시 예외를 다시 throw하여 전체 롤백
+        throw new RuntimeException("첨부파일 저장 중 오류 발생: " + e.getMessage(), e);
+      }
+    }
+  }
+
+  /**
    * 소수의 불필요한 0을 제거해 정규화한다.
    *
    * @param value 정규화 대상 값
@@ -154,8 +254,8 @@ public class RegionServiceImpl implements RegionService {
 
   @Override
   public Map<String, Object> findDatesByLndsUnqNoAndType(String lndsUnqNo, String type) {
-    Object dates;
-    
+    List<Map<String, Object>> dates;
+
     if ("detail".equals(type)) {
       dates = regionMapper.findDetailDatesByLndsUnqNo(lndsUnqNo);
     } else if ("photo".equals(type)) {
@@ -173,19 +273,26 @@ public class RegionServiceImpl implements RegionService {
   }
 
   @Override
-  public Map<String, Object> findDetailBySeq(Long ilglPrvuInfoSeq) {
-    BasicInfo basicInfo = regionMapper.findDetailBySeq(ilglPrvuInfoSeq);
-    
-    if (basicInfo == null) {
-      throw new RuntimeException("해당 SEQ의 상세정보를 찾을 수 없습니다: ilglPrvuInfoSeq=" + ilglPrvuInfoSeq);
-    }
+  public Map<String, Object> findDetailByLndsUnqNoAndDate(String lndsUnqNo, String ocrnDates) {
+    // Mapper에 메서드가 없으면 일단 빈 결과 반환하거나 예외 처리
+    // TODO: Mapper에 findDetailByLndsUnqNoAndDate 메서드 추가 필요
+    throw new UnsupportedOperationException("findDetailByLndsUnqNoAndDate는 아직 구현되지 않았습니다.");
+  }
 
-    // 조치이력 조회
-    List<ActionHistory> actionHistories = regionMapper.findActionHistoriesByBasicInfoId(basicInfo.getIlglPrvuInfoSeq());
+  @Override
+  public Map<String, Object> findPhotosByLndsUnqNoAndDate(String lndsUnqNo, String ocrnDates) {
+    // Mapper에 메서드가 없으면 일단 빈 결과 반환하거나 예외 처리
+    // TODO: Mapper에 findPhotosByLndsUnqNoAndDate 메서드 추가 필요
+    throw new UnsupportedOperationException("findPhotosByLndsUnqNoAndDate는 아직 구현되지 않았습니다.");
+  }
+
+  @Override
+  public Map<String, Object> findDetailBySeq(Long ilglPrvuInfoSeq) {
+    BasicInfo detail = regionMapper.findDetailBySeq(ilglPrvuInfoSeq);
+    List<ActionHistory> actionHistories = regionMapper.findActionHistoriesByBasicInfoId(ilglPrvuInfoSeq);
 
     Map<String, Object> result = new HashMap<>();
-    result.put("ilglPrvuInfoSeq", ilglPrvuInfoSeq);
-    result.put("basicInfo", basicInfo);
+    result.put("detail", detail);
     result.put("actionHistories", actionHistories);
 
     return result;
@@ -196,7 +303,6 @@ public class RegionServiceImpl implements RegionService {
     List<Attachment> photos = regionMapper.findPhotosBySeq(ilglPrvuInfoSeq);
 
     Map<String, Object> result = new HashMap<>();
-    result.put("ilglPrvuInfoSeq", ilglPrvuInfoSeq);
     result.put("photos", photos);
 
     return result;

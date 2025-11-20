@@ -29,16 +29,34 @@ public interface RegionService {
    * 특정 토지의 등록일 리스트를 타입별로 조회한다.
    *
    * @param lndsUnqNo 토지고유번호
-   * @param type 조회 타입 (detail: 상세정보, photo: 사진)
+   * @param type      조회 타입 (detail: 상세정보, photo: 사진)
    * @return 등록일 리스트를 포함한 맵
    */
   Map<String, Object> findDatesByLndsUnqNoAndType(String lndsUnqNo, String type);
 
   /**
+   * 특정 토지와 날짜의 상세정보를 조회한다.
+   *
+   * @param lndsUnqNo 토지고유번호
+   * @param ocrnDates 등록일자 (yyyyMMdd)
+   * @return 상세정보와 조치이력을 포함한 맵
+   */
+  Map<String, Object> findDetailByLndsUnqNoAndDate(String lndsUnqNo, String ocrnDates);
+
+  /**
+   * 특정 토지와 날짜의 사진 리스트를 조회한다.
+   *
+   * @param lndsUnqNo 토지고유번호
+   * @param ocrnDates 등록일자 (yyyyMMdd)
+   * @return 사진 리스트를 포함한 맵
+   */
+  Map<String, Object> findPhotosByLndsUnqNoAndDate(String lndsUnqNo, String ocrnDates);
+
+  /**
    * 특정 SEQ의 상세정보를 조회한다.
    *
    * @param ilglPrvuInfoSeq 불법점용정보 SEQ
-   * @return 상세정보와 조치이력을 포함한 맵
+   * @return 상세정보를 포함한 맵
    */
   Map<String, Object> findDetailBySeq(Long ilglPrvuInfoSeq);
 

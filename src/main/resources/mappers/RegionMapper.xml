@@ -90,6 +90,27 @@
     )
   </insert>
 
+  <insert id="insertAttachment" parameterType="Attachment">
+    <selectKey keyProperty="ilglAttflSeq" resultType="Long" order="BEFORE">
+      SELECT DTJ_MAIN.SEQ_ILGL_ATTFL.NEXTVAL FROM DUAL
+    </selectKey>
+    INSERT INTO DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 (
+      ILGL_ATTFL_SEQ,
+      ILGL_PRVU_ADDR_SEQ,
+      ATTFL_NM,
+      ATTFL_PATH,
+      ATTFL_CPCT,
+      OCRN_DATES
+    ) VALUES (
+      #{ilglAttflSeq},
+      #{ilglPrvuAddrSeq},
+      #{attflNm},
+      #{attflPath},
+      #{attflCpct},
+      #{ocrnDates}
+    )
+  </insert>
+
   <select id="findById" parameterType="Long" resultType="BasicInfo">
     SELECT
       ILGL_PRVU_INFO_SEQ as ilglPrvuInfoSeq,

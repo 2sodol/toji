@@ -1068,40 +1068,138 @@
       }
     }
 
-    // 이미지 데이터 검증 및 수집
+    // 이미지 데이터 검증 및 수집 (register-modal.jsp의 히든 필드에서 읽기)
     var images = [];
     var hasInvalidImage = false;
 
-    state.selectedFiles.images.forEach(function (imageItem) {
-      if (!imageItem.fileData) {
-        return; // 파일이 없는 경우 건너뛰기
+    // register-modal.jsp에서 생성된 모든 imageMappingData 히든 필드 수집
+    var $mappingDataInputs = $('input[name="imageMappingData[]"]');
+
+    $mappingDataInputs.each(function () {
+      var $input = $(this);
+      var mappingData = $input.val();
+
+      if (!mappingData || mappingData.trim() === "") {
+        return; // 매핑 데이터가 없으면 건너뛰기
       }
 
-      if (!imageItem.date || imageItem.date.trim() === "") {
-        showRegisterAlert("warning", "모든 이미지의 등록일을 선택해주세요.");
-        $("#imageDate_" + imageItem.id).trigger("focus");
-        hasInvalidImage = true;
-        return;
-      }
+      // 날짜:base64||날짜:base64 형식으로 저장된 데이터 파싱
+      var mappings = mappingData.split("||");
 
-      // 이미지 등록일을 yyyyMMdd 형식으로 변환
-      var date = new Date(imageItem.date);
-      var year = date.getFullYear();
-      var month = String(date.getMonth() + 1).padStart(2, "0");
-      var day = String(date.getDate()).padStart(2, "0");
-      var imageOcrnDatesFormatted = year + month + day;
+      mappings.forEach(function (mapping) {
+        if (!mapping || mapping.trim() === "") {
+          return;
+        }
 
-      images.push({
-        filename: imageItem.fileData.file.name,
-        base64: imageItem.fileData.base64, // base64 인코딩된 이미지 데이터
-        size: imageItem.fileData.file.size,
-        extension: "png", // PNG로 고정
-        ocrnDates: imageOcrnDatesFormatted, // 이미지 등록일 (yyyyMMdd 형식)
-        date: imageItem.date, // 원본 날짜 (yyyy-MM-dd 형식, 필요시 사용)
+        var parts = mapping.split(":");
+        if (parts.length !== 2) {
+          return; // 형식이 맞지 않으면 건너뛰기
+        }
+
+        var imageDate = parts[0]; // yyyy-MM-dd 형식
+        var base64Content = parts[1]; // base64 데이터 (data:image/xxx;base64, 제외)
+
+        if (!imageDate || imageDate.trim() === "") {
+          hasInvalidImage = true;
+          return;
+        }
+
+        // base64를 완전한 형식으로 변환 (확장자 추정)
+        var mimeType = "image/png";
+        var extension = "png";
+
+        // base64 데이터 시작 부분을 확인하여 타입 판단
+        var firstChars = base64Content.substring(0, 10);
+        if (
+          firstChars.startsWith("/9j/") ||
+          base64Content.substring(0, 20).includes("JFIF") ||
+          base64Content.substring(0, 20).includes("Exif")
+        ) {
+          // JPEG
+          mimeType = "image/jpeg";
+          extension = "jpg";
+        } else if (firstChars.startsWith("iVBORw0KGgo")) {
+          // PNG
+          mimeType = "image/png";
+          extension = "png";
+        } else {
+          // 기본값 PNG
+          mimeType = "image/png";
+          extension = "png";
+        }
+
+        var fullBase64 = "data:" + mimeType + ";base64," + base64Content;
+
+        // base64에서 파일 크기 추정 (대략적)
+        var size = Math.round(base64Content.length * 0.75);
+
+        // 이미지 등록일을 yyyyMMdd 형식으로 변환
+        var dateObj = new Date(imageDate);
+        if (isNaN(dateObj.getTime())) {
+          hasInvalidImage = true;
+          return;
+        }
+
+        var year = dateObj.getFullYear();
+        var month = String(dateObj.getMonth() + 1).padStart(2, "0");
+        var day = String(dateObj.getDate()).padStart(2, "0");
+        var imageOcrnDatesFormatted = year + month + day;
+
+        // 파일명 생성 (날짜 기반)
+        var filename =
+          "image_" +
+          imageOcrnDatesFormatted +
+          "_" +
+          Date.now() +
+          "_" +
+          Math.floor(Math.random() * 10000) +
+          "." +
+          extension;
+
+        images.push({
+          filename: filename,
+          base64: fullBase64,
+          size: size,
+          extension: extension,
+          ocrnDates: imageOcrnDatesFormatted,
+          date: imageDate,
+        });
       });
     });
 
+    // 기존 state.selectedFiles.images도 확인 (하위 호환성)
+    if (state.selectedFiles && state.selectedFiles.images && state.selectedFiles.images.length > 0) {
+      state.selectedFiles.images.forEach(function (imageItem) {
+        if (!imageItem.fileData) {
+          return;
+        }
+
+        if (!imageItem.date || imageItem.date.trim() === "") {
+          showRegisterAlert("warning", "모든 이미지의 등록일을 선택해주세요.");
+          $("#imageDate_" + imageItem.id).trigger("focus");
+          hasInvalidImage = true;
+          return;
+        }
+
+        var date = new Date(imageItem.date);
+        var year = date.getFullYear();
+        var month = String(date.getMonth() + 1).padStart(2, "0");
+        var day = String(date.getDate()).padStart(2, "0");
+        var imageOcrnDatesFormatted = year + month + day;
+
+        images.push({
+          filename: imageItem.fileData.file.name,
+          base64: imageItem.fileData.base64,
+          size: imageItem.fileData.file.size,
+          extension: "png",
+          ocrnDates: imageOcrnDatesFormatted,
+          date: imageItem.date,
+        });
+      });
+    }
+
     if (hasInvalidImage) {
+      showRegisterAlert("warning", "모든 이미지의 등록일을 선택해주세요.");
       return;
     }
 

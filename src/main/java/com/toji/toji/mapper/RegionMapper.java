@@ -15,6 +15,8 @@ public interface RegionMapper {
 
   int insertActionHistory(ActionHistory actionHistory);
 
+  int insertAttachment(Attachment attachment);
+
   BasicInfo findById(Long id);
 
   List<BasicInfo> findAll();

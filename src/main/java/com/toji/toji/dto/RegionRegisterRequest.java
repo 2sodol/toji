@@ -31,11 +31,38 @@ public class RegionRegisterRequest {
   private BigDecimal gpsLgtd;
   private BigDecimal gpsLttd;
   private List<ActionHistoryRequest> actionHistories = new ArrayList<>();
+  private FileRequest files;
 
   @Getter
   @Setter
   public static class ActionHistoryRequest {
     private LocalDateTime actnDttm;
     private String actnCtnt;
+  }
+
+  @Getter
+  @Setter
+  public static class FileRequest {
+    private List<ImageFileRequest> images;
+    private KmlFileRequest kml;
+
+    @Getter
+    @Setter
+    public static class ImageFileRequest {
+      private String filename;
+      private String base64;
+      private Long size;
+      private String extension;
+      private String ocrnDates;
+      private String date;
+    }
+
+    @Getter
+    @Setter
+    public static class KmlFileRequest {
+      private String filename;
+      private String base64;
+      private Long size;
+    }
   }
 }
