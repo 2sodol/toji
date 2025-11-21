@@ -82,8 +82,18 @@ pageEncoding="UTF-8"%>
     <script src="<%=request.getContextPath()%>/resources/js/inquiry-modal.js"></script>
 
     <script type="text/javascript">
-      // 지도에서 선택된 피처 및 속성 정보 저장용 전역 변수
-      var selectedProperties = null;
+      // ============================================
+      // 상수 정의
+      // ============================================
+      var VWORLD_API_KEY = "B13ADD16-4164-347A-A733-CD9022E8FB3B";
+      var LAYER_NAME = "lp_pa_cbnd_bubun";
+      var MIN_ZOOM_LEVEL = 18;
+      var DEFAULT_CENTER = [126.978, 37.5665]; // 서울 시청
+      var DEFAULT_ZOOM = 17;
+
+      // ============================================
+      // 전역 변수
+      // ============================================
       var selectedFeature = null;
       var selectedRegionData = null;
 
@@ -312,23 +322,129 @@ pageEncoding="UTF-8"%>
           .replace(/'/g, "&#39;");
       };
 
+      // ============================================
+      // Feature 처리 함수
+      // ============================================
+      
       /**
-       * 좌표로 지적 정보를 조회하고 영역 표시 + 팝업 표출하는 공통 함수 (전역에 등록)
-       * @param {Object} options - 옵션 객체
-       * @param {Array} options.coordinate - 클릭한 좌표 [x, y] (EPSG:3857)
-       * @param {ol.layer.Tile} options.layer - 조회할 레이어 객체 (기본값: window.cadastralLayer)
-       * @param {String} options.layerName - 레이어명 (기본값: "lp_pa_cbnd_bubun")
-       * @param {Boolean} options.checkDataExistence - 데이터 존재 여부 확인 여부 (기본값: true)
-       * @param {String} options.pnu - 필지번호 (선택, 있으면 버튼 체크에 사용)
-       * @param {Boolean} options.useOriginalCoordinate - 원본 좌표를 그대로 사용할지 여부 (패널 호출 시 true)
+       * 공통 feature 처리 함수
+       * @param {Object} featureData - GeoJSON feature 데이터
+       * @param {Array} coordinate - 좌표 [x, y]
+       * @param {String} pnu - 필지번호 (선택)
+       * @param {Boolean} useOriginalCoordinate - 원본 좌표 사용 여부
+       * @param {Boolean} checkDataExistence - 데이터 존재 여부 확인 여부
        */
-      window.showMapPopupAndHighlight = function (options) {
+      function processFeatureData(featureData, coordinate, pnu, useOriginalCoordinate, checkDataExistence) {
+        // 기존 선택 정보 초기화
+        clearSelection();
+
+        if (!featureData) {
+          showNoDataPopup(coordinate);
+          return;
+        }
+
+        var properties = featureData.properties || {};
+        var format = new ol.format.GeoJSON();
+        selectedFeature = format.readFeature(featureData, {
+          dataProjection: "EPSG:3857",
+          featureProjection: "EPSG:3857",
+        });
+
+        // regionData 구성
+        selectedRegionData = buildRegionData(
+          properties,
+          selectedFeature,
+          coordinate,
+          useOriginalCoordinate
+        );
+
+        // PNU가 파라미터로 전달된 경우 사용 (패널에서 클릭한 경우)
+        if (pnu && !selectedRegionData.pnu) {
+          selectedRegionData.pnu = pnu;
+        }
+
+        // 초기에는 데이터 없음으로 설정 (기본 파란색 스타일)
+        selectedFeature.set("hasData", false);
+
+        // 영역 하이라이트 표시
+        window.highlightSource.addFeature(selectedFeature);
+
+        // 팝업 내용 생성
+        window.popupContent.innerHTML = buildPopupContent(selectedRegionData);
+
+        // 데이터 존재 여부 확인 후 버튼 표시 및 스타일 업데이트
+        updatePopupButtons(checkDataExistence, selectedRegionData.pnu || pnu);
+
+        // 팝업 위치 결정 및 표시
+        var popupCoordinate = getPopupCoordinate(coordinate, useOriginalCoordinate);
+        window.popupOverlay.setPosition(popupCoordinate);
+      }
+
+      /**
+       * 선택 정보 초기화
+       */
+      function clearSelection() {
+        window.popupOverlay.setPosition(undefined);
+        selectedFeature = null;
+        selectedRegionData = null;
+        window.highlightSource.clear();
+      }
+
+      /**
+       * 데이터 없음 팝업 표시
+       * @param {Array} coordinate - 좌표
+       */
+      function showNoDataPopup(coordinate) {
+        window.popupContent.innerHTML = "<span>선택한 위치의 지적 정보가 없습니다.</span>";
+        resetPopupButtons();
+        window.popupOverlay.setPosition(coordinate);
+      }
+
+      /**
+       * 팝업 버튼 업데이트
+       * @param {Boolean} checkDataExistence - 데이터 존재 여부 확인 여부
+       * @param {String} pnu - 필지번호
+       */
+      function updatePopupButtons(checkDataExistence, pnu) {
+        if (checkDataExistence && pnu) {
+          checkDataExistenceAndUpdateButtons(pnu, selectedFeature);
+        } else {
+          resetPopupButtons();
+          if (selectedFeature) {
+            selectedFeature.set("hasData", false);
+          }
+        }
+      }
+
+      /**
+       * 팝업 좌표 결정
+       * @param {Array} coordinate - 기본 좌표
+       * @param {Boolean} useOriginalCoordinate - 원본 좌표 사용 여부
+       * @returns {Array} 팝업 좌표
+       */
+      function getPopupCoordinate(coordinate, useOriginalCoordinate) {
+        if (
+          useOriginalCoordinate &&
+          selectedRegionData &&
+          selectedRegionData.coordinateX &&
+          selectedRegionData.coordinateY
+        ) {
+          return [selectedRegionData.coordinateX, selectedRegionData.coordinateY];
+        }
+        return coordinate;
+      }
+
+      /**
+       * WMS GetFeatureInfo로 받아온 정보를 사용하여 영역 표시 + 팝업 표출 (지도 클릭 시 사용)
+       * @param {Object} options - 옵션 객체
+       * @param {Object} options.featureData - WMS GetFeatureInfo로 받아온 GeoJSON feature 데이터
+       * @param {Array} options.coordinate - 클릭한 좌표 [x, y] (EPSG:3857)
+       * @param {Boolean} options.checkDataExistence - 데이터 존재 여부 확인 여부 (기본값: true)
+       */
+      window.showMapPopupFromWMS = function (options) {
+        var featureData = options.featureData;
         var coordinate = options.coordinate;
-        var layer = options.layer || window.cadastralLayer;
-        var layerName = options.layerName || "lp_pa_cbnd_bubun";
         var checkDataExistence = options.checkDataExistence !== false; // 기본값: true
-        var pnu = options.pnu || null;
-        var useOriginalCoordinate = options.useOriginalCoordinate === true; // 기본값: false
 
         if (
           !coordinate ||
@@ -336,181 +452,167 @@ pageEncoding="UTF-8"%>
           coordinate.length < 2
         ) {
           console.error(
-            "showMapPopupAndHighlight: 유효하지 않은 좌표입니다.",
+            "showMapPopupFromWMS: 유효하지 않은 좌표입니다.",
             coordinate
-          );
-          return;
-        }
-
-        if (!layer) {
-          console.error(
-            "showMapPopupAndHighlight: 레이어가 초기화되지 않았습니다."
           );
           return;
         }
 
         if (!window.popupOverlay || !window.popupContent) {
           console.error(
-            "showMapPopupAndHighlight: 팝업 오버레이가 초기화되지 않았습니다."
+            "showMapPopupFromWMS: 팝업 오버레이가 초기화되지 않았습니다."
           );
           return;
         }
 
-        // 기존 선택 정보 초기화
-        window.popupOverlay.setPosition(undefined);
-        selectedProperties = null;
-        selectedFeature = null;
-        selectedRegionData = null;
+        // WMS로 받아온 featureData에서 PNU 추출
+        var pnu = null;
+        if (featureData && featureData.properties) {
+          var props = featureData.properties;
+          pnu = props.pnu || props.PNU || props.pnu_code;
+        }
 
-        // WMS GetFeatureInfo 호출 URL 생성
-        // PNU가 있는 경우(패널 호출) 여러 feature를 조회하여 PNU로 필터링
-        var viewResolution = window.map.getView().getResolution();
-        var source = layer.getSource();
-        var url = source.getGetFeatureInfoUrl(
-          coordinate,
-          viewResolution,
-          "EPSG:3857",
-          {
-            INFO_FORMAT: "application/json",
-            QUERY_LAYERS: layerName,
-            FEATURE_COUNT: 1,
-            //domain: "http://localhost",
-            info_format: "text/javascript",
-          }
-        );
+        console.log("showMapPopupFromWMS - coordinate:", coordinate);
+        console.log("showMapPopupFromWMS - pnu:", pnu);
 
-        if (!url) {
-          console.error(
-            "showMapPopupAndHighlight: GetFeatureInfo URL을 생성할 수 없습니다."
-          );
+        // WMS로 받아온 featureData 직접 처리
+        processFeatureData(featureData, coordinate, pnu, false, checkDataExistence);
+      };
+
+      // ============================================
+      // 지도 팝업 표시 함수
+      // ============================================
+      
+      /**
+       * WMS GetFeatureInfo로 받아온 정보를 사용하여 영역 표시 + 팝업 표출 (지도 클릭 시 사용)
+       * @param {Object} options - 옵션 객체
+       * @param {Object} options.featureData - WMS GetFeatureInfo로 받아온 GeoJSON feature 데이터
+       * @param {Array} options.coordinate - 클릭한 좌표 [x, y] (EPSG:3857)
+       * @param {Boolean} options.checkDataExistence - 데이터 존재 여부 확인 여부 (기본값: true)
+       */
+      window.showMapPopupFromWMS = function (options) {
+        var featureData = options.featureData;
+        var coordinate = options.coordinate;
+        var checkDataExistence = options.checkDataExistence !== false;
+
+        if (!isValidCoordinate(coordinate)) {
+          console.error("showMapPopupFromWMS: 유효하지 않은 좌표입니다.", coordinate);
           return;
         }
 
-        // Ajax로 featureData 조회
+        if (!isPopupInitialized()) {
+          return;
+        }
+
+        // WMS로 받아온 featureData에서 PNU 추출
+        var pnu = extractPnuFromFeature(featureData);
+        console.log("showMapPopupFromWMS - coordinate:", coordinate, "pnu:", pnu);
+
+        // WMS로 받아온 featureData 직접 처리
+        processFeatureData(featureData, coordinate, pnu, false, checkDataExistence);
+      };
+
+      /**
+       * WFS + PNU로 조회하여 영역 표시 + 팝업 표출 (패널 클릭 시 사용)
+       * @param {Object} options - 옵션 객체
+       * @param {Array} options.coordinate - 클릭한 좌표 [x, y] (EPSG:3857)
+       * @param {ol.layer.Tile} options.layer - 조회할 레이어 객체 (기본값: window.cadastralLayer)
+       * @param {String} options.layerName - 레이어명 (기본값: LAYER_NAME)
+       * @param {Boolean} options.checkDataExistence - 데이터 존재 여부 확인 여부 (기본값: true)
+       * @param {String} options.pnu - 필지번호 (필수)
+       * @param {Boolean} options.useOriginalCoordinate - 원본 좌표를 그대로 사용할지 여부 (패널 호출 시 true)
+       */
+      window.showMapPopupAndHighlight = function (options) {
+        var coordinate = options.coordinate;
+        var layer = options.layer || window.cadastralLayer;
+        var layerName = options.layerName || LAYER_NAME;
+        var checkDataExistence = options.checkDataExistence !== false;
+        var pnu = options.pnu || null;
+        var useOriginalCoordinate = options.useOriginalCoordinate === true;
+
+        if (!isValidCoordinate(coordinate)) {
+          console.error("showMapPopupAndHighlight: 유효하지 않은 좌표입니다.", coordinate);
+          return;
+        }
+
+        if (!layer) {
+          console.error("showMapPopupAndHighlight: 레이어가 초기화되지 않았습니다.");
+          return;
+        }
+
+        if (!isPopupInitialized()) {
+          return;
+        }
+
+        if (!pnu) {
+          console.error("showMapPopupAndHighlight: PNU가 필요합니다.", pnu);
+          return;
+        }
+
+        console.log("showMapPopupAndHighlight - coordinate:", coordinate, "pnu:", pnu);
+
+        // WFS 요청으로 featureData 조회
+        var wfsUrl = buildWfsUrl(pnu, layerName);
         $.ajax({
-          url: url,
+          url: wfsUrl,
           dataType: "jsonp",
           jsonpCallback: "parseResponse",
+          info_format: "text/javascript",
         })
           .done(function (json) {
-            window.highlightSource.clear();
-
-            if (json.features && json.features.length > 0) {
-              // PNU가 있는 경우 일치하는 feature 찾기
-              var featureData = null;
-              if (pnu) {
-                for (var i = 0; i < json.features.length; i++) {
-                  var props = json.features[i].properties || {};
-                  var featurePnu = props.pnu || props.PNU || props.pnu_code;
-
-                  if (
-                    featurePnu &&
-                    String(featurePnu).trim() === String(pnu).trim()
-                  ) {
-                    featureData = json.features[i];
-                    break;
-                  }
-                }
-
-                // PNU로 찾지 못한 경우 첫 번째 feature 사용
-                if (!featureData) {
-                  featureData = json.features[0];
-                }
-              } else {
-                // PNU가 없으면 첫 번째 feature 사용
-                featureData = json.features[0];
-              }
-
-              selectedProperties = featureData.properties || {};
-              var format = new ol.format.GeoJSON();
-              selectedFeature = format.readFeature(featureData, {
-                dataProjection: "EPSG:3857",
-                featureProjection: "EPSG:3857",
-              });
-
-              // regionData 구성
-              selectedRegionData = buildRegionData(
-                selectedProperties,
-                selectedFeature,
-                coordinate,
-                useOriginalCoordinate
-              );
-
-              // PNU가 파라미터로 전달된 경우 사용 (패널에서 클릭한 경우)
-              if (pnu && !selectedRegionData.pnu) {
-                selectedRegionData.pnu = pnu;
-              }
-
-              // 초기에는 데이터 없음으로 설정 (기본 파란색 스타일)
-              selectedFeature.set("hasData", false);
-
-              // 영역 하이라이트 표시
-              window.highlightSource.addFeature(selectedFeature);
-
-              // 팝업 내용 생성
-              window.popupContent.innerHTML =
-                buildPopupContent(selectedRegionData);
-
-              // 데이터 존재 여부 확인 후 버튼 표시 및 스타일 업데이트
-              if (checkDataExistence) {
-                var pnuToCheck = selectedRegionData.pnu || pnu;
-                if (pnuToCheck) {
-                  checkDataExistenceAndUpdateButtons(
-                    pnuToCheck,
-                    selectedFeature
-                  );
-                } else {
-                  resetPopupButtons();
-                  selectedFeature.set("hasData", false);
-                }
-              } else {
-                resetPopupButtons();
-                selectedFeature.set("hasData", false);
-              }
-
-              // 팝업 위치: 패널 클릭 시 저장된 좌표 사용, 지도 클릭 시 원본 좌표
-              var popupCoordinate = coordinate;
-
-              if (
-                useOriginalCoordinate &&
-                selectedRegionData &&
-                selectedRegionData.coordinateX &&
-                selectedRegionData.coordinateY
-              ) {
-                // 패널 클릭 시: DB에 저장된 좌표 사용
-                popupCoordinate = [
-                  selectedRegionData.coordinateX,
-                  selectedRegionData.coordinateY,
-                ];
-              }
-              // 지도 클릭 시(pnu가 없음): 원본 좌표(coordinate) 그대로 사용
-
-              // 팝업 표시
-              window.popupOverlay.setPosition(popupCoordinate);
-            } else {
-              // 지적 정보가 없는 경우
-              selectedProperties = null;
-              selectedFeature = null;
-              selectedRegionData = null;
-              window.popupContent.innerHTML =
-                "<span>선택한 위치의 지적 정보가 없습니다.</span>";
-
-              // 등록 버튼만 표시
-              resetPopupButtons();
-
-              // 팝업 표시
-              window.popupOverlay.setPosition(coordinate);
-            }
+            var featureData = parseVWorldFeatureResponse(json);
+            processFeatureData(featureData, coordinate, pnu, useOriginalCoordinate, checkDataExistence);
           })
           .fail(function (err) {
-            console.error("GetFeatureInfo Error:", err);
-            window.highlightSource.clear();
-            window.popupOverlay.setPosition(undefined);
+            console.error("WFS GetFeature Error:", err);
+            clearSelection();
             resetPopupButtons();
           });
       };
 
-      // 팝업에 표시할 내용을 HTML 템플릿으로 반환
+      /**
+       * 좌표 유효성 검사
+       * @param {Array} coordinate - 좌표
+       * @returns {Boolean} 유효 여부
+       */
+      function isValidCoordinate(coordinate) {
+        return coordinate && Array.isArray(coordinate) && coordinate.length >= 2;
+      }
+
+      /**
+       * 팝업 초기화 여부 확인
+       * @returns {Boolean} 초기화 여부
+       */
+      function isPopupInitialized() {
+        if (!window.popupOverlay || !window.popupContent) {
+          console.error("팝업 오버레이가 초기화되지 않았습니다.");
+          return false;
+        }
+        return true;
+      }
+
+      /**
+       * Feature에서 PNU 추출
+       * @param {Object} featureData - Feature 데이터
+       * @returns {String|null} PNU 또는 null
+       */
+      function extractPnuFromFeature(featureData) {
+        if (!featureData || !featureData.properties) {
+          return null;
+        }
+        var props = featureData.properties;
+        return props.pnu || props.PNU || props.pnu_code || null;
+      }
+
+      // ============================================
+      // 유틸리티 함수
+      // ============================================
+      
+      /**
+       * 팝업에 표시할 내용을 HTML 템플릿으로 반환
+       * @param {Object} region - 지역 데이터 객체
+       * @returns {String} HTML 문자열
+       */
       function buildPopupContent(region) {
         if (!region) {
           return "<span>선택된 정보를 불러올 수 없습니다.</span>";
@@ -518,28 +620,76 @@ pageEncoding="UTF-8"%>
         return window.escapeHtml(region.address || "-");
       }
 
-      // 등록 모달 폼에 선택된 지역 데이터를 채움
-      function fillRegisterForm(region) {
-        if (!region) {
-          return;
+      /**
+       * VWorld API 응답에서 featureData 추출
+       * @param {Object} json - API 응답 JSON
+       * @returns {Object|null} featureData 또는 null
+       */
+      function parseVWorldFeatureResponse(json) {
+        if (!json) {
+          return null;
         }
-        var resolvedAddress = region.address || region.jibunAddress || "";
-        $("#illegalDetailAddressInput").val(resolvedAddress);
+
+        // 응답 형식 1: json.features
+        if (json.features && json.features.length > 0) {
+          return json.features[0];
+        }
+
+        // 응답 형식 2: json.response.result.featureCollection.features
+        if (json.response && json.response.result) {
+          var result = json.response.result;
+          if (result.featureCollection && result.featureCollection.features) {
+            var features = result.featureCollection.features;
+            if (features.length > 0) {
+              return features[0];
+            }
+          }
+        }
+
+        return null;
       }
 
-      // 모달 폼을 초기 상태로 리셋
-      window.onload = function () {
-        // VWorld API 키 (임시 키 - 실제 서비스에서는 환경 변수로 관리 권장)
-        var VWORLD_API_KEY = "B13ADD16-4164-347A-A733-CD9022E8FB3B";
+      /**
+       * WFS GetFeature URL 생성
+       * @param {String} pnu - 필지번호
+       * @param {String} layerName - 레이어명
+       * @returns {String} WFS URL
+       */
+      function buildWfsUrl(pnu, layerName) {
+        var filterXml = 
+          "<Filter><PropertyIsEqualTo><PropertyName>pnu</PropertyName><Literal>" +
+          String(pnu).trim() +
+          "</Literal></PropertyIsEqualTo></Filter>";
+        
+        return (
+          "https://api.vworld.kr/req/wfs?" +
+          "SERVICE=WFS" +
+          "&VERSION=1.1.0" +
+          "&REQUEST=GetFeature" +
+          "&KEY=" + VWORLD_API_KEY +
+          "&TYPENAME=" + layerName +
+          "&OUTPUT=text/javascript" +
+          "&srsname=EPSG:3857" +
+          "&maxfeatures=10" +
+          "&filter=" + encodeURIComponent(filterXml) +
+          "&format_options=parseResponse" +
+          "&domain=http://localhost"
+        );
+      }
 
+      // ============================================
+      // 지도 초기화
+      // ============================================
+      
+      window.onload = function () {
         // 서울 시청 좌표를 기본 중심으로 하는 맵 뷰 설정
         var view = new ol.View({
           center: ol.proj.transform(
-            [126.978, 37.5665],
+            DEFAULT_CENTER,
             "EPSG:4326",
             "EPSG:3857"
           ),
-          zoom: 17,
+          zoom: DEFAULT_ZOOM,
         });
         // 기본 지도 레이어
         var baseLayer = new ol.layer.Tile({
@@ -555,15 +705,15 @@ pageEncoding="UTF-8"%>
           source: new ol.source.TileWMS({
             url: "https://api.vworld.kr/req/wms",
             params: {
-              LAYERS: "lp_pa_cbnd_bubun",
-              STYLES: "lp_pa_cbnd_bubun",
+              LAYERS: LAYER_NAME,
+              STYLES: LAYER_NAME,
               CRS: "EPSG:3857",
               FORMAT: "image/png",
               TRANSPARENT: true,
               KEY: VWORLD_API_KEY,
             },
           }),
-          zIndex: 5, // 이미지 위에 표시되도록 설정
+          zIndex: 5,
         });
         // 선택 영역 하이라이트 스타일 (동적 스타일 함수)
         // 데이터 없을 때: 파란색 + fill (기본 스타일)
@@ -600,41 +750,12 @@ pageEncoding="UTF-8"%>
           zIndex: 10, // 이미지 위에 표시되도록 높은 zIndex
         });
 
-        // 이미지 레이어 생성 - ImageStatic 사용
-        var contextPath = "<%=request.getContextPath()%>";
-
-        // 이미지 좌표 정보 (EPSG:3857) - 참조 코드에서 가져온 값
-        // var GEOTIFF_CENTER_X = 14239470.615841;
-        // var GEOTIFF_CENTER_Y = 4331334.304951; // 4331333.304951 + 1
-        // var IMAGE_HALF_SIZE_RANGE = 29;
-        // var IMAGE_EXTENT = [
-        //   GEOTIFF_CENTER_X - IMAGE_HALF_SIZE_RANGE, // Xmin
-        //   GEOTIFF_CENTER_Y - IMAGE_HALF_SIZE_RANGE, // Ymin
-        //   GEOTIFF_CENTER_X + IMAGE_HALF_SIZE_RANGE, // Xmax
-        //   GEOTIFF_CENTER_Y + IMAGE_HALF_SIZE_RANGE, // Ymax
-        // ];
-
-        // 이미지 레이어 (field1.png 사용)
-        // var imageSource = new ol.source.ImageStatic({
-        //   url: contextPath + "/data/field1.png",
-        //   imageExtent: IMAGE_EXTENT,
-        //   projection: "EPSG:3857",
-        //   crossOrigin: "anonymous",
-        // });
-        // var imageLayer = new ol.layer.Image({
-        //   source: imageSource,
-        //   title: "Image Overlay",
-        //   opacity: 0.8,
-        //   zIndex: 1,
-        // });
-        //window.cadastralLayer
         // 지도 객체 생성 (전역 변수로 선언)
         window.map = new ol.Map({
           target: "map",
-          layers: [baseLayer, highlightLayer], // imageLayer 주석처리
+          layers: [baseLayer, window.cadastralLayer, highlightLayer],
           view: view,
-          // 이미지 렌더링 최적화 설정
-          pixelRatio: window.devicePixelRatio || 1, // 고해상도 디스플레이 지원
+          pixelRatio: window.devicePixelRatio || 1,
         });
 
         // 팝업 관련 DOM 요소 레퍼런스 (전역 변수로 등록)
@@ -650,41 +771,89 @@ pageEncoding="UTF-8"%>
 
         // 팝업 닫기 버튼 이벤트
         closer.onclick = function () {
-          window.popupOverlay.setPosition(undefined);
+          clearSelection();
+          resetPopupButtons();
           closer.blur();
-          selectedProperties = null;
-          selectedFeature = null;
-          selectedRegionData = null;
-          resetPopupButtons(); // 팝업 닫을 때 버튼 상태 리셋
           return false;
         };
 
+        // ============================================
+        // 이벤트 핸들러
+        // ============================================
+        
         // 단일 클릭 시 지적 정보 조회
         window.map.on("singleclick", function (evt) {
           var currentZoom = view.getZoom();
 
           // 너무 낮은 줌 레벨에서는 토스트 메시지만 노출
-          if (currentZoom < 18) {
-            window.highlightSource.clear();
-            window.popupOverlay.setPosition(undefined);
-
-            var toast = $("#toast-message");
-            toast.stop().fadeIn(400, function () {
-              setTimeout(function () {
-                toast.fadeOut(400);
-              }, 2000);
-            });
+          if (currentZoom < MIN_ZOOM_LEVEL) {
+            clearSelection();
+            showToastMessage();
             return;
           }
 
-          // 공통 함수 호출
-          window.showMapPopupAndHighlight({
-            coordinate: evt.coordinate,
-            layer: window.cadastralLayer,
-            layerName: "lp_pa_cbnd_bubun",
-            checkDataExistence: true,
-          });
+          var coordinate = evt.coordinate;
+          console.log("지도 클릭 - coordinate:", coordinate);
+
+          // WMS GetFeatureInfo로 지적 정보 조회
+          var viewResolution = view.getResolution();
+          var source = window.cadastralLayer.getSource();
+          var getFeatureInfoUrl = source.getGetFeatureInfoUrl(
+            coordinate,
+            viewResolution,
+            "EPSG:3857",
+            {
+              INFO_FORMAT: "application/json",
+              QUERY_LAYERS: LAYER_NAME,
+              FEATURE_COUNT: 1,
+              info_format: "text/javascript",
+            }
+          );
+
+          if (!getFeatureInfoUrl) {
+            console.error("GetFeatureInfo URL을 생성할 수 없습니다.");
+            return;
+          }
+
+          $.ajax({
+            url: getFeatureInfoUrl,
+            dataType: "jsonp",
+            jsonpCallback: "parseResponse",
+          })
+            .done(function (json) {
+              var featureData = parseVWorldFeatureResponse(json);
+              console.log("WMS GetFeatureInfo - featureData:", featureData);
+
+              if (!featureData) {
+                console.warn("지적 정보를 찾을 수 없습니다.");
+                clearSelection();
+                return;
+              }
+
+              // WMS로 받아온 정보를 직접 사용하여 영역 표시
+              window.showMapPopupFromWMS({
+                featureData: featureData,
+                coordinate: coordinate,
+                checkDataExistence: true,
+              });
+            })
+            .fail(function (err) {
+              console.error("GetFeatureInfo Error:", err);
+              clearSelection();
+            });
         });
+
+        /**
+         * 토스트 메시지 표시
+         */
+        function showToastMessage() {
+          var toast = $("#toast-message");
+          toast.stop().fadeIn(400, function () {
+            setTimeout(function () {
+              toast.fadeOut(400);
+            }, 2000);
+          });
+        }
 
         // 팝업 내 등록 버튼 클릭 시 모달 띄우기
         $("#popup-register-btn").on("click", function () {
@@ -756,3 +925,4 @@ pageEncoding="UTF-8"%>
     </script>
   </body>
 </html>
+
