@@ -334,11 +334,11 @@
       var dateStr = dateInfo.OCRNDATES || dateInfo.ocrnDates || dateInfo.ocrn_dates;
       var managerName = dateInfo.PRCHEMNO || dateInfo.prchEmno || dateInfo.prch_emno || "";
       var seq = dateInfo.ILGLPRVUINFOSEQ || dateInfo.ilglPrvuInfoSeq || dateInfo.ilgl_prvu_info_seq;
-      
+
       if (!seq) {
         return;
       }
-      
+
       var formattedDate = formatDate(dateStr);
       var displayText = formattedDate + " (" + escapeHtml(managerName) + ")";
 
@@ -366,7 +366,7 @@
   function selectDetailDate(date) {
     var dateStr = null;
     var seq = null;
-    
+
     if (typeof date === "string") {
       dateStr = date;
       seq = null;
@@ -375,7 +375,7 @@
       dateStr = date.OCRNDATES || date.ocrnDates || date.ocrn_dates || null;
       seq = date.ILGLPRVUINFOSEQ || date.ilglPrvuInfoSeq || date.ilgl_prvu_info_seq || null;
     }
-    
+
 
     // 모든 버튼에서 active 클래스 제거
     $("#detailDateList .illegal-inquiry-date-item").removeClass(
@@ -392,8 +392,8 @@
       // seq가 없으면 날짜로 찾되, 첫 번째 것만 선택
       $activeButton = $(
         "#detailDateList .illegal-inquiry-date-item[data-date='" +
-          dateStr +
-          "']"
+        dateStr +
+        "']"
       ).first();
       // 버튼에서 seq 값 가져오기
       if ($activeButton.length > 0) {
@@ -559,14 +559,14 @@
 
     // seq 값을 변수에 저장 (closeModal 호출 전에)
     var editSeq = seq;
-    
+
     // 조회 모달 닫기 (state가 초기화되지만 editSeq는 유지됨)
     closeModal();
 
     // 등록 모달을 수정 모드로 열기
     if (window.RegisterModule && typeof window.RegisterModule.openEditMode === "function") {
       // 약간의 지연을 두어 모달이 완전히 닫힌 후 열기
-      setTimeout(function() {
+      setTimeout(function () {
         try {
           window.RegisterModule.openEditMode(editSeq);
         } catch (error) {
@@ -576,6 +576,346 @@
     } else {
       showInquiryAlert("danger", "수정 기능을 사용할 수 없습니다.");
     }
+  }
+
+  /**
+   * 사진 비교 모달 열기
+   */
+  function openCompareModal() {
+    if (!state.currentLndsUnqNo) {
+      showInquiryAlert("warning", "토지 정보가 없습니다.");
+      return;
+    }
+
+    state.$compareModal = $("#photoCompareModal");
+    if (!state.$compareModal.length) {
+      return;
+    }
+
+    // 모달 표시
+    state.$compareModal.attr("aria-hidden", "false");
+
+    // 현재 로드된 날짜 리스트 가져오기
+    var dates = [];
+    $("#detailDateList .illegal-inquiry-date-item").each(function () {
+      var $btn = $(this);
+      dates.push({
+        seq: $btn.data("seq"),
+        date: $btn.data("date"),
+        text: $btn.text(),
+      });
+    });
+
+    // 날짜 선택 박스 채우기
+    updateCompareSelects(dates);
+
+    // 지도 초기화 (모달 렌더링 후 실행)
+    setTimeout(function () {
+      initializeCompareMaps();
+
+      // 기본값 자동 선택 로직
+      // 1개일 경우: 1, 2, 3 모두 같은 사진
+      // 2개일 경우: 1(최신), 2(이전), 3(이전)
+      // 3개 이상: 1(최신), 2(이전), 3(전전)
+      if (dates.length > 0) {
+        var seq1 = dates[0].seq;
+        var seq2 = dates.length >= 2 ? dates[1].seq : dates[0].seq;
+        var seq3 =
+          dates.length >= 3
+            ? dates[2].seq
+            : dates.length === 2
+              ? dates[1].seq
+              : dates[0].seq;
+
+        $("#compareDate1").val(seq1).trigger("change");
+        $("#compareDate2").val(seq2).trigger("change");
+        $("#compareDate3").val(seq3).trigger("change");
+      }
+    }, 200);
+  }
+
+  /**
+   * 사진 비교 모달 닫기
+   */
+  function closeCompareModal() {
+    if (state.$compareModal) {
+      state.$compareModal.attr("aria-hidden", "true");
+    }
+  }
+
+  /**
+   * 비교용 지도 3개 초기화
+   */
+  function initializeCompareMaps() {
+    if (state.compareMaps && state.compareMaps.length > 0) {
+      state.compareMaps.forEach(function (map) {
+        map.updateSize();
+      });
+      return;
+    }
+
+    state.compareMaps = [];
+
+    // 메인 지도의 뷰 상태 가져오기
+    var center = [14239470.615841, 4331333.304951];
+    var zoom = 17;
+
+    // 선택된 영역 데이터가 있으면 그 좌표를 중심으로 설정
+    if (
+      window.selectedRegionData &&
+      window.selectedRegionData.coordinateX &&
+      window.selectedRegionData.coordinateY
+    ) {
+      center = [
+        window.selectedRegionData.coordinateX,
+        window.selectedRegionData.coordinateY,
+      ];
+    } else if (window.map) {
+      var view = window.map.getView();
+      center = view.getCenter();
+      zoom = view.getZoom();
+    }
+
+    // 줌 레벨 19(minZoom) 기준의 extent 계산
+    // 이를 통해 축소 시에는 이동 불가, 확대 시에는 초기 영역 내에서만 이동 가능하도록 설정
+    var minZoom = 19;
+    var extent = undefined;
+    var $map1 = $("#compareMap1");
+
+    if ($map1.length > 0) {
+      var width = $map1.width();
+      var height = $map1.height();
+
+      if (width && height) {
+        // EPSG:3857의 줌 0 해상도 = 156543.03392804097
+        var resolution = 156543.03392804097 / Math.pow(2, minZoom);
+        var halfWidth = (width * resolution) / 2;
+        var halfHeight = (height * resolution) / 2;
+
+        extent = [
+          center[0] - halfWidth,
+          center[1] - halfHeight,
+          center[0] + halfWidth,
+          center[1] + halfHeight,
+        ];
+      }
+    }
+
+    // 공유 뷰 생성
+    var sharedView = new ol.View({
+      center: center,
+      zoom: zoom,
+      projection: "EPSG:3857",
+      minZoom: minZoom,
+      maxZoom: 24,
+      extent: extent, // 계산된 제한 영역 적용
+    });
+
+    // 3개의 지도 생성
+    for (var i = 1; i <= 3; i++) {
+      var targetId = "compareMap" + i;
+      var $target = $("#" + targetId);
+
+      if ($target.length === 0) continue;
+
+      // VWorld 배경 레이어 (일반 - GRAPHIC)
+      var baseLayer = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+          url:
+            "https://api.vworld.kr/req/wmts/1.0.0/" +
+            VWORLD_API_KEY +
+            "/Base/{z}/{y}/{x}.png",
+          crossOrigin: "anonymous",
+        }),
+        visible: true,
+      });
+
+      // VWorld 위성 레이어 (위성 - PHOTO)
+      var satelliteLayer = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+          url:
+            "https://api.vworld.kr/req/wmts/1.0.0/" +
+            VWORLD_API_KEY +
+            "/Satellite/{z}/{y}/{x}.jpeg",
+          crossOrigin: "anonymous",
+        }),
+        visible: false,
+      });
+
+      var map = new ol.Map({
+        target: targetId,
+        layers: [baseLayer, satelliteLayer],
+        view: sharedView,
+        controls: [], // 컨트롤 제거
+        // interactions 옵션을 제거하여 기본 상호작용(드래그, 줌 등) 활성화
+        // 단, view의 extent 설정으로 인해 이동 범위는 제한됨
+      });
+
+      map.customImageLayer = null;
+      // 레이어 참조 저장
+      map.baseLayer = baseLayer;
+      map.satelliteLayer = satelliteLayer;
+
+      state.compareMaps.push(map);
+    }
+
+    // 초기 라디오 버튼 상태에 따라 레이어 가시성 설정
+    var selectedType = $("input[name='compareMapType']:checked").val();
+    toggleCompareMapLayers(selectedType);
+  }
+
+  /**
+   * 비교 지도 레이어 토글 (GRAPHIC / PHOTO)
+   */
+  function toggleCompareMapLayers(type) {
+    if (!state.compareMaps) return;
+
+    state.compareMaps.forEach(function (map) {
+      if (type === "PHOTO") {
+        if (map.baseLayer) map.baseLayer.setVisible(false);
+        if (map.satelliteLayer) map.satelliteLayer.setVisible(true);
+      } else {
+        // GRAPHIC
+        if (map.baseLayer) map.baseLayer.setVisible(true);
+        if (map.satelliteLayer) map.satelliteLayer.setVisible(false);
+      }
+    });
+  }
+
+  /**
+   * 비교용 날짜 선택 박스 업데이트
+   */
+  function updateCompareSelects(dates) {
+    var $selects = $(".photo-compare-select");
+    $selects.empty();
+    $selects.append('<option value="">날짜 선택</option>');
+
+    dates.forEach(function (d) {
+      $selects.append(
+        $("<option>", {
+          value: d.seq,
+          text: d.text,
+        })
+      );
+    });
+  }
+
+  /**
+   * 선택된 날짜의 이미지 로드 및 지도에 표시
+   */
+  /**
+   * 선택된 날짜의 이미지 로드 및 지도에 표시
+   */
+  function loadCompareImage(mapIndex, seq) {
+    var map = state.compareMaps[mapIndex];
+    if (!map) {
+      return;
+    }
+
+    // 기존 이미지 레이어 제거
+    if (map.customImageLayer) {
+      map.removeLayer(map.customImageLayer);
+      map.customImageLayer = null;
+    }
+
+    if (!seq) return;
+
+    // 이미지 정보 조회
+    $.ajax({
+      url: "/regions/photos",
+      method: "GET",
+      data: { ilglPrvuInfoSeq: seq },
+      dataType: "json",
+    })
+      .done(function (response) {
+        if (
+          response.success &&
+          response.data &&
+          response.data.photos &&
+          response.data.photos.length > 0
+        ) {
+          var photo = response.data.photos[0];
+          var rawPath = photo.attflPath;
+          var fileName = photo.attflNm;
+          var imageUrl = rawPath;
+
+          // 1. 경로 정규화 (src/main/resources/static 제거)
+          if (imageUrl && imageUrl.indexOf("src/main/resources/static") !== -1) {
+            var parts = imageUrl.split("src/main/resources/static");
+            if (parts.length > 1) {
+              imageUrl = parts[1];
+            }
+          }
+
+          // 2. 슬래시 정규화
+          if (imageUrl) {
+            imageUrl = imageUrl.replace(/\\/g, "/");
+          }
+
+          // 3. 파일명 결합 (경로에 파일명이 포함되지 않은 경우)
+          if (fileName && imageUrl) {
+            if (!imageUrl.endsWith(fileName)) {
+              if (!imageUrl.endsWith("/")) {
+                imageUrl += "/";
+              }
+              imageUrl += fileName;
+            }
+          }
+
+          // 4. 중복 슬래시 제거 및 선행 슬래시 보장
+          if (imageUrl) {
+            imageUrl = imageUrl.replace(/\/\//g, "/");
+            if (!imageUrl.startsWith("/")) {
+              imageUrl = "/" + imageUrl;
+            }
+          }
+
+          if (!imageUrl) return;
+
+          // 좌표 설정
+          var centerX, centerY;
+
+          if (
+            window.selectedRegionData &&
+            window.selectedRegionData.coordinateX
+          ) {
+            centerX = window.selectedRegionData.coordinateX;
+            centerY = window.selectedRegionData.coordinateY;
+          } else {
+            var center = map.getView().getCenter();
+            centerX = center[0];
+            centerY = center[1];
+          }
+
+          var IMAGE_HALF_SIZE_RANGE = 29;
+          var extent = [
+            centerX - IMAGE_HALF_SIZE_RANGE,
+            centerY - IMAGE_HALF_SIZE_RANGE,
+            centerX + IMAGE_HALF_SIZE_RANGE,
+            centerY + IMAGE_HALF_SIZE_RANGE,
+          ];
+
+          var source = new ol.source.ImageStatic({
+            url: imageUrl,
+            imageExtent: extent,
+            projection: "EPSG:3857",
+            crossOrigin: "anonymous",
+          });
+
+          var layer = new ol.layer.Image({
+            source: source,
+            opacity: 1.0,
+            zIndex: 999,
+          });
+
+          map.addLayer(layer);
+          map.customImageLayer = layer;
+          map.render();
+        }
+      })
+      .fail(function (err) {
+        console.error("이미지 로드 실패:", err);
+      });
   }
 
   /**
@@ -592,6 +932,30 @@
       handleEditClick();
     });
 
+    // 사진 비교 버튼 클릭
+    state.$modal.on("click", "#photoCompareBtn", function () {
+      openCompareModal();
+    });
+
+    // 사진 비교 모달 닫기
+    $(document).on("click", "[data-compare-modal-close]", function () {
+      closeCompareModal();
+    });
+
+    // 비교 날짜 선택 변경
+    $(document).on("change", ".photo-compare-select", function () {
+      var $select = $(this);
+      var mapIndex = $select.data("map-index");
+      var seq = $select.val();
+      loadCompareImage(mapIndex, seq);
+    });
+
+    // 비교 지도 타입 변경 (일반/위성)
+    $(document).on("change", "input[name='compareMapType']", function () {
+      var type = $(this).val();
+      toggleCompareMapLayers(type);
+    });
+
     // 모달 외부 클릭 시 닫기
     state.$modal.on("click", function (e) {
       if (e.target === state.$modal[0]) {
@@ -601,8 +965,15 @@
 
     // ESC 키로 닫기
     $(document).on("keydown", function (e) {
-      if (e.key === "Escape" && isModalOpen()) {
-        closeModal();
+      if (e.key === "Escape") {
+        if (
+          state.$compareModal &&
+          state.$compareModal.attr("aria-hidden") === "false"
+        ) {
+          closeCompareModal();
+        } else if (isModalOpen()) {
+          closeModal();
+        }
       }
     });
   }
@@ -619,7 +990,7 @@
         var $button = $(this);
         var dateStr = $button.data("date");
         var seq = $button.data("seq");
-        
+
         selectDetailDate({
           OCRNDATES: dateStr,
           ILGLPRVUINFOSEQ: seq,

@@ -154,3 +154,56 @@
       </footer>
     </div>
   </div>
+
+  <!-- 사진 비교 모달 -->
+  <div id="photoCompareModal" class="illegal-inquiry-modal" aria-hidden="true" style="z-index: 1050;">
+    <div class="illegal-inquiry-modal__window photo-compare-modal__window" role="dialog" aria-modal="true"
+      aria-labelledby="photoCompareModalTitle">
+      <header class="illegal-inquiry-modal__header">
+        <h2 id="photoCompareModalTitle" class="illegal-inquiry-modal__title">
+          <i class="fas fa-images"></i> 사진 비교
+        </h2>
+        <div class="photo-compare-map-type">
+          <label class="map-type-label"><input type="radio" name="compareMapType" value="GRAPHIC" checked />
+            <span>도로맵</span></label>
+          <label class="map-type-label"><input type="radio" name="compareMapType" value="PHOTO" />
+            <span>항공사진</span></label>
+        </div>
+        <button type="button" class="illegal-inquiry-modal__close-button" data-compare-modal-close aria-label="닫기">
+          <i class="fas fa-times" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <div class="illegal-inquiry-modal__body photo-compare-modal__body">
+        <div class="photo-compare-grid">
+          <!-- 지도 1 -->
+          <div class="photo-compare-item">
+            <div class="photo-compare-controls">
+              <select id="compareDate1" class="photo-compare-select" data-map-index="0">
+                <option value="">날짜 선택</option>
+              </select>
+            </div>
+            <div id="compareMap1" class="photo-compare-map"></div>
+          </div>
+          <!-- 지도 2 -->
+          <div class="photo-compare-item">
+            <div class="photo-compare-controls">
+              <select id="compareDate2" class="photo-compare-select" data-map-index="1">
+                <option value="">날짜 선택</option>
+              </select>
+            </div>
+            <div id="compareMap2" class="photo-compare-map"></div>
+          </div>
+          <!-- 지도 3 -->
+          <div class="photo-compare-item">
+            <div class="photo-compare-controls">
+              <select id="compareDate3" class="photo-compare-select" data-map-index="2">
+                <option value="">날짜 선택</option>
+              </select>
+            </div>
+            <div id="compareMap3" class="photo-compare-map"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

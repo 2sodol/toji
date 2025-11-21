@@ -113,9 +113,14 @@
     },
 
     /**
-     * 불법점용 리스트 로드
+     * 리스트 데이터 로드
      */
     loadList: function (page) {
+      // 초기화가 안 되어 있다면 초기화 실행
+      if (!this.$loading) {
+        this.init();
+      }
+
       if (page) {
         this.currentPage = page;
       }
@@ -327,11 +332,6 @@
 
       // GEOTIFF 중심 좌표가 있는 경우에만 처리
       if (!gpsLgtd || !gpsLttd || isNaN(gpsLgtd) || isNaN(gpsLttd)) {
-        console.warn("GPS 좌표 정보가 없거나 유효하지 않습니다:", {
-          id: id,
-          gpsLgtd: gpsLgtd,
-          gpsLttd: gpsLttd,
-        });
         return;
       }
 
