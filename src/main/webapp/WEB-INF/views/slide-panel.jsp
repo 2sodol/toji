@@ -12,13 +12,24 @@ pageEncoding="UTF-8"%>
 <div id="slide-panel" class="slide-panel">
   <div class="slide-panel__header">
     <h2 class="slide-panel__title">불법점용 리스트</h2>
-    <button
-      id="slide-panel-close-btn"
-      class="slide-panel__close-btn"
-      type="button"
-    >
-      <i class="fas fa-times"></i>
-    </button>
+    <div class="slide-panel__header-actions">
+      <label class="slide-panel__checkbox-label">
+        <input
+          type="checkbox"
+          id="slide-panel-image-toggle"
+          class="slide-panel__checkbox"
+          checked
+        />
+        <span class="slide-panel__checkbox-text">이미지 표시</span>
+      </label>
+      <button
+        id="slide-panel-close-btn"
+        class="slide-panel__close-btn"
+        type="button"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
   </div>
   <div class="slide-panel__body">
     <!-- 리스트 영역 -->

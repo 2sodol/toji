@@ -58,6 +58,12 @@
 
       // 리스트 아이템 클릭 이벤트
       this.$listContainer.on("click", ".slide-panel-list-item", this.handleItemClick.bind(this));
+
+      // 이미지 표시 체크박스 이벤트
+      var $imageToggle = $("#slide-panel-image-toggle");
+      if ($imageToggle.length) {
+        $imageToggle.on("change", this.handleImageToggle.bind(this));
+      }
     },
 
     /**
@@ -187,6 +193,8 @@
         var gpsLttd = item.gpsLttd || "";
         var fieldNumber = item.fieldNumber || item.field_number || item.fieldNum || item.field_num || item.field || 1;
 
+        var imagePath = item.imagePath || "";
+
         var $item = $('<div class="slide-panel-list-item"></div>')
           .attr({
             "data-id": item.ilglPrvuInfoSeq || "",
@@ -194,6 +202,7 @@
             "data-gps-lgtd": gpsLgtd,
             "data-gps-lttd": gpsLttd,
             "data-field-number": fieldNumber,
+            "data-image-path": imagePath,
           })
           .html(
             '<div class="slide-panel-list-item__cell slide-panel-list-item__cell--sequence">' +
@@ -323,13 +332,17 @@
       var geotiffCenterX = parseFloat(gpsLgtd);
       var geotiffCenterY = parseFloat(gpsLttd);
       var lndsUnqNo = $item.data("lnds-unq-no");
+      var imagePath = $item.data("image-path");
 
       // 지도 이동
       this.moveMapToLocation(geotiffCenterX, geotiffCenterY);
 
-      // 이미지 레이어 좌표 업데이트
-      if (typeof window.updateImageLayerExtent === "function") {
-        window.updateImageLayerExtent(geotiffCenterX, geotiffCenterY, fieldNumber);
+      // 이미지 레이어 업데이트 (이미지 경로가 있는 경우에만)
+      if (imagePath && imagePath.trim && imagePath.trim().length > 0 && typeof window.updateImageLayer === "function") {
+        window.updateImageLayer(geotiffCenterX, geotiffCenterY, imagePath);
+      } else if (typeof window.clearImageLayer === "function") {
+        // 이미지 경로가 없으면 레이어 제거
+        window.clearImageLayer();
       }
 
       // 클릭된 아이템 하이라이트
@@ -457,6 +470,16 @@
       this.$empty.hide();
       this.$listContainer.show();
       this.$paginationWrapper.show();
+    },
+
+    /**
+     * 이미지 표시 체크박스 토글 처리
+     */
+    handleImageToggle: function (e) {
+      var isChecked = $(e.target).is(":checked");
+      if (typeof window.toggleImageLayer === "function") {
+        window.toggleImageLayer(isChecked);
+      }
     },
 
     /**

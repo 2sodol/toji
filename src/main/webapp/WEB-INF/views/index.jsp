@@ -728,6 +728,11 @@ pageEncoding="UTF-8"%>
           }),
           zIndex: 5,
         });
+        
+        // 등록된 이미지 레이어 (전역 변수로 등록)
+        window.imageLayer = null;
+        window.imageSource = null;
+        window.currentImageInfo = null; // 현재 표시 중인 이미지 정보 (경로, 좌표)
         // 선택 영역 하이라이트 스타일 (동적 스타일 함수)
         // 데이터 없을 때: 파란색 + fill (기본 스타일)
         var defaultHighlightStyle = new ol.style.Style({
@@ -770,6 +775,126 @@ pageEncoding="UTF-8"%>
           view: view,
           pixelRatio: window.devicePixelRatio || 1,
         });
+
+        // ============================================
+        // 이미지 레이어 관리 함수
+        // ============================================
+        
+        /**
+         * 이미지 레이어 업데이트
+         * @param {Number} centerX - 중심 X 좌표 (EPSG:3857)
+         * @param {Number} centerY - 중심 Y 좌표 (EPSG:3857)
+         * @param {String} imagePath - 이미지 파일 경로 (상대 경로 또는 URL)
+         */
+        window.updateImageLayer = function (centerX, centerY, imagePath) {
+          if (!centerX || !centerY || !imagePath) {
+            console.warn("updateImageLayer: 필수 파라미터가 없습니다.", { centerX, centerY, imagePath });
+            return;
+          }
+
+          // 이미지 경로가 절대 경로가 아니면 상대 경로로 처리
+          var imageUrl = imagePath;
+          if (!imagePath.startsWith("http://") && !imagePath.startsWith("https://") && !imagePath.startsWith("/")) {
+            imageUrl = "/" + imagePath.replace(/^\/+/, "");
+          }
+
+          // 동일한 이미지와 좌표인 경우 재렌더링하지 않음
+          if (window.currentImageInfo && 
+              window.currentImageInfo.imageUrl === imageUrl &&
+              Math.abs(window.currentImageInfo.centerX - centerX) < 0.1 &&
+              Math.abs(window.currentImageInfo.centerY - centerY) < 0.1 &&
+              window.imageLayer) {
+            // 이미 같은 이미지가 표시되고 있으므로 업데이트 불필요
+            return;
+          }
+
+          // 이미지 표시 크기를 절반으로 줄이기 위해 중심에서 +/- 29m로 설정
+          var IMAGE_HALF_SIZE_RANGE = 29; // 미터 단위 (EPSG:3857 좌표계)
+          var imageExtent = [
+            centerX - IMAGE_HALF_SIZE_RANGE,
+            centerY - IMAGE_HALF_SIZE_RANGE,
+            centerX + IMAGE_HALF_SIZE_RANGE,
+            centerY + IMAGE_HALF_SIZE_RANGE
+          ];
+
+          // 기존 이미지 레이어 제거
+          if (window.imageLayer) {
+            window.map.removeLayer(window.imageLayer);
+            window.imageLayer = null;
+            window.imageSource = null;
+            window.currentImageInfo = null;
+          }
+
+          // 새로운 이미지 소스 및 레이어 생성
+          window.imageSource = new ol.source.ImageStatic({
+            url: imageUrl,
+            imageExtent: imageExtent,
+            projection: "EPSG:3857",
+            crossOrigin: "anonymous",
+          });
+
+          // 이미지 로드 에러 처리
+          window.imageSource.on("imageloaderror", function (error) {
+            console.error("이미지 로드 실패:", imageUrl, error);
+          });
+
+          window.imageLayer = new ol.layer.Image({
+            source: window.imageSource,
+            zIndex: 6, // 지적편집도 레이어 위에 표시
+            opacity: 0.8,
+          });
+
+          // 현재 이미지 정보 저장
+          window.currentImageInfo = {
+            imageUrl: imageUrl,
+            centerX: centerX,
+            centerY: centerY
+          };
+
+          // 체크박스 상태 확인하여 레이어 표시 여부 결정
+          var $imageToggle = $("#slide-panel-image-toggle");
+          var isChecked = $imageToggle.length > 0 ? $imageToggle.is(":checked") : true;
+          
+          if (isChecked) {
+            window.map.addLayer(window.imageLayer);
+          }
+        };
+
+        /**
+         * 이미지 레이어 표시/숨김 토글
+         * @param {Boolean} show - true면 표시, false면 숨김
+         */
+        window.toggleImageLayer = function (show) {
+          if (window.imageLayer) {
+            if (show) {
+              // 레이어가 이미 맵에 있는지 확인
+              var layers = window.map.getLayers();
+              var found = false;
+              layers.forEach(function (layer) {
+                if (layer === window.imageLayer) {
+                  found = true;
+                }
+              });
+              if (!found) {
+                window.map.addLayer(window.imageLayer);
+              }
+            } else {
+              window.map.removeLayer(window.imageLayer);
+            }
+          }
+        };
+
+        /**
+         * 이미지 레이어 제거
+         */
+        window.clearImageLayer = function () {
+          if (window.imageLayer) {
+            window.map.removeLayer(window.imageLayer);
+            window.imageLayer = null;
+            window.imageSource = null;
+            window.currentImageInfo = null;
+          }
+        };
 
         // 팝업 관련 DOM 요소 레퍼런스 (전역 변수로 등록)
         var container = document.getElementById("popup");

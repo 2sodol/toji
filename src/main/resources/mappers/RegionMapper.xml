@@ -111,49 +111,6 @@
     )
   </insert>
 
-  <select id="findById" parameterType="Long" resultType="BasicInfo">
-    SELECT
-      ILGL_PRVU_INFO_SEQ as ilglPrvuInfoSeq,
-      GPS_LGTD as gpsLgtd,
-      GPS_LTTD as gpsLttd,
-      LNDS_UNQ_NO as lndsUnqNo,
-      LNDS_LDNO_ADDR as lndsLdnoAddr,
-      HDQR_NM as hdqrNm,
-      MTNOF_NM as mtnofNm,
-      ROUTE_CD as routeCd,
-      DRVE_DRCT_CD as drveDrctCd,
-      ROUTE_DSTNC as routeDstnc,
-      STRC_CLSS_CD as strcClssCd,
-      OCRN_DATES as ocrnDates,
-      PRCH_EMNO as prchEmno,
-      TRNR_NM as trnrNm,
-      RLTR_NM as rltrNm,
-      TRNR_ADDR as trnrAddr,
-      RLTR_ADDR as rltrAddr,
-      ILGL_PSSRT as ilglPssrt,
-      ILGL_PSSN_SQMS as ilglPssnSqms,
-      ILGL_PRVU_ACTN_STAT_VAL as ilglPrvuActnStatVal,
-      FSTTM_RGSR_ID as fsttmRgsrId,
-      FSTTM_RGST_DTTM as fsttmRgstDttm,
-      LSTTM_MODFR_ID as lsttmModfrId,
-      LSTTM_ALTR_DTTM as lsttmAltrDttm,
-      USE_YN as useYn
-    FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
-    WHERE ILGL_PRVU_INFO_SEQ = #{id}
-      AND USE_YN = 'Y'
-  </select>
-
-  <select id="findAll" resultType="BasicInfo">
-    SELECT
-      MAX(ILGL_PRVU_INFO_SEQ) as ilglPrvuInfoSeq,
-      LNDS_UNQ_NO as lndsUnqNo,
-      MAX(LNDS_LDNO_ADDR) as lndsLdnoAddr
-    FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
-    WHERE USE_YN = 'Y'
-    GROUP BY LNDS_UNQ_NO
-    ORDER BY MAX(ILGL_PRVU_INFO_SEQ) DESC
-  </select>
-
   <select id="findAllWithPaging" resultType="BasicInfo">
     SELECT * FROM (
       SELECT
@@ -165,13 +122,30 @@
           LNDS_UNQ_NO as lndsUnqNo,
           MAX(LNDS_LDNO_ADDR) as lndsLdnoAddr,
           MAX(GPS_LGTD) as gpsLgtd,
-          MAX(GPS_LTTD) as gpsLttd
+          MAX(GPS_LTTD) as gpsLttd,
+          MAX(OCRN_DATES) as ocrnDates
         FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
         WHERE USE_YN = 'Y'
         GROUP BY LNDS_UNQ_NO
-        ORDER BY MAX(ILGL_PRVU_INFO_SEQ) DESC
+        ORDER BY MAX(OCRN_DATES) DESC NULLS LAST, MAX(ILGL_PRVU_INFO_SEQ) DESC
       ) t
     ) WHERE rn BETWEEN #{offset} + 1 AND #{offset} + #{limit}
+  </select>
+
+  <!-- 패널 아이템의 첫 번째 이미지 경로 조회 (BasicInfo seq로 Attachment FK 사용) -->
+  <select id="findFirstImagePathByIlglPrvuInfoSeq" parameterType="Long" resultType="Attachment">
+    SELECT * FROM (
+      SELECT
+        a.ILGL_ATTFL_SEQ as ilglAttflSeq,
+        a.ILGL_PRVU_ADDR_SEQ as ilglPrvuAddrSeq,
+        a.ATTFL_NM as attflNm,
+        a.ATTFL_PATH as attflPath,
+        a.ATTFL_CPCT as attflCpct,
+        a.OCRN_DATES as ocrnDates
+      FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 a
+      WHERE a.ILGL_PRVU_ADDR_SEQ = #{ilglPrvuInfoSeq}
+      ORDER BY a.ILGL_ATTFL_SEQ DESC
+    ) WHERE ROWNUM = 1
   </select>
 
   <select id="countAll" resultType="int">
@@ -211,13 +185,6 @@
       LSTTM_ALTR_DTTM = SYSDATE
     WHERE ILGL_PRVU_INFO_SEQ = #{ilglPrvuInfoSeq}
   </update>
-
-  <delete id="deleteBasicInfo" parameterType="Long">
-    UPDATE DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
-    SET USE_YN = 'N',
-        LSTTM_ALTR_DTTM = SYSDATE
-    WHERE ILGL_PRVU_INFO_SEQ = #{id}
-  </delete>
 
   <select id="findActionHistoriesByBasicInfoId" parameterType="Long" resultType="ActionHistory">
     SELECT

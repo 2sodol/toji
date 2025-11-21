@@ -17,17 +17,11 @@ public interface RegionMapper {
 
   int insertAttachment(Attachment attachment);
 
-  BasicInfo findById(Long id);
-
-  List<BasicInfo> findAll();
-
   List<BasicInfo> findAllWithPaging(int offset, int limit);
 
   int countAll();
 
   int updateBasicInfo(BasicInfo basicInfo);
-
-  int deleteBasicInfo(Long id);
 
   List<ActionHistory> findActionHistoriesByBasicInfoId(Long basicInfoId);
 
@@ -59,5 +53,11 @@ public interface RegionMapper {
    * 특정 토지번호로 데이터 존재 여부 확인 (카운트)
    */
   int hasDataByLndsUnqNo(@Param("lndsUnqNo") String lndsUnqNo);
+
+  /**
+   * 특정 SEQ의 첫 번째 이미지 경로 조회 (BasicInfo seq로 Attachment FK 사용)
+   * Attachment 도메인을 직접 반환
+   */
+  Attachment findFirstImagePathByIlglPrvuInfoSeq(@Param("ilglPrvuInfoSeq") Long ilglPrvuInfoSeq);
 }
 

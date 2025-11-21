@@ -35,24 +35,6 @@ public interface RegionService {
   Map<String, Object> findDatesByLndsUnqNoAndType(String lndsUnqNo, String type);
 
   /**
-   * 특정 토지와 날짜의 상세정보를 조회한다.
-   *
-   * @param lndsUnqNo 토지고유번호
-   * @param ocrnDates 등록일자 (yyyyMMdd)
-   * @return 상세정보와 조치이력을 포함한 맵
-   */
-  Map<String, Object> findDetailByLndsUnqNoAndDate(String lndsUnqNo, String ocrnDates);
-
-  /**
-   * 특정 토지와 날짜의 사진 리스트를 조회한다.
-   *
-   * @param lndsUnqNo 토지고유번호
-   * @param ocrnDates 등록일자 (yyyyMMdd)
-   * @return 사진 리스트를 포함한 맵
-   */
-  Map<String, Object> findPhotosByLndsUnqNoAndDate(String lndsUnqNo, String ocrnDates);
-
-  /**
    * 특정 SEQ의 상세정보를 조회한다.
    *
    * @param ilglPrvuInfoSeq 불법점용정보 SEQ

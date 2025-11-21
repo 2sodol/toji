@@ -12,6 +12,10 @@ public class WebConfig implements WebMvcConfigurer {
         // static 리소스 경로 설정
         registry.addResourceHandler("/data/**")
                 .addResourceLocations("classpath:/static/data/");
+        
+        // 불법점용 이미지 파일 경로 설정
+        registry.addResourceHandler("/CDIGIT_CCTV01/**")
+                .addResourceLocations("classpath:/static/CDIGIT_CCTV01/");
     }
 }
 

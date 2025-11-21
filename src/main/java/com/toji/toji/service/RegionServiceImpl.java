@@ -198,7 +198,8 @@ public class RegionServiceImpl implements RegionService {
         attachment.setOcrnDates(imageRequest.getOcrnDates());
 
         int result = regionMapper.insertAttachment(attachment);
-        log.info("첨부파일 저장 완료: {} -> {}, DB insert 결과={}, ilglAttflSeq={}", filename, uploadPath.toAbsolutePath(), result,
+        log.info("첨부파일 저장 완료: {} -> {}, DB insert 결과={}, ilglAttflSeq={}", filename, uploadPath.toAbsolutePath(),
+            result,
             attachment.getIlglAttflSeq());
 
       } catch (Exception e) {
@@ -224,6 +225,29 @@ public class RegionServiceImpl implements RegionService {
   }
 
   /**
+   * Attachment 객체를 웹 접근 가능한 이미지 경로로 변환한다.
+   *
+   * @param attachment 첨부파일 객체
+   * @return 웹 접근 가능한 이미지 경로, 변환 불가능하면 null
+   */
+  private String convertToWebImagePath(Attachment attachment) {
+    if (attachment == null || attachment.getAttflPath() == null || attachment.getAttflNm() == null) {
+      return null;
+    }
+
+    String attflPath = attachment.getAttflPath();
+    String attflNm = attachment.getAttflNm();
+
+    // 웹 접근 가능한 경로로 변환
+    // attflPath:
+    // "src/main/resources/static/CDIGIT_CCTV01/attach/extension/illegalLands"
+    // 변환 후: "/CDIGIT_CCTV01/attach/extension/illegalLands/파일명"
+    String imagePath = attflPath.replace("src/main/resources/static", "").replace("\\", "/");
+    imagePath = imagePath.replaceAll("^/+", "").replaceAll("/+$", "");
+    return imagePath.isEmpty() ? "/" + attflNm : "/" + imagePath + "/" + attflNm;
+  }
+
+  /**
    * 페이징 처리된 불법점용 리스트를 조회한다.
    *
    * @param page 페이지 번호 (1부터 시작)
@@ -244,7 +268,7 @@ public class RegionServiceImpl implements RegionService {
     int totalCount = regionMapper.countAll();
     int totalPages = (int) Math.ceil((double) totalCount / size);
 
-    // 각 항목에 데이터 존재 여부 추가
+    // 각 항목에 데이터 존재 여부 및 이미지 경로 추가
     List<Map<String, Object>> listWithHasData = new ArrayList<>();
     for (BasicInfo item : list) {
       Map<String, Object> itemMap = new HashMap<>();
@@ -253,11 +277,17 @@ public class RegionServiceImpl implements RegionService {
       itemMap.put("lndsLdnoAddr", item.getLndsLdnoAddr());
       itemMap.put("gpsLgtd", item.getGpsLgtd());
       itemMap.put("gpsLttd", item.getGpsLttd());
-      
+
       // 데이터 존재 여부 확인 (hasData)
       boolean hasData = regionMapper.hasDataByLndsUnqNo(item.getLndsUnqNo()) > 0;
       itemMap.put("hasData", hasData);
-      
+
+      // BasicInfo seq로 이미지 경로 조회 (Attachment FK: ILGL_PRVU_ADDR_SEQ =
+      // ILGL_PRVU_INFO_SEQ)
+      Attachment attachment = regionMapper.findFirstImagePathByIlglPrvuInfoSeq(item.getIlglPrvuInfoSeq());
+      String imagePath = convertToWebImagePath(attachment);
+      itemMap.put("imagePath", imagePath);
+
       listWithHasData.add(itemMap);
     }
 
@@ -292,20 +322,6 @@ public class RegionServiceImpl implements RegionService {
   }
 
   @Override
-  public Map<String, Object> findDetailByLndsUnqNoAndDate(String lndsUnqNo, String ocrnDates) {
-    // Mapper에 메서드가 없으면 일단 빈 결과 반환하거나 예외 처리
-    // TODO: Mapper에 findDetailByLndsUnqNoAndDate 메서드 추가 필요
-    throw new UnsupportedOperationException("findDetailByLndsUnqNoAndDate는 아직 구현되지 않았습니다.");
-  }
-
-  @Override
-  public Map<String, Object> findPhotosByLndsUnqNoAndDate(String lndsUnqNo, String ocrnDates) {
-    // Mapper에 메서드가 없으면 일단 빈 결과 반환하거나 예외 처리
-    // TODO: Mapper에 findPhotosByLndsUnqNoAndDate 메서드 추가 필요
-    throw new UnsupportedOperationException("findPhotosByLndsUnqNoAndDate는 아직 구현되지 않았습니다.");
-  }
-
-  @Override
   public Map<String, Object> findDetailBySeq(Long ilglPrvuInfoSeq) {
     BasicInfo detail = regionMapper.findDetailBySeq(ilglPrvuInfoSeq);
     List<ActionHistory> actionHistories = regionMapper.findActionHistoriesByBasicInfoId(ilglPrvuInfoSeq);
@@ -331,7 +347,7 @@ public class RegionServiceImpl implements RegionService {
    * 지역 정보를 수정한다.
    *
    * @param ilglPrvuInfoSeq 수정할 불법점용정보 SEQ
-   * @param request 수정 요청 DTO
+   * @param request         수정 요청 DTO
    * @return 수정된 기본 정보의 식별자
    */
   @Override
@@ -369,10 +385,10 @@ public class RegionServiceImpl implements RegionService {
   /**
    * 수정 요청으로부터 기본 정보를 구성한다.
    *
-   * @param request 등록 요청 DTO
+   * @param request         등록 요청 DTO
    * @param ilglPrvuInfoSeq 수정할 기본 정보 식별자
-   * @param userId 수정자 ID
-   * @param now 현재 시각
+   * @param userId          수정자 ID
+   * @param now             현재 시각
    * @return 구성된 기본 정보 엔티티
    */
   private BasicInfo buildBasicInfoForUpdate(RegionRegisterRequest request, Long ilglPrvuInfoSeq,

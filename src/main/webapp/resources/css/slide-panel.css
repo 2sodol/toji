@@ -38,6 +38,32 @@
   margin: 0;
 }
 
+.slide-panel__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.slide-panel__checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.slide-panel__checkbox {
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.slide-panel__checkbox-text {
+  font-size: 14px;
+  color: #333333;
+  font-weight: 500;
+}
+
 .slide-panel__close-btn {
   background: none;
   border: none;
