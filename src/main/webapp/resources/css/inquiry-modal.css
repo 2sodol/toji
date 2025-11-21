@@ -343,6 +343,44 @@
   background-color: #1d4ed8;
 }
 
+.illegal-inquiry-modal__button--compare {
+  background-color: #059669;
+  color: #ffffff;
+}
+
+.illegal-inquiry-modal__button--compare:hover,
+.illegal-inquiry-modal__button--compare:focus-visible {
+  background-color: #047857;
+}
+
+/* ===== 사이드바 푸터 (버튼 영역) ===== */
+.illegal-inquiry-sidebar__footer {
+  padding: 16px;
+  border-top: 1px solid #e5e7eb;
+  background-color: #fff;
+}
+
+.illegal-inquiry-sidebar__button {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  background-color: #059669;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.illegal-inquiry-sidebar__button:hover {
+  background-color: #047857;
+}
+
 /* ===== 반응형 디자인 ===== */
 @media (max-width: 768px) {
   .illegal-inquiry-modal__window {
