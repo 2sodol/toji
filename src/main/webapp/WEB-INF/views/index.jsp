@@ -492,9 +492,6 @@ pageEncoding="UTF-8"%>
           pnu = props.pnu || props.PNU || props.pnu_code;
         }
 
-        console.log("showMapPopupFromWMS - coordinate:", coordinate);
-        console.log("showMapPopupFromWMS - pnu:", pnu);
-
         // WMS로 받아온 featureData 직접 처리
         processFeatureData(featureData, coordinate, pnu, false, checkDataExistence);
       };
@@ -526,7 +523,6 @@ pageEncoding="UTF-8"%>
 
         // WMS로 받아온 featureData에서 PNU 추출
         var pnu = extractPnuFromFeature(featureData);
-        console.log("showMapPopupFromWMS - coordinate:", coordinate, "pnu:", pnu);
 
         // WMS로 받아온 featureData 직접 처리
         processFeatureData(featureData, coordinate, pnu, false, checkDataExistence);
@@ -569,8 +565,6 @@ pageEncoding="UTF-8"%>
           console.error("showMapPopupAndHighlight: PNU가 필요합니다.", pnu);
           return;
         }
-
-        console.log("showMapPopupAndHighlight - coordinate:", coordinate, "pnu:", pnu, "hasData:", hasData);
 
         // WFS 요청으로 featureData 조회
         var wfsUrl = buildWfsUrl(pnu, layerName);
@@ -942,7 +936,6 @@ pageEncoding="UTF-8"%>
           }
 
           var coordinate = evt.coordinate;
-          console.log("지도 클릭 - coordinate:", coordinate);
 
           // WMS GetFeatureInfo로 지적 정보 조회
           var viewResolution = view.getResolution();
@@ -971,7 +964,6 @@ pageEncoding="UTF-8"%>
           })
             .done(function (json) {
               var featureData = parseVWorldFeatureResponse(json);
-              console.log("WMS GetFeatureInfo - featureData:", featureData);
 
               if (!featureData) {
                 console.warn("지적 정보를 찾을 수 없습니다.");
