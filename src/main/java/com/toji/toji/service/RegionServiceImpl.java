@@ -225,11 +225,40 @@ public class RegionServiceImpl implements RegionService {
   }
 
   /**
+   * Map에서 대소문자 구분 없이 값을 가져온다.
+   * Oracle은 컬럼명을 대문자로 반환할 수 있으므로 이를 처리한다.
+   *
+   * @param map 값을 가져올 Map
+   * @param key 찾을 키 (대소문자 무관)
+   * @return 찾은 값, 없으면 null
+   */
+  private Object getValueIgnoreCase(Map<String, Object> map, String key) {
+    if (map == null || key == null) {
+      return null;
+    }
+    // 정확한 키로 먼저 시도
+    if (map.containsKey(key)) {
+      return map.get(key);
+    }
+    // 대소문자 구분 없이 찾기
+    for (Map.Entry<String, Object> entry : map.entrySet()) {
+      if (key.equalsIgnoreCase(entry.getKey())) {
+        return entry.getValue();
+      }
+    }
+    return null;
+  }
+
+  /**
    * Attachment 객체를 웹 접근 가능한 이미지 경로로 변환한다.
+   * 
+   * @deprecated 현재는 쿼리에서 직접 웹 경로 형태로 조회하므로 사용되지 않음.
+   *             향후 다른 용도로 필요할 수 있어 유지함.
    *
    * @param attachment 첨부파일 객체
    * @return 웹 접근 가능한 이미지 경로, 변환 불가능하면 null
    */
+  @Deprecated
   private String convertToWebImagePath(Attachment attachment) {
     if (attachment == null || attachment.getAttflPath() == null || attachment.getAttflNm() == null) {
       return null;
@@ -264,35 +293,43 @@ public class RegionServiceImpl implements RegionService {
     }
 
     int offset = (page - 1) * size;
-    List<BasicInfo> list = regionMapper.findAllWithPaging(offset, size);
     int totalCount = regionMapper.countAll();
     int totalPages = (int) Math.ceil((double) totalCount / size);
 
-    // 각 항목에 데이터 존재 여부 및 이미지 경로 추가
-    List<Map<String, Object>> listWithHasData = new ArrayList<>();
-    for (BasicInfo item : list) {
-      Map<String, Object> itemMap = new HashMap<>();
-      itemMap.put("ilglPrvuInfoSeq", item.getIlglPrvuInfoSeq());
-      itemMap.put("lndsUnqNo", item.getLndsUnqNo());
-      itemMap.put("lndsLdnoAddr", item.getLndsLdnoAddr());
-      itemMap.put("gpsLgtd", item.getGpsLgtd());
-      itemMap.put("gpsLttd", item.getGpsLttd());
+    // 최적화된 쿼리 사용: N+1 문제 해결 (hasData, imagePath 포함)
+    List<Map<String, Object>> list = regionMapper.findAllWithPagingOptimized(offset, size);
 
-      // 데이터 존재 여부 확인 (hasData)
-      boolean hasData = regionMapper.hasDataByLndsUnqNo(item.getLndsUnqNo()) > 0;
+    // 결과 데이터 변환 (쿼리에서 이미 조회된 데이터를 메모리에서 변환)
+    List<Map<String, Object>> listWithData = new ArrayList<>();
+    for (Map<String, Object> item : list) {
+      Map<String, Object> itemMap = new HashMap<>();
+
+      // 기본 정보 매핑 (대소문자 구분 없이 키 찾기)
+      itemMap.put("ilglPrvuInfoSeq", getValueIgnoreCase(item, "ilglPrvuInfoSeq"));
+      itemMap.put("lndsUnqNo", getValueIgnoreCase(item, "lndsUnqNo"));
+      itemMap.put("lndsLdnoAddr", getValueIgnoreCase(item, "lndsLdnoAddr"));
+      itemMap.put("gpsLgtd", getValueIgnoreCase(item, "gpsLgtd"));
+      itemMap.put("gpsLttd", getValueIgnoreCase(item, "gpsLttd"));
+
+      // hasData: 쿼리에서 이미 계산됨 (1 또는 0)
+      Object hasDataObj = getValueIgnoreCase(item, "hasData");
+      boolean hasData = hasDataObj != null
+          && (hasDataObj instanceof Number ? ((Number) hasDataObj).intValue() > 0 : Boolean.TRUE.equals(hasDataObj));
       itemMap.put("hasData", hasData);
 
-      // BasicInfo seq로 이미지 경로 조회 (Attachment FK: ILGL_PRVU_ADDR_SEQ =
-      // ILGL_PRVU_INFO_SEQ)
-      Attachment attachment = regionMapper.findFirstImagePathByIlglPrvuInfoSeq(item.getIlglPrvuInfoSeq());
-      String imagePath = convertToWebImagePath(attachment);
+      // imagePath: 쿼리에서 이미 웹 경로 형태로 조회됨, 경로 정리
+      String imagePath = (String) getValueIgnoreCase(item, "imagePath");
+      if (imagePath != null && !imagePath.trim().isEmpty()) {
+        imagePath = imagePath.replaceAll("^/+", "").replaceAll("/+$", "");
+        imagePath = imagePath.isEmpty() ? null : "/" + imagePath;
+      }
       itemMap.put("imagePath", imagePath);
 
-      listWithHasData.add(itemMap);
+      listWithData.add(itemMap);
     }
 
     Map<String, Object> result = new HashMap<>();
-    result.put("list", listWithHasData);
+    result.put("list", listWithData);
     result.put("totalCount", totalCount);
     result.put("totalPages", totalPages);
     result.put("currentPage", page);

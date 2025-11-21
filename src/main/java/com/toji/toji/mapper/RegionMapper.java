@@ -19,6 +19,12 @@ public interface RegionMapper {
 
   List<BasicInfo> findAllWithPaging(int offset, int limit);
 
+  /**
+   * 최적화된 페이징 조회: N+1 문제 해결
+   * hasData와 imagePath를 한 번의 쿼리로 조회
+   */
+  List<Map<String, Object>> findAllWithPagingOptimized(int offset, int limit);
+
   int countAll();
 
   int updateBasicInfo(BasicInfo basicInfo);

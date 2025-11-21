@@ -343,8 +343,9 @@ pageEncoding="UTF-8"%>
        * @param {String} pnu - 필지번호 (선택)
        * @param {Boolean} useOriginalCoordinate - 원본 좌표 사용 여부
        * @param {Boolean} checkDataExistence - 데이터 존재 여부 확인 여부
+       * @param {Boolean} hasData - 미리 알려진 데이터 존재 여부 (선택적)
        */
-      function processFeatureData(featureData, coordinate, pnu, useOriginalCoordinate, checkDataExistence) {
+      function processFeatureData(featureData, coordinate, pnu, useOriginalCoordinate, checkDataExistence, hasData) {
         // 기존 선택 정보 초기화
         clearSelection();
 
@@ -373,8 +374,9 @@ pageEncoding="UTF-8"%>
           selectedRegionData.pnu = pnu;
         }
 
-        // 초기에는 데이터 없음으로 설정 (기본 파란색 스타일)
-        selectedFeature.set("hasData", false);
+        // 미리 알려진 hasData 값이 있으면 즉시 적용, 없으면 false로 초기화
+        var initialHasData = hasData === true || hasData === "true" || hasData === 1;
+        selectedFeature.set("hasData", initialHasData);
 
         // 영역 하이라이트 표시
         window.highlightSource.addFeature(selectedFeature);
@@ -383,7 +385,15 @@ pageEncoding="UTF-8"%>
         window.popupContent.innerHTML = buildPopupContent(selectedRegionData);
 
         // 데이터 존재 여부 확인 후 버튼 표시 및 스타일 업데이트
-        updatePopupButtons(checkDataExistence, selectedRegionData.pnu || pnu);
+        // 미리 알려진 hasData가 있으면 캐시에 저장하고 즉시 UI 업데이트
+        if (hasData !== undefined && hasData !== null && pnu) {
+          if (window.dataExistenceCache) {
+            window.dataExistenceCache[pnu] = initialHasData;
+          }
+          updateUIWithDataExistence(initialHasData, selectedFeature);
+        } else {
+          updatePopupButtons(checkDataExistence, selectedRegionData.pnu || pnu);
+        }
 
         // 팝업 위치 결정 및 표시
         var popupCoordinate = getPopupCoordinate(coordinate, useOriginalCoordinate);
@@ -539,6 +549,7 @@ pageEncoding="UTF-8"%>
         var checkDataExistence = options.checkDataExistence !== false;
         var pnu = options.pnu || null;
         var useOriginalCoordinate = options.useOriginalCoordinate === true;
+        var hasData = options.hasData; // 미리 알려진 hasData 정보 (선택적)
 
         if (!isValidCoordinate(coordinate)) {
           console.error("showMapPopupAndHighlight: 유효하지 않은 좌표입니다.", coordinate);
@@ -559,7 +570,7 @@ pageEncoding="UTF-8"%>
           return;
         }
 
-        console.log("showMapPopupAndHighlight - coordinate:", coordinate, "pnu:", pnu);
+        console.log("showMapPopupAndHighlight - coordinate:", coordinate, "pnu:", pnu, "hasData:", hasData);
 
         // WFS 요청으로 featureData 조회
         var wfsUrl = buildWfsUrl(pnu, layerName);
@@ -571,7 +582,7 @@ pageEncoding="UTF-8"%>
         })
           .done(function (json) {
             var featureData = parseVWorldFeatureResponse(json);
-            processFeatureData(featureData, coordinate, pnu, useOriginalCoordinate, checkDataExistence);
+            processFeatureData(featureData, coordinate, pnu, useOriginalCoordinate, checkDataExistence, hasData);
           })
           .fail(function (err) {
             console.error("WFS GetFeature Error:", err);

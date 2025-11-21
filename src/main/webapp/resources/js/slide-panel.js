@@ -194,6 +194,7 @@
         var fieldNumber = item.fieldNumber || item.field_number || item.fieldNum || item.field_num || item.field || 1;
 
         var imagePath = item.imagePath || "";
+        var hasData = item.hasData === true || item.hasData === "true" || item.hasData === 1;
 
         var $item = $('<div class="slide-panel-list-item"></div>')
           .attr({
@@ -203,6 +204,7 @@
             "data-gps-lttd": gpsLttd,
             "data-field-number": fieldNumber,
             "data-image-path": imagePath,
+            "data-has-data": hasData ? "true" : "false",
           })
           .html(
             '<div class="slide-panel-list-item__cell slide-panel-list-item__cell--sequence">' +
@@ -333,6 +335,7 @@
       var geotiffCenterY = parseFloat(gpsLttd);
       var lndsUnqNo = $item.data("lnds-unq-no");
       var imagePath = $item.data("image-path");
+      var hasData = $item.data("has-data") === true || $item.data("has-data") === "true";
 
       // 지도 이동
       this.moveMapToLocation(geotiffCenterX, geotiffCenterY);
@@ -350,7 +353,7 @@
 
       // 지도 이동 애니메이션 완료 후 팝업 표시
       setTimeout(function () {
-        self.showMapPopup(geotiffCenterX, geotiffCenterY, lndsUnqNo);
+        self.showMapPopup(geotiffCenterX, geotiffCenterY, lndsUnqNo, hasData);
       }, 1000);
 
       // 이벤트 발생
@@ -395,7 +398,7 @@
     /**
      * 지도 팝업 표시
      */
-    showMapPopup: function (geotiffCenterX, geotiffCenterY, lndsUnqNo) {
+    showMapPopup: function (geotiffCenterX, geotiffCenterY, lndsUnqNo, hasData) {
       if (typeof window.showMapPopupAndHighlight !== "function") {
         console.warn("showMapPopupAndHighlight 함수를 찾을 수 없습니다.");
         return;
@@ -411,6 +414,11 @@
         return;
       }
 
+      // hasData 정보를 캐시에 저장하여 즉시 UI 업데이트
+      if (lndsUnqNo && window.dataExistenceCache) {
+        window.dataExistenceCache[lndsUnqNo] = hasData === true;
+      }
+
       window.showMapPopupAndHighlight({
         coordinate: [geotiffCenterX, geotiffCenterY],
         layer: window.cadastralLayer,
@@ -418,6 +426,7 @@
         checkDataExistence: true,
         pnu: lndsUnqNo || null,
         useOriginalCoordinate: true, // 패널 호출 시 DB에 저장된 원본 좌표 사용
+        hasData: hasData, // 미리 알려진 hasData 정보 전달
       });
     },
 

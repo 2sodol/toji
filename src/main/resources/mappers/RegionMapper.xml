@@ -111,6 +111,7 @@
     )
   </insert>
 
+  <!-- 기존 쿼리 (호환성 유지) -->
   <select id="findAllWithPaging" resultType="BasicInfo">
     SELECT * FROM (
       SELECT
@@ -128,6 +129,60 @@
         WHERE USE_YN = 'Y'
         GROUP BY LNDS_UNQ_NO
         ORDER BY MAX(OCRN_DATES) DESC NULLS LAST, MAX(ILGL_PRVU_INFO_SEQ) DESC
+      ) t
+    ) WHERE rn BETWEEN #{offset} + 1 AND #{offset} + #{limit}
+  </select>
+
+  <!-- 최적화된 쿼리: N+1 문제 해결 - hasData와 imagePath를 한 번에 조회 -->
+  <select id="findAllWithPagingOptimized" resultType="map">
+    SELECT * FROM (
+      SELECT
+        ROWNUM as rn,
+        t.ilglPrvuInfoSeq,
+        t.lndsUnqNo,
+        t.lndsLdnoAddr,
+        t.gpsLgtd,
+        t.gpsLttd,
+        t.ocrnDates,
+        t.hasData,
+        t.imagePath
+      FROM (
+        SELECT
+          main.ilglPrvuInfoSeq as ilglPrvuInfoSeq,
+          main.lndsUnqNo as lndsUnqNo,
+          main.lndsLdnoAddr as lndsLdnoAddr,
+          main.gpsLgtd as gpsLgtd,
+          main.gpsLttd as gpsLttd,
+          main.ocrnDates as ocrnDates,
+          -- hasData: 리스트에 나타나는 항목은 이미 데이터가 존재하므로 항상 1
+          -- (GROUP BY로 그룹화된 결과이므로 최소 1개 이상의 레코드가 존재함)
+          1 as hasData,
+          -- imagePath: 첫 번째 이미지 경로 조회 (웹 접근 가능한 형태로 변환)
+          img.imagePath as imagePath
+        FROM (
+          SELECT
+            MAX(p.ILGL_PRVU_INFO_SEQ) as ilglPrvuInfoSeq,
+            p.LNDS_UNQ_NO as lndsUnqNo,
+            MAX(p.LNDS_LDNO_ADDR) as lndsLdnoAddr,
+            MAX(p.GPS_LGTD) as gpsLgtd,
+            MAX(p.GPS_LTTD) as gpsLttd,
+            MAX(p.OCRN_DATES) as ocrnDates
+          FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1 p
+          WHERE p.USE_YN = 'Y'
+          GROUP BY p.LNDS_UNQ_NO
+        ) main
+        LEFT JOIN (
+          SELECT 
+            a.ILGL_PRVU_ADDR_SEQ,
+            CASE 
+              WHEN a.ATTFL_PATH IS NOT NULL THEN
+                REPLACE(REPLACE(a.ATTFL_PATH, 'src/main/resources/static', ''), '\', '/') || '/' || a.ATTFL_NM
+              ELSE '/' || a.ATTFL_NM
+            END as imagePath,
+            ROW_NUMBER() OVER (PARTITION BY a.ILGL_PRVU_ADDR_SEQ ORDER BY a.ILGL_ATTFL_SEQ DESC) as rn
+          FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 a
+        ) img ON img.ILGL_PRVU_ADDR_SEQ = main.ilglPrvuInfoSeq AND img.rn = 1
+        ORDER BY main.ocrnDates DESC NULLS LAST, main.ilglPrvuInfoSeq DESC
       ) t
     ) WHERE rn BETWEEN #{offset} + 1 AND #{offset} + #{limit}
   </select>
