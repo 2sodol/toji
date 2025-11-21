@@ -208,14 +208,19 @@
           })
           .html(
             '<div class="slide-panel-list-item__cell slide-panel-list-item__cell--sequence">' +
-              sequenceNumber +
-              "</div>" +
-              '<div class="slide-panel-list-item__cell slide-panel-list-item__cell--address">' +
-              self.escapeHtml(address) +
-              "</div>"
+            sequenceNumber +
+            "</div>" +
+            '<div class="slide-panel-list-item__cell slide-panel-list-item__cell--address">' +
+            self.escapeHtml(address) +
+            "</div>"
           );
 
         self.$listContainer.append($item);
+
+        // 이미지 레이어 추가 (리스트 로드 시 모든 이미지 표시)
+        if (imagePath && imagePath.trim().length > 0 && gpsLgtd && gpsLttd && typeof window.updateImageLayer === "function") {
+          window.updateImageLayer(parseFloat(gpsLgtd), parseFloat(gpsLttd), imagePath);
+        }
       });
     },
 
@@ -343,9 +348,6 @@
       // 이미지 레이어 업데이트 (이미지 경로가 있는 경우에만)
       if (imagePath && imagePath.trim && imagePath.trim().length > 0 && typeof window.updateImageLayer === "function") {
         window.updateImageLayer(geotiffCenterX, geotiffCenterY, imagePath);
-      } else if (typeof window.clearImageLayer === "function") {
-        // 이미지 경로가 없으면 레이어 제거
-        window.clearImageLayer();
       }
 
       // 클릭된 아이템 하이라이트
@@ -443,6 +445,9 @@
     clearList: function () {
       this.clearListItems();
       this.$paginationWrapper.empty();
+      if (typeof window.clearImageLayer === "function") {
+        window.clearImageLayer();
+      }
     },
 
     /**

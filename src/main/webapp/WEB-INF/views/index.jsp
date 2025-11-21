@@ -1,43 +1,25 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-pageEncoding="UTF-8"%>
-<!DOCTYPE html>
-<html lang="ko">
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+  <!DOCTYPE html>
+  <html lang="ko">
+
   <head>
     <meta charset="UTF-8" />
     <title>Spring/JSP VWorld 지도</title>
 
     <!-- OpenLayers 지도 렌더링 관련 CSS / JS -->
-    <link
-      rel="stylesheet"
-      href="https://openlayers.org/en/v3.20.1/css/ol.css"
-      type="text/css"
-    />
+    <link rel="stylesheet" href="https://openlayers.org/en/v3.20.1/css/ol.css" type="text/css" />
     <script src="https://openlayers.org/en/v3.20.1/build/ol.js"></script>
 
     <!-- UI 구성 및 아이콘 사용을 위한 외부 라이브러리 -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
-    />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="<%=request.getContextPath()%>/resources/css/index.css"
-    />
-    <link
-      rel="stylesheet"
-      href="<%=request.getContextPath()%>/resources/css/slide-panel.css"
-    />
-    <link
-      rel="stylesheet"
-      href="<%=request.getContextPath()%>/resources/css/inquiry-modal.css"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" href="<%=request.getContextPath()%>/resources/css/index.css" />
+    <link rel="stylesheet" href="<%=request.getContextPath()%>/resources/css/slide-panel.css" />
+    <link rel="stylesheet" href="<%=request.getContextPath()%>/resources/css/inquiry-modal.css" />
   </head>
+
   <body>
     <!-- 슬라이드 패널 JSP 포함 -->
     <jsp:include page="slide-panel.jsp" />
@@ -61,11 +43,7 @@ pageEncoding="UTF-8"%>
         <button id="popup-register-btn" class="map-register-btn">
           <i class="fas fa-plus"></i>등록
         </button>
-        <button
-          id="popup-inquiry-btn"
-          class="map-inquiry-btn"
-          style="display: none"
-        >
+        <button id="popup-inquiry-btn" class="map-inquiry-btn" style="display: none">
           <i class="fas fa-search"></i>조회
         </button>
       </div>
@@ -272,10 +250,10 @@ pageEncoding="UTF-8"%>
               var dates = response.data.dates;
               hasData = Array.isArray(dates) && dates.length > 0;
             }
-            
+
             // 캐시에 저장
             window.dataExistenceCache[pnu] = hasData;
-            
+
             // UI 업데이트
             updateUIWithDataExistence(hasData, feature);
           })
@@ -335,7 +313,7 @@ pageEncoding="UTF-8"%>
       // ============================================
       // Feature 처리 함수
       // ============================================
-      
+
       /**
        * 공통 feature 처리 함수
        * @param {Object} featureData - GeoJSON feature 데이터
@@ -499,7 +477,7 @@ pageEncoding="UTF-8"%>
       // ============================================
       // 지도 팝업 표시 함수
       // ============================================
-      
+
       /**
        * WMS GetFeatureInfo로 받아온 정보를 사용하여 영역 표시 + 팝업 표출 (지도 클릭 시 사용)
        * @param {Object} options - 옵션 객체
@@ -622,7 +600,7 @@ pageEncoding="UTF-8"%>
       // ============================================
       // 유틸리티 함수
       // ============================================
-      
+
       /**
        * 팝업에 표시할 내용을 HTML 템플릿으로 반환
        * @param {Object} region - 지역 데이터 객체
@@ -671,11 +649,11 @@ pageEncoding="UTF-8"%>
        * @returns {String} WFS URL
        */
       function buildWfsUrl(pnu, layerName) {
-        var filterXml = 
+        var filterXml =
           "<Filter><PropertyIsEqualTo><PropertyName>pnu</PropertyName><Literal>" +
           String(pnu).trim() +
           "</Literal></PropertyIsEqualTo></Filter>";
-        
+
         return (
           "https://api.vworld.kr/req/wfs?" +
           "SERVICE=WFS" +
@@ -695,10 +673,10 @@ pageEncoding="UTF-8"%>
       // ============================================
       // 지도 초기화
       // ============================================
-      
+
       // PNU별 데이터 존재 여부 캐시 (깜빡임 방지용)
       window.dataExistenceCache = {};
-      
+
       window.onload = function () {
         // 서울 시청 좌표를 기본 중심으로 하는 맵 뷰 설정
         var view = new ol.View({
@@ -733,11 +711,40 @@ pageEncoding="UTF-8"%>
           }),
           zIndex: 5,
         });
-        
-        // 등록된 이미지 레이어 (전역 변수로 등록)
-        window.imageLayer = null;
-        window.imageSource = null;
-        window.currentImageInfo = null; // 현재 표시 중인 이미지 정보 (경로, 좌표)
+        // register.js와의 호환성을 위해 wmsLayer 별칭 설정
+        window.wmsLayer = window.cadastralLayer;
+
+        /**
+         * 지도 상태 갱신 (WMS 레이어 및 현재 선택된 팝업/하이라이트 갱신)
+         * - 등록/수정 후 호출됨
+         */
+        window.refreshMapState = function () {
+          console.log("refreshMapState 호출됨");
+
+          // 1. WMS 레이어 갱신
+          if (window.cadastralLayer) {
+            var source = window.cadastralLayer.getSource();
+            if (source && source.updateParams) {
+              source.updateParams({ TIME: Date.now() });
+              console.log("WMS 레이어 갱신 완료");
+            }
+          }
+
+          // 2. 현재 선택된 Feature가 있다면 상태(데이터 존재 여부) 재확인
+          if (selectedFeature && selectedRegionData && selectedRegionData.pnu) {
+            var pnu = selectedRegionData.pnu;
+            console.log("현재 선택된 PNU 갱신:", pnu);
+
+            // 캐시 초기화 (새로 데이터를 가져오기 위해)
+            if (window.dataExistenceCache) {
+              delete window.dataExistenceCache[pnu];
+            }
+
+            // 데이터 존재 여부 재확인 및 UI 업데이트
+            checkDataExistenceAndUpdateButtons(pnu, selectedFeature);
+          }
+        };
+
         // 선택 영역 하이라이트 스타일 (동적 스타일 함수)
         // 데이터 없을 때: 파란색 + fill (기본 스타일)
         var defaultHighlightStyle = new ol.style.Style({
@@ -781,87 +788,106 @@ pageEncoding="UTF-8"%>
           pixelRatio: window.devicePixelRatio || 1,
         });
 
-        // ============================================
-        // 이미지 레이어 관리 함수
-        // ============================================
-        
+        // 등록된 이미지 레이어 관리 (다중 이미지 지원)
+        window.imageLayers = [];
+        window.loadedImages = {}; // imageUrl -> { centerX, centerY, layer }
+
         /**
-         * 이미지 레이어 업데이트
+         * 이미지 레이어 업데이트 (추가)
+         * @param {Number} centerX - 중심 X 좌표 (EPSG:3857)
+         * @param {Number} centerY - 중심 Y 좌표 (EPSG:3857)
+         * @param {String} imagePath - 이미지 파일 경로 (상대 경로 또는 URL)
+         */
+        /**
+         * 이미지 경로를 절대 경로로 변환
+         */
+        function resolveImageUrl(path) {
+          if (
+            !path.startsWith("http://") &&
+            !path.startsWith("https://") &&
+            !path.startsWith("/")
+          ) {
+            return "/" + path.replace(/^\/+/, "");
+          }
+          return path;
+        }
+
+        /**
+         * 이미지 표시 영역 계산 (중심점 기준 +/- 29m)
+         */
+        function calculateImageExtent(cx, cy) {
+          var HALF_SIZE = 29; // 미터 단위
+          return [
+            cx - HALF_SIZE,
+            cy - HALF_SIZE,
+            cx + HALF_SIZE,
+            cy + HALF_SIZE,
+          ];
+        }
+
+        /**
+         * 이미지 레이어 생성
+         */
+        function createImageLayer(url, extent) {
+          var source = new ol.source.ImageStatic({
+            url: url,
+            imageExtent: extent,
+            projection: "EPSG:3857",
+            crossOrigin: "anonymous",
+          });
+
+          source.on("imageloaderror", function (error) {
+            console.error("이미지 로드 실패:", url, error);
+          });
+
+          return new ol.layer.Image({
+            source: source,
+            zIndex: 6,
+            opacity: 0.8,
+          });
+        }
+
+        /**
+         * 이미지 레이어 업데이트 (추가)
          * @param {Number} centerX - 중심 X 좌표 (EPSG:3857)
          * @param {Number} centerY - 중심 Y 좌표 (EPSG:3857)
          * @param {String} imagePath - 이미지 파일 경로 (상대 경로 또는 URL)
          */
         window.updateImageLayer = function (centerX, centerY, imagePath) {
           if (!centerX || !centerY || !imagePath) {
-            console.warn("updateImageLayer: 필수 파라미터가 없습니다.", { centerX, centerY, imagePath });
+            console.warn("updateImageLayer: 필수 파라미터 누락", {
+              centerX,
+              centerY,
+              imagePath,
+            });
             return;
           }
 
-          // 이미지 경로가 절대 경로가 아니면 상대 경로로 처리
-          var imageUrl = imagePath;
-          if (!imagePath.startsWith("http://") && !imagePath.startsWith("https://") && !imagePath.startsWith("/")) {
-            imageUrl = "/" + imagePath.replace(/^\/+/, "");
-          }
+          var imageUrl = resolveImageUrl(imagePath);
 
-          // 동일한 이미지와 좌표인 경우 재렌더링하지 않음
-          if (window.currentImageInfo && 
-              window.currentImageInfo.imageUrl === imageUrl &&
-              Math.abs(window.currentImageInfo.centerX - centerX) < 0.1 &&
-              Math.abs(window.currentImageInfo.centerY - centerY) < 0.1 &&
-              window.imageLayer) {
-            // 이미 같은 이미지가 표시되고 있으므로 업데이트 불필요
+          // 이미 로드된 이미지인지 확인 (캐싱)
+          if (window.loadedImages[imageUrl]) {
             return;
           }
 
-          // 이미지 표시 크기를 절반으로 줄이기 위해 중심에서 +/- 29m로 설정
-          var IMAGE_HALF_SIZE_RANGE = 29; // 미터 단위 (EPSG:3857 좌표계)
-          var imageExtent = [
-            centerX - IMAGE_HALF_SIZE_RANGE,
-            centerY - IMAGE_HALF_SIZE_RANGE,
-            centerX + IMAGE_HALF_SIZE_RANGE,
-            centerY + IMAGE_HALF_SIZE_RANGE
-          ];
+          // 레이어 생성 및 추가
+          var imageExtent = calculateImageExtent(centerX, centerY);
+          var newImageLayer = createImageLayer(imageUrl, imageExtent);
 
-          // 기존 이미지 레이어 제거
-          if (window.imageLayer) {
-            window.map.removeLayer(window.imageLayer);
-            window.imageLayer = null;
-            window.imageSource = null;
-            window.currentImageInfo = null;
-          }
-
-          // 새로운 이미지 소스 및 레이어 생성
-          window.imageSource = new ol.source.ImageStatic({
-            url: imageUrl,
-            imageExtent: imageExtent,
-            projection: "EPSG:3857",
-            crossOrigin: "anonymous",
-          });
-
-          // 이미지 로드 에러 처리
-          window.imageSource.on("imageloaderror", function (error) {
-            console.error("이미지 로드 실패:", imageUrl, error);
-          });
-
-          window.imageLayer = new ol.layer.Image({
-            source: window.imageSource,
-            zIndex: 6, // 지적편집도 레이어 위에 표시
-            opacity: 0.8,
-          });
-
-          // 현재 이미지 정보 저장
-          window.currentImageInfo = {
-            imageUrl: imageUrl,
+          window.imageLayers.push(newImageLayer);
+          window.loadedImages[imageUrl] = {
             centerX: centerX,
-            centerY: centerY
+            centerY: centerY,
+            layer: newImageLayer,
           };
 
           // 체크박스 상태 확인하여 레이어 표시 여부 결정
           var $imageToggle = $("#slide-panel-image-toggle");
-          var isChecked = $imageToggle.length > 0 ? $imageToggle.is(":checked") : true;
-          
+          var isChecked =
+            $imageToggle.length > 0 ? $imageToggle.is(":checked") : true;
+
           if (isChecked) {
-            window.map.addLayer(window.imageLayer);
+            window.map.addLayer(newImageLayer);
           }
         };
 
@@ -870,35 +896,38 @@ pageEncoding="UTF-8"%>
          * @param {Boolean} show - true면 표시, false면 숨김
          */
         window.toggleImageLayer = function (show) {
-          if (window.imageLayer) {
-            if (show) {
-              // 레이어가 이미 맵에 있는지 확인
-              var layers = window.map.getLayers();
-              var found = false;
-              layers.forEach(function (layer) {
-                if (layer === window.imageLayer) {
-                  found = true;
+          if (window.imageLayers && window.imageLayers.length > 0) {
+            window.imageLayers.forEach(function (layer) {
+              if (show) {
+                // 레이어가 이미 맵에 있는지 확인
+                var layers = window.map.getLayers();
+                var found = false;
+                layers.forEach(function (mapLayer) {
+                  if (mapLayer === layer) {
+                    found = true;
+                  }
+                });
+                if (!found) {
+                  window.map.addLayer(layer);
                 }
-              });
-              if (!found) {
-                window.map.addLayer(window.imageLayer);
+              } else {
+                window.map.removeLayer(layer);
               }
-            } else {
-              window.map.removeLayer(window.imageLayer);
-            }
+            });
           }
         };
 
         /**
-         * 이미지 레이어 제거
+         * 이미지 레이어 제거 (전체 초기화)
          */
         window.clearImageLayer = function () {
-          if (window.imageLayer) {
-            window.map.removeLayer(window.imageLayer);
-            window.imageLayer = null;
-            window.imageSource = null;
-            window.currentImageInfo = null;
+          if (window.imageLayers && window.imageLayers.length > 0) {
+            window.imageLayers.forEach(function (layer) {
+              window.map.removeLayer(layer);
+            });
           }
+          window.imageLayers = [];
+          window.loadedImages = {};
         };
 
         // 팝업 관련 DOM 요소 레퍼런스 (전역 변수로 등록)
@@ -923,7 +952,7 @@ pageEncoding="UTF-8"%>
         // ============================================
         // 이벤트 핸들러
         // ============================================
-        
+
         // 단일 클릭 시 지적 정보 조회
         window.map.on("singleclick", function (evt) {
           var currentZoom = view.getZoom();
@@ -1065,5 +1094,5 @@ pageEncoding="UTF-8"%>
       };
     </script>
   </body>
-</html>
 
+  </html>

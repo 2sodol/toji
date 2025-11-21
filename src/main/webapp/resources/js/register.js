@@ -1313,31 +1313,7 @@
       dataType: "json",
     })
       .done(function () {
-        // 성공 토스트 메시지 표시
-        showRegisterAlert("success", successMessage);
-
-        // 최근 등록 목록 갱신
-        if (typeof window.loadRecentRegions === "function") {
-          window.loadRecentRegions();
-        }
-
-        // 슬라이드 패널 목록 갱신
-        if (
-          window.SlidePanel &&
-          typeof window.SlidePanel.loadList === "function"
-        ) {
-          window.SlidePanel.loadList(1);
-        }
-
-        // 모달 닫기 (토스트가 표시된 후 약간의 지연을 두고 닫음)
-        setTimeout(function () {
-          if (
-            window.IllegalRegisterModal &&
-            typeof window.IllegalRegisterModal.close === "function"
-          ) {
-            window.IllegalRegisterModal.close();
-          }
-        }, 500);
+        onRegisterSuccess(successMessage);
       })
       .fail(function (xhr) {
         var message = "저장 중 오류가 발생했습니다.";
@@ -1355,6 +1331,61 @@
   }
 
   /**
+   * 등록/수정 성공 시 후처리 함수
+   * @param {String} successMessage - 표시할 성공 메시지
+   */
+  function onRegisterSuccess(successMessage) {
+    // 1. 성공 토스트 메시지 표시
+    showRegisterAlert("success", successMessage);
+
+    // 2. 최근 등록 목록 갱신
+    try {
+      if (typeof window.loadRecentRegions === "function") {
+        window.loadRecentRegions();
+      }
+    } catch (e) {
+      console.error("최근 등록 목록 갱신 중 오류:", e);
+    }
+
+    // 3. 슬라이드 패널 목록 갱신
+    // console.log("등록 성공: 슬라이드 패널 목록 갱신 시도");
+    if (
+      window.SlidePanel &&
+      typeof window.SlidePanel.loadList === "function"
+    ) {
+      window.SlidePanel.loadList(1);
+      // console.log("등록 성공: 슬라이드 패널 목록 갱신 요청됨");
+    } else {
+      console.warn("SlidePanel 객체를 찾을 수 없습니다.");
+    }
+
+    // 4. 지도 레이어 및 선택 상태 갱신
+    // console.log("등록 성공: 지도 상태 갱신 시도");
+    try {
+      if (typeof window.refreshMapState === "function") {
+        window.refreshMapState();
+      } else {
+        // fallback: refreshMapState가 없는 경우 기존 방식 시도
+        if (window.wmsLayer && window.wmsLayer.getSource()) {
+          window.wmsLayer.getSource().updateParams({ TIME: Date.now() });
+        }
+      }
+    } catch (e) {
+      console.error("지도 상태 갱신 중 오류:", e);
+    }
+
+    // 5. 모달 닫기 (토스트가 표시된 후 약간의 지연을 두고 닫음)
+    setTimeout(function () {
+      if (
+        window.IllegalRegisterModal &&
+        typeof window.IllegalRegisterModal.close === "function"
+      ) {
+        window.IllegalRegisterModal.close();
+      }
+    }, 500);
+  }
+
+  /**
    * 모듈 초기화 함수.
    * - 각종 이벤트 바인딩 및 초기 상태 설정
    */
@@ -1365,10 +1396,10 @@
     bindFileUploadEvents();
     bindAddressEvents();
     $("#illegalRegisterSubmitBtn").on("click", handleSubmit);
-    
+
     // 삭제 버튼 초기 상태 설정 (등록 모드일 때는 숨김)
     $("#illegalRegisterDeleteBtn").hide();
-    
+
     // TODO: 삭제 버튼 클릭 이벤트 추가 (로직은 나중에 구현)
     // $("#illegalRegisterDeleteBtn").on("click", handleDelete);
 
@@ -1414,7 +1445,7 @@
 
       // 완료 버튼 텍스트 변경
       $("#illegalRegisterSubmitBtn").text("완료");
-      
+
       // 삭제 버튼 표시 (수정 모드일 때만)
       $("#illegalRegisterDeleteBtn").show();
 
@@ -1489,8 +1520,8 @@
       .prop("readonly", false);
     $(
       'input[name="strcClssCd"][value="' +
-        (basicInfo.strcClssCd || "GENERAL") +
-        '"]'
+      (basicInfo.strcClssCd || "GENERAL") +
+      '"]'
     ).prop("checked", true);
     $("#lndsLdnoAddr")
       .val(basicInfo.lndsLdnoAddr || "")
@@ -1526,8 +1557,8 @@
     $("#ilglPssnSqms").val(basicInfo.ilglPssnSqms || "");
     $(
       'input[name="ilglPrvuActnStatVal"][value="' +
-        (basicInfo.ilglPrvuActnStatVal || "IN_PROGRESS") +
-        '"]'
+      (basicInfo.ilglPrvuActnStatVal || "IN_PROGRESS") +
+      '"]'
     ).prop("checked", true);
 
     // 조치 이력 채우기
@@ -1706,7 +1737,7 @@
     state.editSeq = null;
     $("#illegalRegisterModalTitle").text("불법점용 용지 등록");
     $("#illegalRegisterSubmitBtn").text("완료");
-    
+
     // 삭제 버튼 숨김 (등록 모드일 때)
     $("#illegalRegisterDeleteBtn").hide();
   }
