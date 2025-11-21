@@ -57,11 +57,7 @@
       });
 
       // 리스트 아이템 클릭 이벤트
-      this.$listContainer.on(
-        "click",
-        ".slide-panel-list-item",
-        this.handleItemClick.bind(this)
-      );
+      this.$listContainer.on("click", ".slide-panel-list-item", this.handleItemClick.bind(this));
     },
 
     /**
@@ -180,13 +176,7 @@
         var address = item.lndsLdnoAddr || "-";
         var gpsLgtd = item.gpsLgtd || "";
         var gpsLttd = item.gpsLttd || "";
-        var fieldNumber =
-          item.fieldNumber ||
-          item.field_number ||
-          item.fieldNum ||
-          item.field_num ||
-          item.field ||
-          1;
+        var fieldNumber = item.fieldNumber || item.field_number || item.fieldNum || item.field_num || item.field || 1;
 
         var $item = $('<div class="slide-panel-list-item"></div>')
           .attr({
@@ -230,9 +220,7 @@
         .attr("data-page", this.currentPage - 1);
 
       if (this.currentPage <= 1) {
-        $prevBtn
-          .addClass("slide-panel-pagination__btn--disabled")
-          .prop("disabled", true);
+        $prevBtn.addClass("slide-panel-pagination__btn--disabled").prop("disabled", true);
       }
       $pagination.append($prevBtn);
 
@@ -243,9 +231,7 @@
       if (startPage > 1) {
         $pagination.append(this.createPageButton(1));
         if (startPage > 2) {
-          $pagination.append(
-            '<span class="slide-panel-pagination__ellipsis">...</span>'
-          );
+          $pagination.append('<span class="slide-panel-pagination__ellipsis">...</span>');
         }
       }
 
@@ -255,9 +241,7 @@
 
       if (endPage < this.totalPages) {
         if (endPage < this.totalPages - 1) {
-          $pagination.append(
-            '<span class="slide-panel-pagination__ellipsis">...</span>'
-          );
+          $pagination.append('<span class="slide-panel-pagination__ellipsis">...</span>');
         }
         $pagination.append(this.createPageButton(this.totalPages));
       }
@@ -270,39 +254,31 @@
         .attr("data-page", this.currentPage + 1);
 
       if (this.currentPage >= this.totalPages) {
-        $nextBtn
-          .addClass("slide-panel-pagination__btn--disabled")
-          .prop("disabled", true);
+        $nextBtn.addClass("slide-panel-pagination__btn--disabled").prop("disabled", true);
       }
       $pagination.append($nextBtn);
 
       this.$paginationWrapper.html($pagination);
 
       // 페이징 버튼 클릭 이벤트
-      this.$paginationWrapper.on(
-        "click",
-        ".slide-panel-pagination__btn",
-        function (e) {
-          var $btn = $(e.currentTarget);
-          if ($btn.hasClass("slide-panel-pagination__btn--disabled")) {
-            return;
-          }
-          var page = parseInt($btn.data("page"));
-          if (page && page !== self.currentPage) {
-            self.loadList(page);
-            self.$panel.scrollTop(0);
-          }
+      this.$paginationWrapper.on("click", ".slide-panel-pagination__btn", function (e) {
+        var $btn = $(e.currentTarget);
+        if ($btn.hasClass("slide-panel-pagination__btn--disabled")) {
+          return;
         }
-      );
+        var page = parseInt($btn.data("page"));
+        if (page && page !== self.currentPage) {
+          self.loadList(page);
+          self.$panel.scrollTop(0);
+        }
+      });
     },
 
     /**
      * 페이지 버튼 생성
      */
     createPageButton: function (page, isActive) {
-      var $btn = $(
-        '<button type="button" class="slide-panel-pagination__btn"></button>'
-      )
+      var $btn = $('<button type="button" class="slide-panel-pagination__btn"></button>')
         .text(page)
         .attr("data-page", page);
 
@@ -344,11 +320,7 @@
 
       // 이미지 레이어 좌표 업데이트
       if (typeof window.updateImageLayerExtent === "function") {
-        window.updateImageLayerExtent(
-          geotiffCenterX,
-          geotiffCenterY,
-          fieldNumber
-        );
+        window.updateImageLayerExtent(geotiffCenterX, geotiffCenterY, fieldNumber);
       }
 
       // 클릭된 아이템 하이라이트
@@ -374,9 +346,7 @@
     moveMapToLocation: function (longitude, latitude) {
       var mapObj = window.map || map;
       if (!mapObj || !mapObj.getView) {
-        console.warn(
-          "지도 객체를 찾을 수 없습니다. 지도가 초기화되었는지 확인해주세요."
-        );
+        console.warn("지도 객체를 찾을 수 없습니다. 지도가 초기화되었는지 확인해주세요.");
         return;
       }
 
@@ -387,46 +357,8 @@
           zoom: 18,
           duration: 1000,
         });
-        this.addMarkerAtLocation(coordinate);
       } catch (error) {
         console.error("지도 이동 중 오류 발생:", error);
-      }
-    },
-
-    /**
-     * 특정 좌표에 마커(핀) 추가
-     */
-    addMarkerAtLocation: function (coordinate) {
-      if (
-        typeof window.highlightSource === "undefined" ||
-        !window.highlightSource
-      ) {
-        console.warn("highlightSource를 찾을 수 없습니다.");
-        return;
-      }
-
-      try {
-        window.highlightSource.clear();
-
-        var markerPoint = new ol.geom.Point(coordinate);
-        var markerFeature = new ol.Feature(markerPoint);
-        var markerStyle = new ol.style.Style({
-          image: new ol.style.Circle({
-            radius: 8,
-            fill: new ol.style.Fill({
-              color: "#ff4444",
-            }),
-            stroke: new ol.style.Stroke({
-              color: "#ffffff",
-              width: 2,
-            }),
-          }),
-        });
-
-        markerFeature.setStyle(markerStyle);
-        window.highlightSource.addFeature(markerFeature);
-      } catch (error) {
-        console.error("마커 추가 중 오류 발생:", error);
       }
     },
 
@@ -434,9 +366,7 @@
      * 리스트 아이템 하이라이트
      */
     highlightItem: function ($item) {
-      this.$listContainer
-        .find(".slide-panel-list-item")
-        .removeClass("slide-panel-list-item--selected");
+      this.$listContainer.find(".slide-panel-list-item").removeClass("slide-panel-list-item--selected");
       $item.addClass("slide-panel-list-item--selected");
     },
 
