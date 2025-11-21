@@ -249,7 +249,14 @@ pageEncoding="UTF-8"%>
           return;
         }
 
-        // LNDS_UNQ_NO로 데이터 존재 여부 확인
+        // 캐시에 데이터가 있으면 즉시 UI 업데이트 (깜빡임 방지)
+        if (window.dataExistenceCache.hasOwnProperty(pnu)) {
+          var hasData = window.dataExistenceCache[pnu];
+          updateUIWithDataExistence(hasData, feature);
+          return;
+        }
+
+        // 캐시에 없으면 API 호출
         $.ajax({
           url: "/regions/dates",
           method: "GET",
@@ -260,41 +267,44 @@ pageEncoding="UTF-8"%>
           dataType: "json",
         })
           .done(function (response) {
+            var hasData = false;
             if (response.success && response.data && response.data.dates) {
               var dates = response.data.dates;
-              if (Array.isArray(dates) && dates.length > 0) {
-                // 데이터가 존재하는 경우 - 등록 버튼과 조회 버튼 모두 표시
-                showBothButtons();
-                // feature에 데이터 있음 표시 (붉은색 테두리)
-                if (feature) {
-                  feature.set("hasData", true);
-                  feature.changed(); // 지도 다시 렌더링
-                }
-              } else {
-                // 데이터가 없는 경우 - 등록 버튼만 표시
-                resetPopupButtons();
-                // feature에 데이터 없음 표시 (파란색 기본 스타일)
-                if (feature) {
-                  feature.set("hasData", false);
-                  feature.changed(); // 지도 다시 렌더링
-                }
-              }
-            } else {
-              // API 호출은 성공했지만 데이터가 없는 경우
-              resetPopupButtons();
-              if (feature) {
-                feature.set("hasData", false);
-              }
+              hasData = Array.isArray(dates) && dates.length > 0;
             }
+            
+            // 캐시에 저장
+            window.dataExistenceCache[pnu] = hasData;
+            
+            // UI 업데이트
+            updateUIWithDataExistence(hasData, feature);
           })
           .fail(function (xhr, status, error) {
             console.warn("데이터 존재 여부 확인 실패:", status, error);
-            // 실패 시에도 등록 버튼은 표시
-            resetPopupButtons();
-            if (feature) {
-              feature.set("hasData", false);
-            }
+            // 실패 시에는 데이터 없음으로 처리하고 캐시에 저장하지 않음
+            updateUIWithDataExistence(false, feature);
           });
+      }
+
+      // 데이터 존재 여부에 따라 UI 업데이트 (공통 함수)
+      function updateUIWithDataExistence(hasData, feature) {
+        if (hasData) {
+          // 데이터가 존재하는 경우 - 등록 버튼과 조회 버튼 모두 표시
+          showBothButtons();
+          // feature에 데이터 있음 표시 (붉은색 테두리)
+          if (feature) {
+            feature.set("hasData", true);
+            feature.changed(); // 지도 다시 렌더링
+          }
+        } else {
+          // 데이터가 없는 경우 - 등록 버튼만 표시
+          resetPopupButtons();
+          // feature에 데이터 없음 표시 (파란색 기본 스타일)
+          if (feature) {
+            feature.set("hasData", false);
+            feature.changed(); // 지도 다시 렌더링
+          }
+        }
       }
 
       // 팝업 버튼을 기본 상태로 리셋 (등록 버튼만 표시)
@@ -672,14 +682,17 @@ pageEncoding="UTF-8"%>
           "&srsname=EPSG:3857" +
           "&maxfeatures=10" +
           "&filter=" + encodeURIComponent(filterXml) +
-          "&format_options=parseResponse" +
-          "&domain=http://localhost"
+          "&format_options=parseResponse"
+          //"&domain=http://localhost"
         );
       }
 
       // ============================================
       // 지도 초기화
       // ============================================
+      
+      // PNU별 데이터 존재 여부 캐시 (깜빡임 방지용)
+      window.dataExistenceCache = {};
       
       window.onload = function () {
         // 서울 시청 좌표를 기본 중심으로 하는 맵 뷰 설정

@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -243,8 +244,25 @@ public class RegionServiceImpl implements RegionService {
     int totalCount = regionMapper.countAll();
     int totalPages = (int) Math.ceil((double) totalCount / size);
 
+    // 각 항목에 데이터 존재 여부 추가
+    List<Map<String, Object>> listWithHasData = new ArrayList<>();
+    for (BasicInfo item : list) {
+      Map<String, Object> itemMap = new HashMap<>();
+      itemMap.put("ilglPrvuInfoSeq", item.getIlglPrvuInfoSeq());
+      itemMap.put("lndsUnqNo", item.getLndsUnqNo());
+      itemMap.put("lndsLdnoAddr", item.getLndsLdnoAddr());
+      itemMap.put("gpsLgtd", item.getGpsLgtd());
+      itemMap.put("gpsLttd", item.getGpsLttd());
+      
+      // 데이터 존재 여부 확인 (hasData)
+      boolean hasData = regionMapper.hasDataByLndsUnqNo(item.getLndsUnqNo()) > 0;
+      itemMap.put("hasData", hasData);
+      
+      listWithHasData.add(itemMap);
+    }
+
     Map<String, Object> result = new HashMap<>();
-    result.put("list", list);
+    result.put("list", listWithHasData);
     result.put("totalCount", totalCount);
     result.put("totalPages", totalPages);
     result.put("currentPage", page);

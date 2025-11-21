@@ -1365,6 +1365,12 @@
     bindFileUploadEvents();
     bindAddressEvents();
     $("#illegalRegisterSubmitBtn").on("click", handleSubmit);
+    
+    // 삭제 버튼 초기 상태 설정 (등록 모드일 때는 숨김)
+    $("#illegalRegisterDeleteBtn").hide();
+    
+    // TODO: 삭제 버튼 클릭 이벤트 추가 (로직은 나중에 구현)
+    // $("#illegalRegisterDeleteBtn").on("click", handleDelete);
 
     // 모달이 열릴 때 이미지 아이템 하나 자동 추가
     $("#illegalRegisterModal").on("illegalRegisterModal:open", function () {
@@ -1406,8 +1412,11 @@
       // 모달 제목 변경
       $("#illegalRegisterModalTitle").text("불법점용 용지 수정");
 
-      // 저장 버튼 텍스트 변경
-      $("#illegalRegisterSubmitBtn").text("수정");
+      // 완료 버튼 텍스트 변경
+      $("#illegalRegisterSubmitBtn").text("완료");
+      
+      // 삭제 버튼 표시 (수정 모드일 때만)
+      $("#illegalRegisterDeleteBtn").show();
 
       // 모달 열기
       if (
@@ -1696,7 +1705,10 @@
     state.editMode = false;
     state.editSeq = null;
     $("#illegalRegisterModalTitle").text("불법점용 용지 등록");
-    $("#illegalRegisterSubmitBtn").text("저장");
+    $("#illegalRegisterSubmitBtn").text("완료");
+    
+    // 삭제 버튼 숨김 (등록 모드일 때)
+    $("#illegalRegisterDeleteBtn").hide();
   }
 
   /**

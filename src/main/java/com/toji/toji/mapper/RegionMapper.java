@@ -54,5 +54,10 @@ public interface RegionMapper {
    * 특정 SEQ의 사진 리스트 조회
    */
   List<Attachment> findPhotosBySeq(@Param("ilglPrvuInfoSeq") Long ilglPrvuInfoSeq);
+
+  /**
+   * 특정 토지번호로 데이터 존재 여부 확인 (카운트)
+   */
+  int hasDataByLndsUnqNo(@Param("lndsUnqNo") String lndsUnqNo);
 }
 

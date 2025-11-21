@@ -384,6 +384,14 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     <footer class="illegal-register-modal__footer">
       <button
         type="button"
+        id="illegalRegisterDeleteBtn"
+        class="illegal-register-button illegal-register-button--danger"
+        style="display: none;"
+      >
+        삭제
+      </button>
+      <button
+        type="button"
         class="illegal-register-button illegal-register-button--ghost"
         data-register-modal-close
       >
@@ -394,7 +402,7 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
         id="illegalRegisterSubmitBtn"
         class="illegal-register-button illegal-register-button--primary"
       >
-        저장
+        완료
       </button>
     </footer>
   </div>
@@ -682,6 +690,16 @@ todayIsoDate = java.time.LocalDate.now().toString(); %>
     color: #1f2937;
     background-color: #e5e7eb;
     border-color: #9ca3af;
+  }
+
+  .illegal-register-button--danger {
+    background-color: #dc2626;
+    color: #ffffff;
+  }
+
+  .illegal-register-button--danger:hover,
+  .illegal-register-button--danger:focus-visible {
+    background-color: #b91c1c;
   }
 
   [data-register-address-target]:not(.illegal-register-button--outline) {

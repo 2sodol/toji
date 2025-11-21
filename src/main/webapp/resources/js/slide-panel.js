@@ -135,6 +135,15 @@
             self.currentPage = data.currentPage || 1;
 
             if (data.list && data.list.length > 0) {
+              // 데이터 존재 여부 캐시 업데이트 (깜빡임 방지)
+              if (window.dataExistenceCache) {
+                data.list.forEach(function (item) {
+                  if (item.lndsUnqNo) {
+                    window.dataExistenceCache[item.lndsUnqNo] = item.hasData === true;
+                  }
+                });
+              }
+
               self.renderList(data.list);
               self.renderPagination();
               self.hideLoading();

@@ -200,7 +200,7 @@
     <footer class="illegal-inquiry-modal__footer">
       <button
         type="button"
-        class="illegal-inquiry-modal__button illegal-inquiry-modal__button--secondary"
+        class="illegal-inquiry-modal__button illegal-inquiry-modal__button--ghost"
         data-inquiry-modal-close
       >
         닫기

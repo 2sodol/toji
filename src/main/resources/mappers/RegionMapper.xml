@@ -273,6 +273,14 @@
     ORDER BY a.OCRN_DATES DESC
   </select>
 
+  <!-- 특정 토지번호로 데이터 존재 여부 확인 (카운트) -->
+  <select id="hasDataByLndsUnqNo" parameterType="String" resultType="int">
+    SELECT COUNT(*)
+    FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
+    WHERE LNDS_UNQ_NO = #{lndsUnqNo}
+      AND USE_YN = 'Y'
+  </select>
+
   <!-- 특정 SEQ의 상세정보 조회 -->
   <select id="findDetailBySeq" parameterType="Long" resultType="BasicInfo">
     SELECT
