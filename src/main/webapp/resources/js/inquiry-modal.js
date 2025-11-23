@@ -290,18 +290,34 @@
       return;
     }
 
-    $.ajax({
-      url: "/regions/dates",
-      method: "GET",
-      data: {
-        lndsUnqNo: state.currentLndsUnqNo,
-        type: "detail",
-      },
-      dataType: "json",
-    })
-      .done(function (response) {
-        if (response.success && response.data) {
-          renderDetailDates(response.data.dates);
+    // 상세정보 날짜와 사진 날짜를 모두 조회
+    $.when(
+      $.ajax({
+        url: "/regions/dates",
+        method: "GET",
+        data: {
+          lndsUnqNo: state.currentLndsUnqNo,
+          type: "detail",
+        },
+        dataType: "json",
+      }),
+      $.ajax({
+        url: "/regions/dates",
+        method: "GET",
+        data: {
+          lndsUnqNo: state.currentLndsUnqNo,
+          type: "photo",
+        },
+        dataType: "json",
+      })
+    )
+      .done(function (detailResponse, photoResponse) {
+        var detailData = detailResponse[0];
+        var photoData = photoResponse[0];
+
+        if (detailData.success && detailData.data) {
+          var photoDates = photoData.success && photoData.data ? photoData.data.dates : [];
+          renderDetailDates(detailData.data.dates, photoDates);
         } else {
           showInquiryAlert("warning", "상세정보를 불러올 수 없습니다.");
           renderDetailDates([]);
@@ -316,8 +332,9 @@
   /**
    * 상세정보 날짜 리스트 렌더링
    * @param {Array} dates - 날짜 정보 배열 [{OCRNDATES, PRCHEMNO, ILGLPRVUINFOSEQ}]
+   * @param {Array} photoDates - 사진 날짜 정보 배열 (선택사항)
    */
-  function renderDetailDates(dates) {
+  function renderDetailDates(dates, photoDates) {
     var $container = $("#detailDateList");
     $container.empty();
 
@@ -340,7 +357,21 @@
       }
 
       var formattedDate = formatDate(dateStr);
-      var displayText = formattedDate + " (" + escapeHtml(managerName) + ")";
+      var displayText = formattedDate;
+
+      // 사진 개수 정보 추가
+      if (photoDates && photoDates.length > 0) {
+        // 해당 날짜의 사진 개수 세기
+        var photosForDate = photoDates.filter(function (photo) {
+          var photoDate = photo.OCRNDATES || photo.ocrnDates;
+          return photoDate === dateStr;
+        });
+
+        if (photosForDate.length > 1) {
+          // 여러 장이 있을 때만 번호 표시
+          displayText += " (" + photosForDate.length + "장)";
+        }
+      }
 
       var $item = $("<button>", {
         type: "button",
