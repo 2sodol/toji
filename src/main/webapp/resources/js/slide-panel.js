@@ -186,6 +186,11 @@
 
       this.clearListItems();
 
+      // 지도상의 이미지 레이어 초기화
+      if (typeof window.clearImageLayer === "function") {
+        window.clearImageLayer();
+      }
+
       if (!list || list.length === 0) {
         this.showEmpty();
         return;

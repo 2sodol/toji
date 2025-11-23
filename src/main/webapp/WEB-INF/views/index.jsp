@@ -730,7 +730,12 @@
             }
           }
 
-          // 2. 현재 선택된 Feature가 있다면 상태(데이터 존재 여부) 재확인
+          // 2. 이미지 레이어 초기화 (삭제된 이미지 제거를 위해)
+          if (typeof window.clearImageLayer === "function") {
+            window.clearImageLayer();
+          }
+
+          // 3. 현재 선택된 Feature가 있다면 상태(데이터 존재 여부) 재확인
           if (selectedFeature && selectedRegionData && selectedRegionData.pnu) {
             var pnu = selectedRegionData.pnu;
             console.log("현재 선택된 PNU 갱신:", pnu);

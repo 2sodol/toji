@@ -196,6 +196,7 @@ public class RegionServiceImpl implements RegionService {
         attachment.setAttflPath(UPLOAD_PATH);
         attachment.setAttflCpct((long) imageBytes.length);
         attachment.setOcrnDates(imageRequest.getOcrnDates());
+        attachment.setUseYn("Y");
 
         int result = regionMapper.insertAttachment(attachment);
         log.info("첨부파일 저장 완료: {} -> {}, DB insert 결과={}, ilglAttflSeq={}", filename, uploadPath.toAbsolutePath(),
@@ -374,6 +375,12 @@ public class RegionServiceImpl implements RegionService {
   public Map<String, Object> findPhotosBySeq(Long ilglPrvuInfoSeq) {
     List<Attachment> photos = regionMapper.findPhotosBySeq(ilglPrvuInfoSeq);
 
+    // 웹 경로 설정
+    for (Attachment photo : photos) {
+      String webPath = convertToWebImagePath(photo);
+      photo.setWebPath(webPath);
+    }
+
     Map<String, Object> result = new HashMap<>();
     result.put("photos", photos);
 
@@ -416,6 +423,15 @@ public class RegionServiceImpl implements RegionService {
       insertAttachments(ilglPrvuInfoSeq, request.getFiles().getImages(), currentUserId, now);
     }
 
+    // 첨부파일(이미지) 삭제
+    if (request.getDeletedFileIds() != null && !request.getDeletedFileIds().isEmpty()) {
+      log.info("첨부파일 삭제 시작: basicInfoId={}, 삭제할 파일 ID 목록={}", ilglPrvuInfoSeq, request.getDeletedFileIds());
+      for (Long fileId : request.getDeletedFileIds()) {
+        // 실제 파일은 삭제하지 않고 DB에서만 USE_YN = 'N' 처리 (Soft Delete)
+        regionMapper.deleteAttachment(fileId);
+      }
+    }
+
     return ilglPrvuInfoSeq;
   }
 
@@ -454,5 +470,36 @@ public class RegionServiceImpl implements RegionService {
     basicInfo.setLsttmModfrId(userId);
     basicInfo.setLsttmAltrDttm(now);
     return basicInfo;
+  }
+
+  /**
+   * 지역 정보를 삭제한다. (논리적 삭제)
+   *
+   * @param ilglPrvuInfoSeq 삭제할 불법점용정보 SEQ
+   */
+  @Override
+  @Transactional(rollbackFor = Exception.class)
+  public void deleteRegion(Long ilglPrvuInfoSeq) {
+    LocalDateTime now = LocalDateTime.now();
+    String currentUserId = "SYSTEM"; // TODO: 실제 사용자 ID로 변경 필요
+
+    // 기본 정보 삭제 (USE_YN = 'N')
+    BasicInfo basicInfo = new BasicInfo();
+    basicInfo.setIlglPrvuInfoSeq(ilglPrvuInfoSeq);
+    basicInfo.setLsttmModfrId(currentUserId);
+    basicInfo.setLsttmAltrDttm(now);
+
+    int updatedCount = regionMapper.deleteBasicInfo(basicInfo);
+    if (updatedCount == 0) {
+      throw new IllegalArgumentException("삭제할 데이터를 찾을 수 없습니다. ilglPrvuInfoSeq: " + ilglPrvuInfoSeq);
+    }
+
+    // 조치 이력 삭제 (USE_YN = 'N')
+    regionMapper.deleteActionHistoriesByBasicInfoId(ilglPrvuInfoSeq);
+
+    // 첨부파일 삭제 (USE_YN = 'N')
+    regionMapper.deleteAttachmentsByBasicInfoId(ilglPrvuInfoSeq);
+
+    log.info("지역 정보 삭제 완료: ilglPrvuInfoSeq={}", ilglPrvuInfoSeq);
   }
 }

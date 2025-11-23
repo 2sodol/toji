@@ -32,6 +32,7 @@ public class RegionRegisterRequest {
   private BigDecimal gpsLttd;
   private List<ActionHistoryRequest> actionHistories = new ArrayList<>();
   private FileRequest files;
+  private List<Long> deletedFileIds = new ArrayList<>();
 
   @Getter
   @Setter

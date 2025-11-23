@@ -100,14 +100,16 @@
       ATTFL_NM,
       ATTFL_PATH,
       ATTFL_CPCT,
-      OCRN_DATES
+      OCRN_DATES,
+      USE_YN
     ) VALUES (
       #{ilglAttflSeq},
       #{ilglPrvuAddrSeq},
       #{attflNm},
       #{attflPath},
       #{attflCpct},
-      #{ocrnDates}
+      #{ocrnDates},
+      NVL(#{useYn}, 'Y')
     )
   </insert>
 
@@ -181,6 +183,7 @@
             END as imagePath,
             ROW_NUMBER() OVER (PARTITION BY a.ILGL_PRVU_ADDR_SEQ ORDER BY a.ILGL_ATTFL_SEQ DESC) as rn
           FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 a
+          WHERE a.USE_YN = 'Y'
         ) img ON img.ILGL_PRVU_ADDR_SEQ = main.ilglPrvuInfoSeq AND img.rn = 1
         ORDER BY main.ocrnDates DESC NULLS LAST, main.ilglPrvuInfoSeq DESC
       ) t
@@ -199,6 +202,7 @@
         a.OCRN_DATES as ocrnDates
       FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 a
       WHERE a.ILGL_PRVU_ADDR_SEQ = #{ilglPrvuInfoSeq}
+        AND a.USE_YN = 'Y'
       ORDER BY a.ILGL_ATTFL_SEQ DESC
     ) WHERE ROWNUM = 1
   </select>
@@ -265,6 +269,27 @@
     WHERE ILGL_PRVU_INFO_SEQ = #{basicInfoId}
   </delete>
 
+  <update id="deleteAttachmentsByBasicInfoId" parameterType="Long">
+    UPDATE DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1
+    SET USE_YN = 'N'
+    WHERE ILGL_PRVU_ADDR_SEQ = #{basicInfoId}
+  </update>
+
+  <update id="deleteBasicInfo" parameterType="BasicInfo">
+    UPDATE DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
+    SET USE_YN = 'N',
+        LSTTM_MODFR_ID = #{lsttmModfrId},
+        LSTTM_ALTR_DTTM = SYSDATE
+    WHERE ILGL_PRVU_INFO_SEQ = #{ilglPrvuInfoSeq}
+      AND USE_YN = 'Y'
+  </update>
+
+  <update id="deleteAttachment" parameterType="Long">
+    UPDATE DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1
+    SET USE_YN = 'N'
+    WHERE ILGL_ATTFL_SEQ = #{ilglAttflSeq}
+  </update>
+
   <!-- 첨부파일 관련 쿼리 -->
   
   <!-- 특정 토지의 상세정보 등록일 리스트 조회 -->
@@ -279,20 +304,23 @@
     ORDER BY OCRN_DATES DESC, ILGL_PRVU_INFO_SEQ DESC
   </select>
 
-  <!-- 특정 토지의 사진 등록일 리스트 조회 -->
+  <!-- 특정 토지의 사진 등록일 리스트 조회 (개별 사진 단위) -->
   <select id="findPhotoDatesByLndsUnqNo" parameterType="String" resultType="map">
     SELECT 
+      a.ILGL_ATTFL_SEQ AS ilglAttflSeq,
       a.OCRN_DATES AS ocrnDates,
-      MAX(p.ILGL_PRVU_INFO_SEQ) AS ilglPrvuInfoSeq,
-      MAX(p.PRCH_EMNO) AS prchEmno
+      p.ILGL_PRVU_INFO_SEQ AS ilglPrvuInfoSeq,
+      p.PRCH_EMNO AS prchEmno,
+      a.ATTFL_NM AS attflNm,
+      a.ATTFL_PATH AS attflPath
     FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 a
     INNER JOIN DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1 p 
       ON a.ILGL_PRVU_ADDR_SEQ = p.ILGL_PRVU_INFO_SEQ
     WHERE p.LNDS_UNQ_NO = #{lndsUnqNo}
       AND p.USE_YN = 'Y'
+      AND a.USE_YN = 'Y'
       AND a.OCRN_DATES IS NOT NULL
-    GROUP BY a.OCRN_DATES
-    ORDER BY a.OCRN_DATES DESC
+    ORDER BY a.OCRN_DATES DESC, a.ILGL_ATTFL_SEQ DESC
   </select>
 
   <!-- 특정 토지번호로 데이터 존재 여부 확인 (카운트) -->
@@ -347,6 +375,7 @@
       a.OCRN_DATES as ocrnDates
     FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 a
     WHERE a.ILGL_PRVU_ADDR_SEQ = #{ilglPrvuInfoSeq}
+      AND a.USE_YN = 'Y'
     ORDER BY a.ILGL_ATTFL_SEQ DESC
   </select>
 

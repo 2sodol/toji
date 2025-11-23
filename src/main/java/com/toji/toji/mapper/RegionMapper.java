@@ -33,8 +33,10 @@ public interface RegionMapper {
 
   int deleteActionHistoriesByBasicInfoId(Long basicInfoId);
 
+  void deleteAttachmentsByBasicInfoId(Long basicInfoId);
+
   // 조회 모달용 메소드들
-  
+
   /**
    * 특정 토지의 상세정보 등록일 리스트 조회 (날짜 + 담당자명)
    */
@@ -65,5 +67,14 @@ public interface RegionMapper {
    * Attachment 도메인을 직접 반환
    */
   Attachment findFirstImagePathByIlglPrvuInfoSeq(@Param("ilglPrvuInfoSeq") Long ilglPrvuInfoSeq);
-}
 
+  /**
+   * 기본 정보 논리적 삭제 (USE_YN = 'N')
+   */
+  int deleteBasicInfo(BasicInfo basicInfo);
+
+  /**
+   * 첨부파일 삭제 (물리적 삭제는 서비스에서 처리하고 여기선 DB 레코드 삭제)
+   */
+  int deleteAttachment(Long ilglAttflSeq);
+}

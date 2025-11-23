@@ -54,8 +54,15 @@ public interface RegionService {
    * 지역 정보를 수정한다.
    *
    * @param ilglPrvuInfoSeq 수정할 불법점용정보 SEQ
-   * @param request 수정 요청 DTO
+   * @param request         수정 요청 DTO
    * @return 수정 결과
    */
   Long updateRegion(Long ilglPrvuInfoSeq, RegionRegisterRequest request);
+
+  /**
+   * 지역 정보를 삭제한다. (논리적 삭제)
+   *
+   * @param ilglPrvuInfoSeq 삭제할 불법점용정보 SEQ
+   */
+  void deleteRegion(Long ilglPrvuInfoSeq);
 }

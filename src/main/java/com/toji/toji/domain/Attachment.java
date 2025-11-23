@@ -15,4 +15,6 @@ public class Attachment {
   private String attflPath; // ATTFL_PATH (첨부파일경로)
   private Long attflCpct; // ATTFL_CPCT (첨부파일용량)
   private String ocrnDates; // OCRN_DATES (발생일자, VARCHAR2(100))
+  private String webPath; // 웹 접근 경로 (DB 컬럼 아님, 응답용)
+  private String useYn; // USE_YN (사용여부)
 }

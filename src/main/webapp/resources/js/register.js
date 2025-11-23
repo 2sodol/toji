@@ -53,111 +53,132 @@
    */
   function createImageItem(itemId, date, fileData) {
     var safeDate = escapeHtml(date || "");
+    var number = state.selectedFiles.images.length + 1;
+
+    // register-modal.jsp의 구조와 클래스를 그대로 사용
     var $item = $("<div>", {
       class: "illegal-register-image-item",
       "data-image-item-id": itemId,
+      "data-item-id": itemId // 호환성을 위해 추가
+    });
+
+    var $content = $("<div>", {
+      class: "illegal-register-image-item__content"
     });
 
     var $header = $("<div>", {
-      class: "illegal-register-image-item__header",
-    });
-    var $title = $("<label>", {
-      class: "illegal-register-label",
-      text: "이미지 #" + (state.selectedFiles.images.length + 1),
-    });
-    var $removeBtn = $("<button>", {
-      type: "button",
-      class: "illegal-register-image-item__remove remove-image-item-btn",
-      "data-image-item-id": itemId,
-      title: "삭제",
-      "aria-label": "삭제",
-    });
-    var $removeIcon = $("<i>", {
-      class: "fas fa-times",
-    });
-    $removeBtn.append($removeIcon);
-    $header.append($title).append($removeBtn);
-
-    var $content = $("<div>", {
-      class: "illegal-register-image-item__content",
+      class: "illegal-register-image-item__header"
     });
 
-    var $fields = $("<div>", {
-      class: "illegal-register-image-item__fields",
+    var $numberSpan = $("<span>", {
+      class: "illegal-register-image-item__number",
+      text: "#" + number
     });
+
+    $header.append($numberSpan);
+
+    // 삭제 버튼 (첫 번째 아이템이 아니거나, 명시적으로 삭제 가능한 경우)
+    if (number > 1 || (fileData && fileData.isExisting)) {
+      var $removeBtn = $("<button>", {
+        type: "button",
+        class: "illegal-register-image-item__remove remove-image-item-btn",
+        "data-image-item-id": itemId,
+        title: "삭제",
+        "aria-label": "삭제"
+      });
+      var $removeIcon = $("<i>", {
+        class: "fas fa-times",
+        "aria-hidden": "true"
+      });
+      $removeBtn.append($removeIcon);
+      $header.append($removeBtn);
+    }
+
+    var $row = $("<div>", {
+      class: "illegal-register-image-item__row"
+    });
+
+    // 날짜 입력 필드
     var $dateField = $("<div>", {
-      class: "illegal-register-field",
+      class: "illegal-register-field illegal-register-field--inline",
+      style: "position: relative;"
     });
-    var $dateLabel = $("<label>", {
-      class: "illegal-register-label",
-      for: "imageDate_" + itemId,
-      html: '이미지 등록일 <span class="illegal-register-form__required">*</span>',
-    });
+
     var $dateInput = $("<input>", {
       type: "date",
       class: "illegal-register-input image-date-input",
       id: "imageDate_" + itemId,
       "data-image-item-id": itemId,
       value: safeDate,
-      required: true,
+      required: true
     });
-    $dateField.append($dateLabel).append($dateInput);
 
-    var $fileField = $("<div>", {
-      class: "illegal-register-field",
+    var $requiredMark = $("<span>", {
+      class: "illegal-register-form__required",
+      style: "position: absolute; top: -5px; right: -10px;",
+      text: "*"
     });
-    var $fileLabel = $("<label>", {
-      class: "illegal-register-label",
-      for: "imageFileBtn_" + itemId,
-      text: "파일 선택",
-    });
-    var $fileBtn = $("<button>", {
+
+    $dateField.append($dateInput).append($requiredMark);
+
+    // 파일 선택 버튼
+    var $selectBtn = $("<button>", {
       type: "button",
-      class:
-        "illegal-register-button illegal-register-button--outline image-file-btn",
+      class: "illegal-register-button illegal-register-button--outline illegal-register-button--sm illegal-register-image-item__select-btn image-file-btn",
       id: "imageFileBtn_" + itemId,
-      "data-image-item-id": itemId,
+      "data-image-item-id": itemId
     });
-    var $fileIcon = $("<i>", {
-      class: "fas fa-upload",
-      "aria-hidden": "true",
-    });
-    var $fileText = $("<span>", {
-      class: "illegal-register-button__text",
-      text: "PNG 파일 선택",
-    });
-    $fileBtn.append($fileIcon).append($fileText);
-    $fileField.append($fileLabel).append($fileBtn);
 
+    var $uploadIcon = $("<i>", {
+      class: "fas fa-upload",
+      "aria-hidden": "true"
+    });
+
+    var $btnText = $("<span>", {
+      class: "illegal-register-button__text",
+      text: "선택"
+    });
+
+    $selectBtn.append($uploadIcon).append($btnText);
+
+    $row.append($dateField).append($selectBtn);
+
+    // 미리보기 섹션
+    var $previewSection = $("<div>", {
+      class: "illegal-register-image-item__preview-section"
+    });
+
+    var $preview = $("<div>", {
+      class: "illegal-register-image-item__preview",
+      id: "imagePreview_" + itemId
+    });
+
+    if (fileData && fileData.preview) {
+      $preview.addClass("has-images");
+      var $previewItem = createImagePreviewItem(fileData);
+      $preview.append($previewItem);
+    } else {
+      var $placeholder = $("<span>", {
+        class: "illegal-register-image-item__preview-empty",
+        html: '<i class="fas fa-image" aria-hidden="true"></i>선택된 파일이 없습니다.'
+      });
+      $preview.append($placeholder);
+    }
+
+    $previewSection.append($preview);
+
+    // 숨겨진 파일 입력
     var $fileInput = $("<input>", {
       type: "file",
       class: "image-file-input",
       id: "imageFileInput_" + itemId,
       "data-image-item-id": itemId,
-      accept: ".png",
-      hidden: true,
+      accept: ".png,.jpg,.jpeg",
+      hidden: true
     });
 
-    $fields.append($dateField).append($fileField);
-
-    var $preview = $("<div>", {
-      class: "illegal-register-image-item__preview",
-      id: "imagePreview_" + itemId,
-    });
-
-    if (fileData && fileData.preview) {
-      var $previewItem = createImagePreviewItem(fileData);
-      $preview.append($previewItem);
-    } else {
-      var $placeholder = $("<div>", {
-        class: "illegal-register-image-item__preview-empty",
-        text: "선택된 파일이 없습니다.",
-      });
-      $preview.append($placeholder);
-    }
-
-    $content.append($fields).append($preview).append($fileInput);
-    $item.append($header).append($content);
+    $content.append($header).append($row).append($previewSection).append($fileInput);
+    $item.append($content);
 
     return $item;
   }
@@ -168,50 +189,83 @@
    * @returns {jQuery} - 생성된 미리보기 아이템의 jQuery 객체
    */
   function createImagePreviewItem(fileData) {
-    var $item = $("<div>", {
-      class: "illegal-register-file-upload__item",
+    // register-modal.jsp의 썸네일 스타일 사용
+    var $thumbnail = $("<div>", {
+      class: "illegal-register-image-thumbnail",
+      "data-image-id": fileData.id || ("img_" + Date.now())
     });
 
-    var $itemInfo = $("<div>", {
-      class: "illegal-register-file-upload__item-info",
+    var $img = $("<img>", {
+      class: "illegal-register-image-thumbnail__img",
+      src: fileData.preview,
+      alt: escapeHtml(fileData.file.name)
     });
 
-    var $icon = $("<div>", {
-      class:
-        "illegal-register-file-upload__item-icon illegal-register-file-upload__item-icon--image",
-    });
-    var $iconElement = $("<i>", {
-      class: "fas fa-image",
-    });
-    $icon.append($iconElement);
+    // 삭제 버튼은 전체 아이템 삭제가 아닌 개별 이미지 삭제용으로 사용될 수 있음
+    // 현재 구조상 1아이템 1이미지이므로 아이템 삭제 버튼이 역할을 대신할 수 있지만,
+    // register-modal.jsp 스타일을 따르기 위해 썸네일 내 삭제 버튼도 추가
 
-    var $details = $("<div>", {
-      class: "illegal-register-file-upload__item-details",
-    });
-    var $name = $("<div>", {
-      class: "illegal-register-file-upload__item-name",
-      text: escapeHtml(fileData.file.name),
-    });
-    var $size = $("<div>", {
-      class: "illegal-register-file-upload__item-size",
-      text: formatFileSize(fileData.file.size),
-    });
-    $details.append($name).append($size);
+    // 단, 기존 이미지의 경우 개별 삭제가 가능하도록 처리
+    // 새 이미지의 경우 파일 재선택으로 덮어쓰거나 아이템 자체를 삭제
 
-    $itemInfo.append($icon).append($details);
+    // 여기서는 단순히 썸네일만 표시하고, 삭제 기능은 상위 아이템 삭제 버튼에 위임하거나
+    // 필요시 추가 구현. 일단은 register-modal.jsp와 동일하게 삭제 버튼 추가
 
-    if (fileData.preview) {
-      var $previewImg = $("<img>", {
-        class: "illegal-register-file-upload__item-preview",
-        src: fileData.preview,
-        alt: escapeHtml(fileData.file.name),
+    var $removeBtn = $("<button>", {
+      type: "button",
+      class: "illegal-register-image-thumbnail__remove",
+      "aria-label": "삭제"
+    });
+
+    var $removeIcon = $("<i>", {
+      class: "fas fa-times",
+      "aria-hidden": "true"
+    });
+
+    $removeBtn.append($removeIcon);
+
+    // 썸네일 삭제 버튼 클릭 이벤트
+    $removeBtn.on("click", function (e) {
+      e.stopPropagation();
+
+      var $thumbnail = $(this).closest(".illegal-register-image-thumbnail");
+      var imageId = $thumbnail.data("image-id");
+
+      // 기존 이미지인 경우 deletedFileIds에 추가
+      if (fileData.isExisting && fileData.id) {
+        if (!state.deletedFileIds) {
+          state.deletedFileIds = [];
+        }
+        state.deletedFileIds.push(fileData.id);
+      }
+
+      // 썸네일 제거
+      $thumbnail.remove();
+
+      // 부모 아이템 찾기
+      var $item = $(this).closest(".illegal-register-image-item");
+      var $preview = $item.find(".illegal-register-image-item__preview");
+
+      // 남은 썸네일이 없으면 플레이스홀더 표시
+      if ($preview.find(".illegal-register-image-thumbnail").length === 0) {
+        $preview.removeClass("has-images");
+        var $placeholder = $("<span>", {
+          class: "illegal-register-image-item__preview-empty",
+          html: '<i class="fas fa-image" aria-hidden="true"></i>선택된 파일이 없습니다.'
+        });
+        $preview.append($placeholder);
+      }
+
+      // 상태에서도 제거
+      var itemId = $item.data("image-item-id");
+      state.selectedFiles.images = state.selectedFiles.images.filter(function (img) {
+        return !(img.id === itemId + "_" + fileData.id || (img.fileData && img.fileData.id === fileData.id));
       });
-      $itemInfo.append($previewImg);
-    }
+    });
 
-    $item.append($itemInfo);
+    $thumbnail.append($img).append($removeBtn);
 
-    return $item;
+    return $thumbnail;
   }
 
   /**
@@ -344,14 +398,16 @@
     $preview.empty();
 
     if (!imageItem || !imageItem.fileData) {
-      var $placeholder = $("<div>", {
+      var $placeholder = $("<span>", {
         class: "illegal-register-image-item__preview-empty",
-        text: "선택된 파일이 없습니다.",
+        html: '<i class="fas fa-image" aria-hidden="true"></i>선택된 파일이 없습니다.'
       });
+      $preview.removeClass("has-images");
       $preview.append($placeholder);
       return;
     }
 
+    $preview.addClass("has-images");
     var $previewItem = createImagePreviewItem(imageItem.fileData);
     $preview.append($previewItem);
   }
@@ -461,6 +517,7 @@
       images: [],
       kml: null,
     };
+    state.deletedFileIds = [];
     state.imageItemCounter = 0;
     $("#imageList").empty();
     updateAllFilePreviews();
@@ -851,6 +908,16 @@
     $(document).on("click", ".remove-image-item-btn", function () {
       var itemId = $(this).data("image-item-id");
       var $item = $("[data-image-item-id='" + itemId + "']");
+
+      // 기존 이미지인지 확인
+      var existingId = $item.data("existing-id");
+      if (existingId) {
+        if (!state.deletedFileIds) {
+          state.deletedFileIds = [];
+        }
+        state.deletedFileIds.push(existingId);
+      }
+
       $item.remove();
 
       // 상태에서도 제거
@@ -1289,6 +1356,7 @@
       gpsLgtd: gpsLgtd,
       gpsLttd: gpsLttd,
       files: files,
+      deletedFileIds: state.deletedFileIds || []
     };
 
     toggleSubmitLoading(true);
@@ -1317,6 +1385,46 @@
       })
       .fail(function (xhr) {
         var message = "저장 중 오류가 발생했습니다.";
+        var responseJSON = xhr.responseJSON || {};
+
+        if (responseJSON.message) {
+          message = responseJSON.message;
+        }
+
+        showRegisterAlert("danger", message);
+      })
+      .always(function () {
+        toggleSubmitLoading(false);
+      });
+  }
+
+  /**
+   * 삭제 버튼 클릭 시 실행되는 핸들러
+   */
+  function handleDelete() {
+    if (!state.editMode || !state.editSeq) {
+      return;
+    }
+
+    if (!confirm("정말로 삭제하시겠습니까? 삭제된 데이터는 복구할 수 없습니다.")) {
+      return;
+    }
+
+    toggleSubmitLoading(true);
+
+    $.ajax({
+      url: "/regions/delete",
+      method: "POST",
+      data: {
+        ilglPrvuInfoSeq: state.editSeq,
+      },
+      dataType: "json",
+    })
+      .done(function () {
+        onRegisterSuccess("삭제가 완료되었습니다.");
+      })
+      .fail(function (xhr) {
+        var message = "삭제 중 오류가 발생했습니다.";
         var responseJSON = xhr.responseJSON || {};
 
         if (responseJSON.message) {
@@ -1400,8 +1508,8 @@
     // 삭제 버튼 초기 상태 설정 (등록 모드일 때는 숨김)
     $("#illegalRegisterDeleteBtn").hide();
 
-    // TODO: 삭제 버튼 클릭 이벤트 추가 (로직은 나중에 구현)
-    // $("#illegalRegisterDeleteBtn").on("click", handleDelete);
+    // 삭제 버튼 클릭 이벤트 추가
+    $("#illegalRegisterDeleteBtn").on("click", handleDelete);
 
     // 모달이 열릴 때 이미지 아이템 하나 자동 추가
     $("#illegalRegisterModal").on("illegalRegisterModal:open", function () {
@@ -1699,28 +1807,44 @@
           date.substring(6, 8);
       }
 
-      // 이미지 아이템 생성 (register-modal.jsp의 createImageItem 사용)
-      // register-modal.jsp의 IllegalRegisterImage API를 사용하여 아이템 추가
-      if (
-        window.IllegalRegisterImage &&
-        typeof window.IllegalRegisterImage.createItem === "function"
-      ) {
-        window.IllegalRegisterImage.createItem(formattedDate, datePhotos);
-      } else {
-        // 기본 방식: 날짜 입력 필드가 있는 아이템 생성
-        // register-modal.jsp의 스크립트가 자동으로 아이템을 생성하므로
-        // 여기서는 날짜만 설정
-        $("#addImageBtn").trigger("click");
-        var $lastItem = $("#imageList .illegal-register-image-item").last();
-        var $dateInput = $lastItem.find('input[type="date"]');
-        if ($dateInput.length) {
-          $dateInput.val(formattedDate);
-        }
+      // 해당 날짜의 첫 번째 사진으로 아이템 생성 (날짜만 설정)
+      var itemId = "existing_date_" + date;
 
-        // 기존 이미지 표시는 서버에서 파일을 읽어서 base64로 변환해야 하므로
-        // 일단은 새 이미지만 추가 가능하도록 처리
-        // TODO: 서버에서 이미지를 base64로 제공하는 API 추가 필요
-      }
+      // 빈 아이템 생성 (파일 데이터 없이)
+      var $imageItem = createImageItem(itemId, formattedDate, null);
+
+      // 파일 입력 필드 제거 (기존 이미지는 파일 변경 불가)
+      $imageItem.find(".image-file-input").remove();
+      $imageItem.find(".image-file-btn").hide();
+
+      // 미리보기 영역에 모든 사진 추가
+      var $preview = $imageItem.find(".illegal-register-image-item__preview");
+      $preview.empty();
+      $preview.addClass("has-images");
+
+      // 각 사진을 썸네일로 추가
+      datePhotos.forEach(function (photo) {
+        var fileData = {
+          file: { name: photo.attflNm, size: photo.attflCpct },
+          preview: photo.webPath,
+          isExisting: true,
+          id: photo.ilglAttflSeq
+        };
+
+        var $previewItem = createImagePreviewItem(fileData);
+        $preview.append($previewItem);
+
+        // 상태에 추가
+        state.selectedFiles.images.push({
+          id: itemId + "_" + photo.ilglAttflSeq,
+          date: formattedDate,
+          fileData: fileData,
+          isExisting: true,
+          existingId: photo.ilglAttflSeq
+        });
+      });
+
+      $($("#imageList")).append($imageItem);
     });
 
     // 이미지가 없으면 기본 아이템 하나 추가

@@ -199,7 +199,7 @@ public class RegionController {
    * 지역 정보를 수정한다.
    *
    * @param ilglPrvuInfoSeq 수정할 불법점용정보 SEQ
-   * @param request 수정 요청 DTO
+   * @param request         수정 요청 DTO
    * @return 수정 결과 응답
    */
   @RequestMapping(value = "/update", method = RequestMethod.PUT)
@@ -230,6 +230,36 @@ public class RegionController {
       response.put("success", false);
       response.put("id", null);
       response.put("message", "지역 수정에 실패했습니다: " + errorMessage);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+  }
+
+  /**
+   * 지역 정보를 삭제한다. (논리적 삭제)
+   *
+   * @param ilglPrvuInfoSeq 삭제할 불법점용정보 SEQ
+   * @return 삭제 결과 응답
+   */
+  @RequestMapping(value = "/delete", method = RequestMethod.POST)
+  public ResponseEntity<Map<String, Object>> deleteRegion(
+      @RequestParam Long ilglPrvuInfoSeq) {
+    try {
+      log.info("지역 삭제 요청 수신: ilglPrvuInfoSeq={}", ilglPrvuInfoSeq);
+      regionService.deleteRegion(ilglPrvuInfoSeq);
+      Map<String, Object> response = new HashMap<>();
+      response.put("success", true);
+      response.put("message", "지역 삭제에 성공했습니다.");
+      log.info("지역 삭제 성공: ilglPrvuInfoSeq={}", ilglPrvuInfoSeq);
+      return ResponseEntity.ok(response);
+    } catch (Exception ex) {
+      String errorMessage = ex.getMessage();
+      if (errorMessage == null || errorMessage.isEmpty()) {
+        errorMessage = ex.getClass().getSimpleName();
+      }
+      log.error("지역 삭제 실패: ilglPrvuInfoSeq={}", ilglPrvuInfoSeq, ex);
+      Map<String, Object> response = new HashMap<>();
+      response.put("success", false);
+      response.put("message", "지역 삭제에 실패했습니다: " + errorMessage);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
   }

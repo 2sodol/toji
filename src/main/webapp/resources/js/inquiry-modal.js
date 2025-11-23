@@ -595,43 +595,88 @@
     // 모달 표시
     state.$compareModal.attr("aria-hidden", "false");
 
-    // 현재 로드된 날짜 리스트 가져오기
-    var dates = [];
-    $("#detailDateList .illegal-inquiry-date-item").each(function () {
-      var $btn = $(this);
-      dates.push({
-        seq: $btn.data("seq"),
-        date: $btn.data("date"),
-        text: $btn.text(),
+    // 사진 날짜 리스트를 API로 조회
+    $.ajax({
+      url: "/regions/dates",
+      method: "GET",
+      data: {
+        lndsUnqNo: state.currentLndsUnqNo,
+        type: "photo"
+      },
+      dataType: "json"
+    })
+      .done(function (response) {
+        if (response.success && response.data && response.data.dates) {
+          var photoDates = response.data.dates;
+          var dates = [];
+
+          // 각 사진을 개별 항목으로 변환
+          photoDates.forEach(function (item, index) {
+            var ocrnDates = item.OCRNDATES || item.ocrnDates;
+            var ilglAttflSeq = item.ILGLATTFLSEQ || item.ilglAttflSeq;
+            var ilglPrvuInfoSeq = item.ILGLPRVUINFOSEQ || item.ilglPrvuInfoSeq;
+
+            // 날짜 포맷팅 (yyyyMMdd -> yyyy-MM-dd)
+            var formattedDate = ocrnDates;
+            if (ocrnDates && ocrnDates.length === 8) {
+              formattedDate = ocrnDates.substring(0, 4) + "-" +
+                ocrnDates.substring(4, 6) + "-" +
+                ocrnDates.substring(6, 8);
+            }
+
+            // 같은 날짜의 사진 개수 세기
+            var sameDate = photoDates.filter(function (d) {
+              return (d.OCRNDATES || d.ocrnDates) === ocrnDates;
+            });
+
+            var photoNumber = "";
+            if (sameDate.length > 1) {
+              // 같은 날짜에 여러 사진이 있으면 번호 추가
+              var currentIndex = sameDate.findIndex(function (d) {
+                return (d.ILGLATTFLSEQ || d.ilglAttflSeq) === ilglAttflSeq;
+              });
+              photoNumber = " (" + (currentIndex + 1) + "/" + sameDate.length + ")";
+            }
+
+            dates.push({
+              seq: ilglPrvuInfoSeq, // 기본 정보 SEQ (이미지 조회용)
+              attflSeq: ilglAttflSeq, // 첨부파일 SEQ (개별 사진 식별용)
+              date: ocrnDates,
+              text: formattedDate + photoNumber
+            });
+          });
+
+          // 날짜 선택 박스 채우기
+          updateCompareSelects(dates);
+
+          // 지도 초기화 (모달 렌더링 후 실행)
+          setTimeout(function () {
+            initializeCompareMaps();
+
+            // 기본값 자동 선택 로직
+            if (dates.length > 0) {
+              var seq1 = dates[0].seq;
+              var seq2 = dates.length >= 2 ? dates[1].seq : dates[0].seq;
+              var seq3 =
+                dates.length >= 3
+                  ? dates[2].seq
+                  : dates.length === 2
+                    ? dates[1].seq
+                    : dates[0].seq;
+
+              $("#compareDate1").val(seq1).trigger("change");
+              $("#compareDate2").val(seq2).trigger("change");
+              $("#compareDate3").val(seq3).trigger("change");
+            }
+          }, 200);
+        } else {
+          showInquiryAlert("warning", "사진 정보를 불러올 수 없습니다.");
+        }
+      })
+      .fail(function (err) {
+        console.error("사진 날짜 리스트 조회 실패:", err);
+        showInquiryAlert("danger", "사진 정보를 불러오는데 실패했습니다.");
       });
-    });
-
-    // 날짜 선택 박스 채우기
-    updateCompareSelects(dates);
-
-    // 지도 초기화 (모달 렌더링 후 실행)
-    setTimeout(function () {
-      initializeCompareMaps();
-
-      // 기본값 자동 선택 로직
-      // 1개일 경우: 1, 2, 3 모두 같은 사진
-      // 2개일 경우: 1(최신), 2(이전), 3(이전)
-      // 3개 이상: 1(최신), 2(이전), 3(전전)
-      if (dates.length > 0) {
-        var seq1 = dates[0].seq;
-        var seq2 = dates.length >= 2 ? dates[1].seq : dates[0].seq;
-        var seq3 =
-          dates.length >= 3
-            ? dates[2].seq
-            : dates.length === 2
-              ? dates[1].seq
-              : dates[0].seq;
-
-        $("#compareDate1").val(seq1).trigger("change");
-        $("#compareDate2").val(seq2).trigger("change");
-        $("#compareDate3").val(seq3).trigger("change");
-      }
-    }, 200);
   }
 
   /**
@@ -855,38 +900,45 @@
           response.data.photos.length > 0
         ) {
           var photo = response.data.photos[0];
-          var rawPath = photo.attflPath;
-          var fileName = photo.attflNm;
-          var imageUrl = rawPath;
 
-          // 1. 경로 정규화 (src/main/resources/static 제거)
-          if (imageUrl && imageUrl.indexOf("src/main/resources/static") !== -1) {
-            var parts = imageUrl.split("src/main/resources/static");
-            if (parts.length > 1) {
-              imageUrl = parts[1];
-            }
-          }
+          // webPath가 있으면 사용, 없으면 기존 로직 사용
+          var imageUrl;
+          if (photo.webPath) {
+            imageUrl = photo.webPath;
+          } else {
+            var rawPath = photo.attflPath;
+            var fileName = photo.attflNm;
+            imageUrl = rawPath;
 
-          // 2. 슬래시 정규화
-          if (imageUrl) {
-            imageUrl = imageUrl.replace(/\\/g, "/");
-          }
-
-          // 3. 파일명 결합 (경로에 파일명이 포함되지 않은 경우)
-          if (fileName && imageUrl) {
-            if (!imageUrl.endsWith(fileName)) {
-              if (!imageUrl.endsWith("/")) {
-                imageUrl += "/";
+            // 1. 경로 정규화 (src/main/resources/static 제거)
+            if (imageUrl && imageUrl.indexOf("src/main/resources/static") !== -1) {
+              var parts = imageUrl.split("src/main/resources/static");
+              if (parts.length > 1) {
+                imageUrl = parts[1];
               }
-              imageUrl += fileName;
             }
-          }
 
-          // 4. 중복 슬래시 제거 및 선행 슬래시 보장
-          if (imageUrl) {
-            imageUrl = imageUrl.replace(/\/\//g, "/");
-            if (!imageUrl.startsWith("/")) {
-              imageUrl = "/" + imageUrl;
+            // 2. 슬래시 정규화
+            if (imageUrl) {
+              imageUrl = imageUrl.replace(/\\/g, "/");
+            }
+
+            // 3. 파일명 결합 (경로에 파일명이 포함되지 않은 경우)
+            if (fileName && imageUrl) {
+              if (!imageUrl.endsWith(fileName)) {
+                if (!imageUrl.endsWith("/")) {
+                  imageUrl += "/";
+                }
+                imageUrl += fileName;
+              }
+            }
+
+            // 4. 중복 슬래시 제거 및 선행 슬래시 보장
+            if (imageUrl) {
+              imageUrl = imageUrl.replace(/\/\//g, "/");
+              if (!imageUrl.startsWith("/")) {
+                imageUrl = "/" + imageUrl;
+              }
             }
           }
 
