@@ -718,6 +718,22 @@
 
       if ($target.length === 0) continue;
 
+      // 로딩 인디케이터 주입 (없으면)
+      if ($target.find(".photo-compare-loader").length === 0) {
+        $target.append('<div class="photo-compare-loader"></div>');
+      }
+
+      // 투명도 슬라이더 주입 (없으면)
+      var $controls = $target.closest(".photo-compare-item").find(".photo-compare-controls");
+      if ($controls.length > 0 && $controls.find(".photo-compare-opacity").length === 0) {
+        var sliderHtml =
+          '<div class="photo-compare-opacity">' +
+          '<label>투명도</label>' +
+          '<input type="range" min="0" max="1" step="0.1" value="1" data-map-index="' + (i - 1) + '">' +
+          '</div>';
+        $controls.append(sliderHtml);
+      }
+
       // VWorld 배경 레이어 (일반 - GRAPHIC)
       var baseLayer = new ol.layer.Tile({
         source: new ol.source.XYZ({
@@ -821,6 +837,10 @@
     if (!seq) return;
 
     // 이미지 정보 조회
+    var $target = $(map.getTargetElement());
+    var $loader = $target.find(".photo-compare-loader");
+    $loader.addClass("active");
+
     $.ajax({
       url: "/regions/photos",
       method: "GET",
@@ -904,7 +924,7 @@
 
           var layer = new ol.layer.Image({
             source: source,
-            opacity: 1.0,
+            opacity: parseFloat($target.closest(".photo-compare-item").find("input[type=range]").val()) || 1.0,
             zIndex: 999,
           });
 
@@ -915,6 +935,10 @@
       })
       .fail(function (err) {
         console.error("이미지 로드 실패:", err);
+        showInquiryAlert("danger", "이미지를 불러오는데 실패했습니다.");
+      })
+      .always(function () {
+        $loader.removeClass("active");
       });
   }
 
@@ -954,6 +978,18 @@
     $(document).on("change", "input[name='compareMapType']", function () {
       var type = $(this).val();
       toggleCompareMapLayers(type);
+    });
+
+    // 투명도 슬라이더 변경
+    $(document).on("input change", ".photo-compare-opacity input[type='range']", function () {
+      var $input = $(this);
+      var mapIndex = $input.data("map-index");
+      var opacity = parseFloat($input.val());
+
+      var map = state.compareMaps[mapIndex];
+      if (map && map.customImageLayer) {
+        map.customImageLayer.setOpacity(opacity);
+      }
     });
 
     // 모달 외부 클릭 시 닫기
