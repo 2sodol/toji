@@ -17,7 +17,6 @@
   var state = {
     selectedFiles: {
       images: [],
-      kml: null,
     },
     imageItemCounter: 0,
     modifySeq: null, // 수정할 불법점용정보 SEQ
@@ -424,7 +423,7 @@
       $selectBtn.append($uploadIcon).append($btnText);
       $selectBtn.on("click", function () {
         var id = $(this).data("item-id");
-        $("#modifyimageFileInput_" + id).click();
+        $("#mod_imageFileInput_" + id).click();
       });
 
       $row.append($dateField).append($selectBtn);
@@ -435,7 +434,7 @@
 
       var $preview = $("<div>", {
         class: "illegal-register-image-item__preview has-images",
-        id: "modifyimagePreview_" + itemId,
+        id: "mod_imagePreview_" + itemId,
       });
 
       // 이미지 썸네일 추가
@@ -446,6 +445,7 @@
         var $thumbnail = $("<div>", {
           class: "illegal-register-image-thumbnail",
           "data-image-id": imageId,
+          "data-file-id": photo.ilglAttflSeq,
         });
 
         var $img = $("<img>", {
@@ -763,6 +763,17 @@
 
         // 미리보기 생성
         var $preview = $("#mod_imagePreview_" + itemId);
+
+        // 기존 이미지가 있다면 삭제 목록에 추가 (새 이미지로 교체 시 기존 이미지 삭제 처리)
+        $preview.find(".illegal-register-image-thumbnail").each(function () {
+          var fileId = $(this).data("file-id");
+          if (fileId) {
+            if (state.deletedFileIds.indexOf(fileId) === -1) {
+              state.deletedFileIds.push(fileId);
+            }
+          }
+        });
+
         $preview.empty();
         $preview.addClass("has-images");
 
@@ -771,6 +782,7 @@
         var $thumbnail = $("<div>", {
           class: "illegal-register-image-thumbnail",
           "data-image-id": imageId,
+          "data-file-id": "", // 새 이미지는 ID 없음
         });
 
         var $img = $("<img>", {
@@ -859,7 +871,6 @@
 
     state.selectedFiles = {
       images: [],
-      kml: null,
     };
     state.deletedFileIds = [];
     state.imageItemCounter = 0;
@@ -1158,7 +1169,6 @@
 
     var files = {
       images: images,
-      kml: null,
     };
 
     var payload = {
