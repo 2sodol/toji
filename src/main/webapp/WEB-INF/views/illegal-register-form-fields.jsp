@@ -3,9 +3,9 @@
 
         <section class="illegal-register-form__section">
             <!-- 히든 필드: PNU 및 좌표 정보 -->
-            <input id="${param.prefix}lndsUnqNo" name="lndsUnqNo" type="hidden" />
-            <input id="${param.prefix}gpsLgtd" name="gpsLgtd" type="hidden" />
-            <input id="${param.prefix}gpsLttd" name="gpsLttd" type="hidden" />
+            <input id="${param.prefix}lndsUnqNo" name="lndsUnqNo" />
+            <input id="${param.prefix}gpsLgtd" name="gpsLgtd" />
+            <input id="${param.prefix}gpsLttd" name="gpsLttd" />
 
             <p class="illegal-register-form__section-title">
                 기본정보<span class="illegal-register-form__required">*</span>

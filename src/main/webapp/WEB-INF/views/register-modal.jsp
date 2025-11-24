@@ -12,16 +12,205 @@
       </header>
       <div class="illegal-register-modal__body">
         <form id="illegalRegisterForm" class="illegal-register-form" novalidate>
-          <jsp:include page="illegal-register-form-fields.jsp">
-            <jsp:param name="prefix" value="" />
-          </jsp:include>
+          <% String todayIsoDate = java.time.LocalDate.now().toString(); %>
+
+          <section class="illegal-register-form__section">
+            <!-- 히든 필드: PNU 및 좌표 정보 -->
+            <input id="reg_lndsUnqNo" name="lndsUnqNo" type="hidden" />
+            <input id="reg_gpsLgtd" name="gpsLgtd" type="hidden" />
+            <input id="reg_gpsLttd" name="gpsLttd" type="hidden" />
+
+            <p class="illegal-register-form__section-title">
+              기본정보<span class="illegal-register-form__required">*</span>
+            </p>
+            <div class="illegal-register-grid illegal-register-grid--cols-3">
+              <div class="illegal-register-field">
+                <label class="illegal-register-label" for="reg_hdqrNm">본부</label>
+                <input type="text" class="illegal-register-input" id="reg_hdqrNm" value="${loginUserDept}"
+                  maxlength="100" required readonly />
+              </div>
+              <div class="illegal-register-field">
+                <label class="illegal-register-label" for="reg_mtnofNm">지사</label>
+                <input type="text" class="illegal-register-input" id="reg_mtnofNm" maxlength="100" required readonly />
+              </div>
+              <div class="illegal-register-field">
+                <label class="illegal-register-label" for="reg_routeCd">노선</label>
+                <input type="text" class="illegal-register-input" id="reg_routeCd" maxlength="100" required readonly />
+              </div>
+            </div>
+            <div class="illegal-register-grid illegal-register-grid--cols-3">
+              <div class="illegal-register-field">
+                <label class="illegal-register-label" for="reg_drveDrctCd">주행방향</label>
+                <select class="illegal-register-select" id="reg_drveDrctCd" required disabled>
+                  <option value="" disabled selected>선택하세요</option>
+                  <option value="UP">상행</option>
+                  <option value="DOWN">하행</option>
+                  <option value="BOTH">양방향</option>
+                </select>
+              </div>
+              <div class="illegal-register-field">
+                <label class="illegal-register-label" for="reg_routeDstnc">이정 (km)</label>
+                <input type="text" class="illegal-register-input" id="reg_routeDstnc" placeholder="예: 123.5km"
+                  maxlength="50" readonly />
+              </div>
+              <div class="illegal-register-field">
+                <span class="illegal-register-label">구분</span>
+                <div class="illegal-register-segmented" role="radiogroup" aria-label="구분">
+                  <label class="illegal-register-segmented__option illegal-register-segmented__option_left">
+                    <input type="radio" name="reg_strcClssCd" value="GENERAL" checked />
+                    <span>일반</span>
+                  </label>
+                  <label class="illegal-register-segmented__option illegal-register-segmented__option_right">
+                    <input type="radio" name="reg_strcClssCd" value="BRIDGE" />
+                    <span>교량</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="illegal-register-grid illegal-register-grid--cols-2">
+              <div class="illegal-register-field illegal-register-field--full">
+                <label class="illegal-register-label" for="reg_lndsLdnoAddr">세부위치(주소)</label>
+                <div class="illegal-register-input-group">
+                  <input type="text" class="illegal-register-input" id="reg_lndsLdnoAddr" placeholder="주소를 검색하세요"
+                    maxlength="255" readonly />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="illegal-register-form__section">
+            <p class="illegal-register-form__section-title">
+              발생 및 관계자 정보
+            </p>
+            <div class="illegal-register-grid illegal-register-grid--cols-4 illegal-register-grid--single-row">
+              <div class="illegal-register-field">
+                <label class="illegal-register-label" for="reg_ocrnDates">발생일자</label>
+                <input type="date" class="illegal-register-input" id="reg_ocrnDates" value="<%= todayIsoDate %>"
+                  required />
+              </div>
+              <div class="illegal-register-field">
+                <label class="illegal-register-label" for="reg_prchEmno">담당자</label>
+                <input type="text" class="illegal-register-input" id="reg_prchEmno" value="${loginUserName}"
+                  maxlength="100" required />
+              </div>
+              <div class="illegal-register-field">
+                <label class="illegal-register-label" for="reg_trnrNm">행위자명</label>
+                <input type="text" class="illegal-register-input" id="reg_trnrNm" maxlength="100" required />
+              </div>
+              <div class="illegal-register-field">
+                <label class="illegal-register-label" for="reg_rltrNm">관련자</label>
+                <input type="text" class="illegal-register-input" id="reg_rltrNm" maxlength="100" />
+              </div>
+            </div>
+            <div class="illegal-register-grid illegal-register-grid--cols-2">
+              <div class="illegal-register-field">
+                <label class="illegal-register-label" for="reg_trnrAddr">행위자 주소</label>
+                <div class="illegal-register-input-group">
+                  <input type="text" class="illegal-register-input" id="reg_trnrAddr" placeholder="주소를 검색하세요"
+                    maxlength="255" readonly />
+                  <button class="illegal-register-button illegal-register-button--outline" type="button"
+                    data-register-address-target="actor">
+                    검색
+                  </button>
+                </div>
+              </div>
+              <div class="illegal-register-field">
+                <label class="illegal-register-label" for="reg_rltrAddr">관련자 주소</label>
+                <div class="illegal-register-input-group">
+                  <input type="text" class="illegal-register-input" id="reg_rltrAddr" placeholder="주소를 검색하세요"
+                    maxlength="255" readonly />
+                  <button class="illegal-register-button illegal-register-button--outline" type="button"
+                    data-register-address-target="related">
+                    검색
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="illegal-register-form__section">
+            <p class="illegal-register-form__section-title">점유 및 조치 정보</p>
+            <div class="illegal-register-grid illegal-register-grid--cols-3">
+              <div class="illegal-register-field">
+                <label class="illegal-register-label" for="reg_ilglPssrt">점유율 (%)</label>
+                <input type="number" class="illegal-register-input" id="reg_ilglPssrt" placeholder="예: 50.5" step="0.1"
+                  min="0" max="100" />
+              </div>
+              <div class="illegal-register-field">
+                <label class="illegal-register-label" for="reg_ilglPssnSqms">점유면적 (㎡)</label>
+                <input type="number" class="illegal-register-input" id="reg_ilglPssnSqms" placeholder="예: 10.5"
+                  step="0.1" min="0" />
+              </div>
+              <div class="illegal-register-field">
+                <span class="illegal-register-label">조치상태</span>
+                <div class="illegal-register-segmented" role="radiogroup" aria-label="조치상태">
+                  <label class="illegal-register-segmented__option illegal-register-segmented__option_left">
+                    <input type="radio" name="reg_ilglPrvuActnStatVal" value="COMPLETED" />
+                    <span>조치완료</span>
+                  </label>
+                  <label class="illegal-register-segmented__option illegal-register-segmented__option_right">
+                    <input type="radio" name="reg_ilglPrvuActnStatVal" value="IN_PROGRESS" checked />
+                    <span>조치중</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="illegal-register-history">
+              <div class="illegal-register-history__header">
+                <div>
+                  <p class="illegal-register-label illegal-register-history__title">
+                    조치 이력
+                  </p>
+                  <small class="illegal-register-history__description">필요 시 여러 건을 추가할 수 있습니다.</small>
+                </div>
+                <button type="button"
+                  class="illegal-register-button illegal-register-button--outline illegal-register-button--sm"
+                  id="reg_addActionHistoryBtn">
+                  추가
+                </button>
+              </div>
+              <div id="reg_actionHistoryList" class="illegal-register-history__list">
+                <div class="illegal-register-history__item">
+                  <div class="illegal-register-history__date">
+                    <input type="date" class="illegal-register-input illegal-register-history__date-input"
+                      name="actnDttm" />
+                  </div>
+                  <div class="illegal-register-history__desc">
+                    <input type="text" class="illegal-register-input illegal-register-history__desc-input"
+                      name="actnCtnt" placeholder="예: 구두주의, 경고 등" maxlength="500" />
+                  </div>
+                  <div class="illegal-register-history__actions"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="illegal-register-form__section">
+            <p class="illegal-register-form__section-title">사진 등록</p>
+
+            <!-- 이미지 파일 등록 섹션 (날짜와 이미지 매핑) -->
+            <div class="illegal-register-image-section">
+              <div class="illegal-register-image-section__header">
+                <div>
+                  <small class="illegal-register-file-upload__description">
+                    날짜와 함께 이미지를 등록하세요. 여러 개 추가할 수 있습니다.
+                  </small>
+                </div>
+                <button type="button"
+                  class="illegal-register-button illegal-register-button--outline illegal-register-button--sm"
+                  id="reg_addImageBtn">
+                  <span class="illegal-register-button__text">추가</span>
+                </button>
+              </div>
+              <div id="reg_imageList" class="illegal-register-image-list">
+                <!-- 이미지 아이템들이 동적으로 추가됩니다 -->
+              </div>
+            </div>
+          </section>
         </form>
       </div>
       <footer class="illegal-register-modal__footer">
-        <button type="button" id="illegalRegisterDeleteBtn"
-          class="illegal-register-button illegal-register-button--danger" style="display: none;">
-          삭제
-        </button>
         <button type="button" class="illegal-register-button illegal-register-button--ghost" data-register-modal-close>
           닫기
         </button>
@@ -681,490 +870,3 @@
       }
     }
   </style>
-
-  <script>
-    (function (window, $) {
-      "use strict";
-
-      // ===== 상수 정의 =====
-      var CONSTANTS = {
-        MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
-        ALLOWED_EXTENSIONS: ["png", "jpg", "jpeg"],
-        ALLOWED_MIME_TYPES: ["image/png", "image/jpeg", "image/jpg"],
-        EMPTY_PREVIEW_MESSAGE: "선택된 파일이 없습니다.",
-      };
-
-      // ===== DOM 요소 캐싱 =====
-      var $modal = $("#illegalRegisterModal");
-      if (!$modal.length) {
-        return;
-      }
-
-      var $body = $("body");
-      var $closeButtons = $modal.find("[data-register-modal-close]");
-      var $addImageBtn = $("#addImageBtn");
-      var $imageList = $("#imageList");
-
-      // ===== 상태 관리 =====
-      var state = {
-        imageItemCounter: 0,
-      };
-
-      // ===== 유틸리티 함수 =====
-      function triggerEvent(eventName) {
-        $modal.trigger($.Event(eventName, { bubbles: true }));
-      }
-
-      function fileToBase64(file) {
-        return new Promise(function (resolve, reject) {
-          var reader = new FileReader();
-          reader.readAsDataURL(file);
-          reader.onload = function () {
-            resolve(reader.result);
-          };
-          reader.onerror = function (error) {
-            reject(error);
-          };
-        });
-      }
-
-      function getSelector(id, type) {
-        var selectors = {
-          dateInput: "#imageDate_" + id,
-          fileInput: "#fileInput_" + id,
-          preview: "#preview_" + id,
-          mappingData: "#mappingData_" + id,
-          item: '[data-item-id="' + id + '"]',
-        };
-        return selectors[type] || "";
-      }
-
-      // ===== HTML 템플릿 함수 =====
-      function createRemoveButton(itemId) {
-        return (
-          '<button type="button" class="illegal-register-image-item__remove" onclick="IllegalRegisterImage.removeItem(\'' +
-          itemId +
-          "')\">" +
-          '<i class="fas fa-times" aria-hidden="true"></i>' +
-          "</button>"
-        );
-      }
-
-      function createImageItemHtml(itemId, number) {
-        var removeButtonHtml = number > 1 ? createRemoveButton(itemId) : "";
-
-        return (
-          '<div class="illegal-register-image-item" data-item-id="' +
-          itemId +
-          '">' +
-          '<div class="illegal-register-image-item__content">' +
-          '<div class="illegal-register-image-item__header">' +
-          '<span class="illegal-register-image-item__number">#' +
-          number +
-          "</span>" +
-          removeButtonHtml +
-          "</div>" +
-          '<div class="illegal-register-image-item__row">' +
-          '<div class="illegal-register-field illegal-register-field--inline" style="position: relative;">' +
-          '<input type="date" class="illegal-register-input" id="imageDate_' +
-          itemId +
-          '" required />' +
-          '<span class="illegal-register-form__required" style="position: absolute; top: -5px; right: -10px;">*</span>' +
-          "</div>" +
-          '<button type="button" class="illegal-register-button illegal-register-button--outline illegal-register-button--sm illegal-register-image-item__select-btn" onclick="IllegalRegisterImage.selectFile(\'' +
-          itemId +
-          "')\">" +
-          '<i class="fas fa-upload" aria-hidden="true"></i>' +
-          '<span class="illegal-register-button__text">선택</span>' +
-          "</button>" +
-          "</div>" +
-          '<div class="illegal-register-image-item__preview-section">' +
-          '<div class="illegal-register-image-item__preview" id="preview_' +
-          itemId +
-          '">' +
-          createEmptyPreviewHtml() +
-          "</div>" +
-          "</div>" +
-          '<input type="file" id="fileInput_' +
-          itemId +
-          '" accept=".png,.jpg,.jpeg" data-item-id="' +
-          itemId +
-          '" hidden />' +
-          '<input type="hidden" id="mappingData_' +
-          itemId +
-          '" name="imageMappingData[]" />' +
-          "</div>" +
-          "</div>"
-        );
-      }
-
-      function createEmptyPreviewHtml() {
-        return (
-          '<span class="illegal-register-image-item__preview-empty">' +
-          '<i class="fas fa-image" aria-hidden="true"></i>' +
-          CONSTANTS.EMPTY_PREVIEW_MESSAGE +
-          "</span>"
-        );
-      }
-
-      function createImageThumbnailHtml(imageId, base64Data, fileName) {
-        return (
-          '<div class="illegal-register-image-thumbnail" data-image-id="' +
-          imageId +
-          '">' +
-          '<img src="' +
-          base64Data +
-          '" alt="' +
-          fileName +
-          '" class="illegal-register-image-thumbnail__img" />' +
-          '<button type="button" class="illegal-register-image-thumbnail__remove" onclick="IllegalRegisterImage.removeImage(\'' +
-          imageId +
-          '\')" aria-label="삭제">' +
-          '<i class="fas fa-times" aria-hidden="true"></i>' +
-          "</button>" +
-          "</div>"
-        );
-      }
-
-      // ===== 이미지 아이템 관리 =====
-      function createImageItem() {
-        state.imageItemCounter++;
-        var itemId = "imageItem_" + state.imageItemCounter;
-        // 현재 리스트의 항목 수 + 1을 넘버링으로 사용
-        var currentItemCount = $imageList.find(
-          ".illegal-register-image-item"
-        ).length;
-        var number = currentItemCount + 1;
-        var itemHtml = createImageItemHtml(itemId, number);
-        $imageList.append(itemHtml);
-        return itemId;
-      }
-
-      function renumberImageItems() {
-        $imageList.find(".illegal-register-image-item").each(function (index) {
-          var newNumber = index + 1;
-          var $item = $(this);
-          var itemId = $item.data("item-id");
-          var $header = $item.find(".illegal-register-image-item__header");
-          var $removeBtn = $item.find(".illegal-register-image-item__remove");
-
-          // 넘버링 업데이트
-          $item
-            .find(".illegal-register-image-item__number")
-            .text("#" + newNumber);
-
-          // 첫 번째 아이템은 삭제 버튼 제거
-          if (newNumber === 1) {
-            $removeBtn.remove();
-          } else if ($removeBtn.length === 0) {
-            // 두 번째 이상은 삭제 버튼 추가
-            $header.append(createRemoveButton(itemId));
-          }
-        });
-      }
-
-      // ===== 파일 검증 =====
-      function validateFile(file) {
-        // 파일명에서 확장자 추출
-        var fileName = file.name.toLowerCase();
-        var fileExtension = fileName.split(".").pop();
-
-        // 확장자 검증
-        if (
-          !fileExtension ||
-          CONSTANTS.ALLOWED_EXTENSIONS.indexOf(fileExtension) === -1
-        ) {
-          alert("PNG, JPG 등 이미지 파일만 업로드 가능합니다.");
-          return false;
-        }
-
-        // MIME 타입 검증
-        if (
-          !file.type ||
-          CONSTANTS.ALLOWED_MIME_TYPES.indexOf(file.type.toLowerCase()) === -1
-        ) {
-          alert(
-            "PNG, JPG 등 이미지 파일만 업로드 가능합니다. (파일 형식이 올바르지 않습니다)"
-          );
-          return false;
-        }
-
-        // 파일 크기 검증
-        if (file.size > CONSTANTS.MAX_FILE_SIZE) {
-          alert("파일 크기는 10MB를 초과할 수 없습니다.");
-          return false;
-        }
-
-        // 파일이 비어있는지 확인
-        if (file.size === 0) {
-          alert("빈 파일은 업로드할 수 없습니다.");
-          return false;
-        }
-
-        return true;
-      }
-
-      function validateImageDate(itemId) {
-        var imageDate = $(getSelector(itemId, "dateInput")).val();
-        if (!imageDate) {
-          alert("이미지 등록일을 먼저 선택해주세요.");
-          return false;
-        }
-        return imageDate;
-      }
-
-      // ===== 파일 처리 =====
-      function handleImageFileSelect(event) {
-        var fileInput = event.target;
-        var itemId = $(fileInput).data("item-id");
-        var files = fileInput.files;
-
-        if (!files || files.length === 0) return;
-
-        var imageDate = validateImageDate(itemId);
-        if (!imageDate) {
-          $(fileInput).val("");
-          return;
-        }
-
-        var validFiles = [];
-        for (var i = 0; i < files.length; i++) {
-          if (validateFile(files[i])) {
-            validFiles.push(files[i]);
-          }
-        }
-
-        if (validFiles.length === 0) {
-          $(fileInput).val("");
-          return;
-        }
-
-        // 모든 유효한 파일 처리
-        var promises = validFiles.map(function (file) {
-          return fileToBase64(file).then(function (base64Data) {
-            return {
-              file: file,
-              base64Data: base64Data,
-              base64Content: base64Data.split(",")[1],
-            };
-          });
-        });
-
-        Promise.all(promises)
-          .then(function (results) {
-            var $preview = $(getSelector(itemId, "preview"));
-            // 날짜별 1개 파일만 등록 가능하므로 기존 데이터 초기화
-            var mappings = [];
-            $preview.empty();
-            $preview.addClass("has-images");
-
-            results.forEach(function (result, index) {
-              var imageId =
-                itemId +
-                "_img_" +
-                Date.now() +
-                "_" +
-                index +
-                "_" +
-                Math.random().toString(36).substr(2, 9);
-              var mapping = imageDate + ":" + result.base64Content;
-              mappings.push(mapping);
-
-              // 썸네일 추가
-              var thumbnailHtml = createImageThumbnailHtml(
-                imageId,
-                result.base64Data,
-                result.file.name
-              );
-              if (
-                $preview.find(".illegal-register-image-item__preview-empty")
-                  .length > 0
-              ) {
-                $preview.empty();
-                $preview.addClass("has-images");
-              }
-              $preview.append(thumbnailHtml);
-
-              // 이미지 데이터 저장 (나중에 삭제를 위해)
-              $preview.data("images-" + imageId, {
-                mapping: mapping,
-                fileName: result.file.name,
-              });
-            });
-
-            // 모든 매핑 데이터 업데이트
-            $(getSelector(itemId, "mappingData")).val(mappings.join("||"));
-            $(fileInput).val("");
-          })
-          .catch(function (error) {
-            console.error("파일 변환 중 오류 발생:", error);
-            alert("파일 처리 중 오류가 발생했습니다.");
-            $(fileInput).val("");
-          });
-      }
-
-      // ===== 모달 관리 =====
-      function openModal() {
-        if ($modal.hasClass("is-open")) {
-          return;
-        }
-        $modal.addClass("is-open").attr("aria-hidden", "false");
-        $body.addClass("illegal-register-modal-open");
-        triggerEvent("illegalRegisterModal:open");
-      }
-
-      function closeModal() {
-        if (!$modal.hasClass("is-open")) {
-          return;
-        }
-        $modal.removeClass("is-open").attr("aria-hidden", "true");
-        $body.removeClass("illegal-register-modal-open");
-        triggerEvent("illegalRegisterModal:close");
-      }
-
-      // ===== 이미지 삭제 =====
-      function removeImageFromPreview(imageId) {
-        var $thumbnail = $(
-          '.illegal-register-image-thumbnail[data-image-id="' + imageId + '"]'
-        );
-        var $preview = $thumbnail.closest(
-          ".illegal-register-image-item__preview"
-        );
-        var itemId = $preview
-          .closest(".illegal-register-image-item")
-          .data("item-id");
-
-        // 저장된 이미지 데이터 가져오기
-        var imageData = $preview.data("images-" + imageId);
-        if (imageData && imageData.mapping) {
-          // 매핑 데이터에서 해당 이미지 제거
-          var currentMapping = $(getSelector(itemId, "mappingData")).val() || "";
-          var mappings = currentMapping.split("||").filter(function (mapping) {
-            return mapping !== imageData.mapping;
-          });
-          $(getSelector(itemId, "mappingData")).val(mappings.join("||"));
-        }
-
-        // 썸네일 제거
-        $thumbnail.remove();
-
-        // 저장된 데이터 제거
-        $preview.removeData("images-" + imageId);
-
-        // 이미지가 없으면 빈 상태 메시지 표시
-        if ($preview.find(".illegal-register-image-thumbnail").length === 0) {
-          $preview.removeClass("has-images");
-          $preview.html(createEmptyPreviewHtml());
-        }
-      }
-
-      // ===== 공개 API =====
-      window.IllegalRegisterImage = {
-        selectFile: function (itemId) {
-          $(getSelector(itemId, "fileInput")).click();
-        },
-
-        clearFile: function (itemId) {
-          $(getSelector(itemId, "fileInput")).val("");
-          $(getSelector(itemId, "mappingData")).val("");
-          var $preview = $(getSelector(itemId, "preview"));
-          $preview.removeClass("has-images");
-          $preview.html(createEmptyPreviewHtml());
-        },
-
-        removeImage: function (imageId) {
-          removeImageFromPreview(imageId);
-        },
-
-        removeItem: function (itemId) {
-          $(getSelector(itemId, "item")).remove();
-          renumberImageItems();
-        },
-      };
-
-      // ===== 이벤트 바인딩 =====
-      function bindEvents() {
-        $addImageBtn.on("click", function () {
-          createImageItem();
-        });
-
-        $(document).on(
-          "change",
-          'input[type="file"][accept*=".png"]',
-          handleImageFileSelect
-        );
-
-        // 날짜 중복 선택 방지
-        $(document).on(
-          "change",
-          '.illegal-register-image-item input[type="date"]',
-          function () {
-            var $this = $(this);
-            var selectedDate = $this.val();
-            var currentItemId = $this
-              .closest(".illegal-register-image-item")
-              .data("item-id");
-
-            if (!selectedDate) return;
-
-            var isDuplicate = false;
-            $('.illegal-register-image-item input[type="date"]').each(function () {
-              var $other = $(this);
-              var otherItemId = $other
-                .closest(".illegal-register-image-item")
-                .data("item-id");
-
-              if (
-                currentItemId !== otherItemId &&
-                $other.val() === selectedDate
-              ) {
-                isDuplicate = true;
-                return false;
-              }
-            });
-
-            if (isDuplicate) {
-              alert("이미 선택된 날짜입니다. 다른 날짜를 선택해주세요.");
-              $this.val("");
-            }
-          }
-        );
-
-        $modal.on("click", function (event) {
-          if (event.target === $modal[0]) {
-            closeModal();
-          }
-        });
-
-        $closeButtons.on("click", closeModal);
-
-        $(document).on("keydown", function (event) {
-          if (event.key === "Escape" && $modal.hasClass("is-open")) {
-            closeModal();
-          }
-        });
-
-        $modal.on("illegalRegisterModal:open", function () {
-          if ($imageList.children().length === 0) {
-            createImageItem();
-          }
-        });
-      }
-
-      // ===== 초기화 =====
-      bindEvents();
-
-      window.IllegalRegisterModal = {
-        open: openModal,
-        close: closeModal,
-        toggle: function (force) {
-          if (typeof force === "boolean") {
-            force ? openModal() : closeModal();
-            return;
-          }
-          $modal.hasClass("is-open") ? closeModal() : openModal();
-        },
-        element: $modal[0],
-      };
-    })(window, window.jQuery);
-  </script>

@@ -738,8 +738,15 @@
           if (typeof window.clearImageLayer === "function") {
             window.clearImageLayer();
           }
+          
+          // 3. 이미지 데이터 다시 로드
+          if (typeof window.SlidePanel !== 'undefined' && typeof window.SlidePanel.loadList === 'function') {
+            // 슬라이드 패널의 리스트를 다시 로드하면서 이미지 레이어도 함께 갱신됨
+            // 단, 1페이지를 다시 로드하여 최신 상태 반영
+             window.SlidePanel.loadList(1);
+          }
 
-          // 3. 현재 선택된 Feature가 있다면 상태(데이터 존재 여부) 재확인
+          // 4. 현재 선택된 Feature가 있다면 상태(데이터 존재 여부) 재확인
           if (selectedFeature && selectedRegionData && selectedRegionData.pnu) {
             var pnu = selectedRegionData.pnu;
             console.log("현재 선택된 PNU 갱신:", pnu);
@@ -1038,32 +1045,10 @@
         $("#popup-register-btn").on("click", function () {
           if (selectedRegionData) {
             if (
-              window.RegisterModule &&
-              typeof window.RegisterModule.fillForm === "function"
-            ) {
-              window.RegisterModule.fillForm(selectedRegionData);
-            }
-            // PNU 및 좌표 정보를 히든 필드에 설정
-            if (selectedRegionData.pnu) {
-              $("#lndsUnqNo").val(selectedRegionData.pnu);
-            }
-            if (selectedRegionData.coordinateX !== undefined) {
-              $("#gpsLgtd").val(selectedRegionData.coordinateX);
-            }
-            if (selectedRegionData.coordinateY !== undefined) {
-              $("#gpsLttd").val(selectedRegionData.coordinateY);
-            }
-            if (
-              window.RegisterModule &&
-              typeof window.RegisterModule.clearAlert === "function"
-            ) {
-              window.RegisterModule.clearAlert();
-            }
-            if (
               window.IllegalRegisterModal &&
               typeof window.IllegalRegisterModal.open === "function"
             ) {
-              window.IllegalRegisterModal.open();
+              window.IllegalRegisterModal.open(selectedRegionData);
             } else {
               console.warn("IllegalRegisterModal이 초기화되지 않았습니다.");
             }
