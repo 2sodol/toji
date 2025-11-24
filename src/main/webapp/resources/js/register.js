@@ -276,15 +276,14 @@
 
         // Append to hidden input
         var $mappingInput = $("#mappingData_" + itemId);
-        var currentVal = $mappingInput.val();
-        var newVal = currentVal ? currentVal + "||" + mappingValue : mappingValue;
-        $mappingInput.val(newVal);
+        // 날짜별 1장 제한: 기존 값 무시하고 새 값으로 덮어쓰기 (여러 장일 경우 || 로 연결하던 기존 로직 대체)
+        $mappingInput.val(mappingValue);
 
         // Update Preview
         var $preview = $("#preview_" + itemId);
-        if (!$preview.hasClass("has-images")) {
-          $preview.empty().addClass("has-images");
-        }
+        // 기존 이미지가 있다면 제거 (1장 제한)
+        $preview.empty().addClass("has-images");
+
         var $thumb = createImageThumbnail(imageId, base64, file.name, itemId);
         // Store mapping string in data for removal
         $thumb.data("mapping", mappingValue);

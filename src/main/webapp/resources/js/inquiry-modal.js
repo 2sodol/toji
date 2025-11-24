@@ -46,13 +46,7 @@
    */
   function formatDate(dateStr) {
     if (!dateStr || dateStr.length !== 8) return dateStr;
-    return (
-      dateStr.substring(0, 4) +
-      "-" +
-      dateStr.substring(4, 6) +
-      "-" +
-      dateStr.substring(6, 8)
-    );
+    return dateStr.substring(0, 4) + "-" + dateStr.substring(4, 6) + "-" + dateStr.substring(6, 8);
   }
 
   /**
@@ -235,7 +229,7 @@
    * 모든 데이터 초기화
    */
   function clearAllData() {
-    $("#detailDateList").empty();
+    $("#inq_detailDateList").empty();
     clearDetailForm();
   }
 
@@ -243,10 +237,8 @@
    * 상세정보 폼 초기화
    */
   function clearDetailForm() {
-    $("#detailForm .illegal-inquiry-text").text("");
-    $("#detailActionHistory").html(
-      '<div class="illegal-inquiry-action-empty">데이터가 없습니다.</div>'
-    );
+    $("#inq_detailForm .illegal-inquiry-text").text("");
+    $("#inq_detailActionHistory").html('<div class="illegal-inquiry-action-empty">데이터가 없습니다.</div>');
   }
 
   /**
@@ -335,13 +327,11 @@
    * @param {Array} photoDates - 사진 날짜 정보 배열 (선택사항)
    */
   function renderDetailDates(dates, photoDates) {
-    var $container = $("#detailDateList");
+    var $container = $("#inq_detailDateList");
     $container.empty();
 
     if (!dates || dates.length === 0) {
-      $container.html(
-        '<div class="illegal-inquiry-action-empty">등록된 상세정보가 없습니다.</div>'
-      );
+      $container.html('<div class="illegal-inquiry-action-empty">등록된 상세정보가 없습니다.</div>');
       clearDetailForm();
       return;
     }
@@ -407,25 +397,16 @@
       seq = date.ILGLPRVUINFOSEQ || date.ilglPrvuInfoSeq || date.ilgl_prvu_info_seq || null;
     }
 
-
     // 모든 버튼에서 active 클래스 제거
-    $("#detailDateList .illegal-inquiry-date-item").removeClass(
-      "illegal-inquiry-date-item--active"
-    );
+    $("#inq_detailDateList .illegal-inquiry-date-item").removeClass("illegal-inquiry-date-item--active");
 
     // seq 값으로 정확한 버튼 찾기 (같은 날짜가 여러 개일 수 있으므로 seq 사용)
     var $activeButton = null;
     if (seq) {
-      $activeButton = $(
-        "#detailDateList .illegal-inquiry-date-item[data-seq='" + seq + "']"
-      );
+      $activeButton = $("#inq_detailDateList .illegal-inquiry-date-item[data-seq='" + seq + "']");
     } else if (dateStr) {
       // seq가 없으면 날짜로 찾되, 첫 번째 것만 선택
-      $activeButton = $(
-        "#detailDateList .illegal-inquiry-date-item[data-date='" +
-        dateStr +
-        "']"
-      ).first();
+      $activeButton = $("#inq_detailDateList .illegal-inquiry-date-item[data-date='" + dateStr + "']").first();
       // 버튼에서 seq 값 가져오기
       if ($activeButton.length > 0) {
         seq = $activeButton.data("seq");
@@ -491,25 +472,23 @@
     }
 
     // 기본정보 필드 채우기
-    $("#detail_hdqrNm").text(basicInfo.hdqrNm || "-");
-    $("#detail_mtnofNm").text(basicInfo.mtnofNm || "-");
-    $("#detail_routeCd").text(basicInfo.routeCd || "-");
-    $("#detail_drveDrctCd").text(formatDrveDrctCd(basicInfo.drveDrctCd));
-    $("#detail_routeDstnc").text(basicInfo.routeDstnc || "-");
-    $("#detail_strcClssCd").text(formatStrcClssCd(basicInfo.strcClssCd));
-    $("#detail_lndsLdnoAddr").text(basicInfo.lndsLdnoAddr || "-");
+    $("#inq_detail_hdqrNm").text(basicInfo.hdqrNm || "-");
+    $("#inq_detail_mtnofNm").text(basicInfo.mtnofNm || "-");
+    $("#inq_detail_routeCd").text(basicInfo.routeCd || "-");
+    $("#inq_detail_drveDrctCd").text(formatDrveDrctCd(basicInfo.drveDrctCd));
+    $("#inq_detail_routeDstnc").text(basicInfo.routeDstnc || "-");
+    $("#inq_detail_strcClssCd").text(formatStrcClssCd(basicInfo.strcClssCd));
+    $("#inq_detail_lndsLdnoAddr").text(basicInfo.lndsLdnoAddr || "-");
     var formattedDate = formatDate(basicInfo.ocrnDates);
-    $("#detail_ocrnDates").text(formattedDate || "-");
-    $("#detail_prchEmno").text(basicInfo.prchEmno || "-");
-    $("#detail_trnrNm").text(basicInfo.trnrNm || "-");
-    $("#detail_rltrNm").text(basicInfo.rltrNm || "-");
-    $("#detail_trnrAddr").text(basicInfo.trnrAddr || "-");
-    $("#detail_rltrAddr").text(basicInfo.rltrAddr || "-");
-    $("#detail_ilglPssrt").text(basicInfo.ilglPssrt || "-");
-    $("#detail_ilglPssnSqms").text(basicInfo.ilglPssnSqms || "-");
-    $("#detail_ilglPrvuActnStatVal").text(
-      formatIlglPrvuActnStatVal(basicInfo.ilglPrvuActnStatVal)
-    );
+    $("#inq_detail_ocrnDates").text(formattedDate || "-");
+    $("#inq_detail_prchEmno").text(basicInfo.prchEmno || "-");
+    $("#inq_detail_trnrNm").text(basicInfo.trnrNm || "-");
+    $("#inq_detail_rltrNm").text(basicInfo.rltrNm || "-");
+    $("#inq_detail_trnrAddr").text(basicInfo.trnrAddr || "-");
+    $("#inq_detail_rltrAddr").text(basicInfo.rltrAddr || "-");
+    $("#inq_detail_ilglPssrt").text(basicInfo.ilglPssrt || "-");
+    $("#inq_detail_ilglPssnSqms").text(basicInfo.ilglPssnSqms || "-");
+    $("#inq_detail_ilglPrvuActnStatVal").text(formatIlglPrvuActnStatVal(basicInfo.ilglPrvuActnStatVal));
 
     // 조치이력 렌더링
     renderActionHistories(actionHistories);
@@ -520,13 +499,11 @@
    * @param {Array} actionHistories - 조치이력 배열
    */
   function renderActionHistories(actionHistories) {
-    var $container = $("#detailActionHistory");
+    var $container = $("#inq_detailActionHistory");
     $container.empty();
 
     if (!actionHistories || actionHistories.length === 0) {
-      $container.html(
-        '<div class="illegal-inquiry-action-empty">등록된 조치이력이 없습니다.</div>'
-      );
+      $container.html('<div class="illegal-inquiry-action-empty">등록된 조치이력이 없습니다.</div>');
       return;
     }
 
@@ -556,7 +533,7 @@
    */
   function handleEditClick() {
     // 현재 선택된 날짜 버튼에서 seq 가져오기
-    var $activeButton = $("#detailDateList .illegal-inquiry-date-item--active");
+    var $activeButton = $("#inq_detailDateList .illegal-inquiry-date-item--active");
     var seq = null;
 
     if ($activeButton.length > 0) {
@@ -565,7 +542,7 @@
       seq = state.currentSeq;
     } else {
       // 활성화된 버튼이 없으면 첫 번째 버튼 사용
-      var $firstButton = $("#detailDateList .illegal-inquiry-date-item").first();
+      var $firstButton = $("#inq_detailDateList .illegal-inquiry-date-item").first();
       if ($firstButton.length > 0) {
         var firstSeq = $firstButton.data("seq");
         if (firstSeq) {
@@ -632,9 +609,9 @@
       method: "GET",
       data: {
         lndsUnqNo: state.currentLndsUnqNo,
-        type: "photo"
+        type: "photo",
       },
-      dataType: "json"
+      dataType: "json",
     })
       .done(function (response) {
         if (response.success && response.data && response.data.dates) {
@@ -650,9 +627,8 @@
             // 날짜 포맷팅 (yyyyMMdd -> yyyy-MM-dd)
             var formattedDate = ocrnDates;
             if (ocrnDates && ocrnDates.length === 8) {
-              formattedDate = ocrnDates.substring(0, 4) + "-" +
-                ocrnDates.substring(4, 6) + "-" +
-                ocrnDates.substring(6, 8);
+              formattedDate =
+                ocrnDates.substring(0, 4) + "-" + ocrnDates.substring(4, 6) + "-" + ocrnDates.substring(6, 8);
             }
 
             // 같은 날짜의 사진 개수 세기
@@ -673,7 +649,7 @@
               seq: ilglPrvuInfoSeq, // 기본 정보 SEQ (이미지 조회용)
               attflSeq: ilglAttflSeq, // 첨부파일 SEQ (개별 사진 식별용)
               date: ocrnDates,
-              text: formattedDate + photoNumber
+              text: formattedDate + photoNumber,
             });
           });
 
@@ -688,12 +664,7 @@
             if (dates.length > 0) {
               var seq1 = dates[0].seq;
               var seq2 = dates.length >= 2 ? dates[1].seq : dates[0].seq;
-              var seq3 =
-                dates.length >= 3
-                  ? dates[2].seq
-                  : dates.length === 2
-                    ? dates[1].seq
-                    : dates[0].seq;
+              var seq3 = dates.length >= 3 ? dates[2].seq : dates.length === 2 ? dates[1].seq : dates[0].seq;
 
               $("#compareDate1").val(seq1).trigger("change");
               $("#compareDate2").val(seq2).trigger("change");
@@ -737,15 +708,8 @@
     var zoom = 17;
 
     // 선택된 영역 데이터가 있으면 그 좌표를 중심으로 설정
-    if (
-      window.selectedRegionData &&
-      window.selectedRegionData.coordinateX &&
-      window.selectedRegionData.coordinateY
-    ) {
-      center = [
-        window.selectedRegionData.coordinateX,
-        window.selectedRegionData.coordinateY,
-      ];
+    if (window.selectedRegionData && window.selectedRegionData.coordinateX && window.selectedRegionData.coordinateY) {
+      center = [window.selectedRegionData.coordinateX, window.selectedRegionData.coordinateY];
     } else if (window.map) {
       var view = window.map.getView();
       center = view.getCenter();
@@ -768,12 +732,7 @@
         var halfWidth = (width * resolution) / 2;
         var halfHeight = (height * resolution) / 2;
 
-        extent = [
-          center[0] - halfWidth,
-          center[1] - halfHeight,
-          center[0] + halfWidth,
-          center[1] + halfHeight,
-        ];
+        extent = [center[0] - halfWidth, center[1] - halfHeight, center[0] + halfWidth, center[1] + halfHeight];
       }
     }
 
@@ -804,19 +763,18 @@
       if ($controls.length > 0 && $controls.find(".photo-compare-opacity").length === 0) {
         var sliderHtml =
           '<div class="photo-compare-opacity">' +
-          '<label>투명도</label>' +
-          '<input type="range" min="0" max="1" step="0.1" value="1" data-map-index="' + (i - 1) + '">' +
-          '</div>';
+          "<label>투명도</label>" +
+          '<input type="range" min="0" max="1" step="0.1" value="1" data-map-index="' +
+          (i - 1) +
+          '">' +
+          "</div>";
         $controls.append(sliderHtml);
       }
 
       // VWorld 배경 레이어 (일반 - GRAPHIC)
       var baseLayer = new ol.layer.Tile({
         source: new ol.source.XYZ({
-          url:
-            "https://api.vworld.kr/req/wmts/1.0.0/" +
-            VWORLD_API_KEY +
-            "/Base/{z}/{y}/{x}.png",
+          url: "https://api.vworld.kr/req/wmts/1.0.0/" + VWORLD_API_KEY + "/Base/{z}/{y}/{x}.png",
           crossOrigin: "anonymous",
         }),
         visible: true,
@@ -825,10 +783,7 @@
       // VWorld 위성 레이어 (위성 - PHOTO)
       var satelliteLayer = new ol.layer.Tile({
         source: new ol.source.XYZ({
-          url:
-            "https://api.vworld.kr/req/wmts/1.0.0/" +
-            VWORLD_API_KEY +
-            "/Satellite/{z}/{y}/{x}.jpeg",
+          url: "https://api.vworld.kr/req/wmts/1.0.0/" + VWORLD_API_KEY + "/Satellite/{z}/{y}/{x}.jpeg",
           crossOrigin: "anonymous",
         }),
         visible: false,
@@ -924,12 +879,7 @@
       dataType: "json",
     })
       .done(function (response) {
-        if (
-          response.success &&
-          response.data &&
-          response.data.photos &&
-          response.data.photos.length > 0
-        ) {
+        if (response.success && response.data && response.data.photos && response.data.photos.length > 0) {
           var photo = response.data.photos[0];
 
           // webPath가 있으면 사용, 없으면 기존 로직 사용
@@ -978,10 +928,7 @@
           // 좌표 설정
           var centerX, centerY;
 
-          if (
-            window.selectedRegionData &&
-            window.selectedRegionData.coordinateX
-          ) {
+          if (window.selectedRegionData && window.selectedRegionData.coordinateX) {
             centerX = window.selectedRegionData.coordinateX;
             centerY = window.selectedRegionData.coordinateY;
           } else {
@@ -1040,7 +987,7 @@
     });
 
     // 사진 비교 버튼 클릭
-    state.$modal.on("click", "#photoCompareBtn", function () {
+    state.$modal.on("click", "#inq_photoCompareBtn", function () {
       openCompareModal();
     });
 
@@ -1085,10 +1032,7 @@
     // ESC 키로 닫기
     $(document).on("keydown", function (e) {
       if (e.key === "Escape") {
-        if (
-          state.$compareModal &&
-          state.$compareModal.attr("aria-hidden") === "false"
-        ) {
+        if (state.$compareModal && state.$compareModal.attr("aria-hidden") === "false") {
           closeCompareModal();
         } else if (isModalOpen()) {
           closeModal();
@@ -1102,20 +1046,16 @@
    */
   function bindDateEvents() {
     // 날짜 선택 이벤트
-    state.$modal.on(
-      "click",
-      "#detailDateList .illegal-inquiry-date-item",
-      function () {
-        var $button = $(this);
-        var dateStr = $button.data("date");
-        var seq = $button.data("seq");
+    state.$modal.on("click", "#inq_detailDateList .illegal-inquiry-date-item", function () {
+      var $button = $(this);
+      var dateStr = $button.data("date");
+      var seq = $button.data("seq");
 
-        selectDetailDate({
-          OCRNDATES: dateStr,
-          ILGLPRVUINFOSEQ: seq,
-        });
-      }
-    );
+      selectDetailDate({
+        OCRNDATES: dateStr,
+        ILGLPRVUINFOSEQ: seq,
+      });
+    });
   }
 
   /**
