@@ -650,6 +650,7 @@
               attflSeq: ilglAttflSeq, // 첨부파일 SEQ (개별 사진 식별용)
               date: ocrnDates,
               text: formattedDate + photoNumber,
+              value: ilglPrvuInfoSeq + "|" + ilglAttflSeq, // 고유 식별값
             });
           });
 
@@ -662,13 +663,13 @@
 
             // 기본값 자동 선택 로직
             if (dates.length > 0) {
-              var seq1 = dates[0].seq;
-              var seq2 = dates.length >= 2 ? dates[1].seq : dates[0].seq;
-              var seq3 = dates.length >= 3 ? dates[2].seq : dates.length === 2 ? dates[1].seq : dates[0].seq;
+              var val1 = dates[0].value;
+              var val2 = dates.length >= 2 ? dates[1].value : dates[0].value;
+              var val3 = dates.length >= 3 ? dates[2].value : dates.length === 2 ? dates[1].value : dates[0].value;
 
-              $("#compareDate1").val(seq1).trigger("change");
-              $("#compareDate2").val(seq2).trigger("change");
-              $("#compareDate3").val(seq3).trigger("change");
+              $("#compareDate1").val(val1).trigger("change");
+              $("#compareDate2").val(val2).trigger("change");
+              $("#compareDate3").val(val3).trigger("change");
             }
           }, 200);
         } else {
@@ -688,6 +689,20 @@
     if (state.$compareModal) {
       state.$compareModal.attr("aria-hidden", "true");
     }
+
+    // 지도 객체 정리 및 초기화 (좌표가 다른 용지 조회 시 뷰 갱신을 위해 필수)
+    if (state.compareMaps && state.compareMaps.length > 0) {
+      state.compareMaps.forEach(function (map) {
+        map.setTarget(null);
+      });
+      state.compareMaps = [];
+    }
+
+    // 지도 컨테이너 비우기
+    $(".photo-compare-map").empty();
+
+    // 날짜 선택박스 초기화
+    $(".photo-compare-select").empty().append('<option value="">날짜 선택</option>');
   }
 
   /**
@@ -840,7 +855,7 @@
     dates.forEach(function (d) {
       $selects.append(
         $("<option>", {
-          value: d.seq,
+          value: d.value,
           text: d.text,
         })
       );
@@ -853,7 +868,7 @@
   /**
    * 선택된 날짜의 이미지 로드 및 지도에 표시
    */
-  function loadCompareImage(mapIndex, seq) {
+  function loadCompareImage(mapIndex, seqValue) {
     var map = state.compareMaps[mapIndex];
     if (!map) {
       return;
@@ -865,7 +880,17 @@
       map.customImageLayer = null;
     }
 
-    if (!seq) return;
+    if (!seqValue) return;
+
+    // seqValue 파싱 (ilglPrvuInfoSeq|ilglAttflSeq)
+    var infoSeq = seqValue;
+    var attflSeq = null;
+
+    if (String(seqValue).indexOf("|") > -1) {
+      var parts = String(seqValue).split("|");
+      infoSeq = parts[0];
+      attflSeq = parts[1];
+    }
 
     // 이미지 정보 조회
     var $target = $(map.getTargetElement());
@@ -875,12 +900,27 @@
     $.ajax({
       url: "/regions/photos",
       method: "GET",
-      data: { ilglPrvuInfoSeq: seq },
+      data: { ilglPrvuInfoSeq: infoSeq },
       dataType: "json",
     })
       .done(function (response) {
         if (response.success && response.data && response.data.photos && response.data.photos.length > 0) {
-          var photo = response.data.photos[0];
+          var photo = null;
+
+          if (attflSeq) {
+            // attflSeq가 일치하는 사진 찾기
+            // 데이터 타입이 다를 수 있으므로 == 비교 사용
+            photo = response.data.photos.find(function (p) {
+              return (p.ILGLATTFLSEQ || p.ilglAttflSeq) == attflSeq;
+            });
+          }
+
+          // 찾지 못했거나 attflSeq가 없으면 첫 번째 사진 사용
+          if (!photo) {
+            photo = response.data.photos[0];
+          }
+
+          // webPath가 있으면 사용, 없으면 기존 로직 사용
 
           // webPath가 있으면 사용, 없으면 기존 로직 사용
           var imageUrl;
