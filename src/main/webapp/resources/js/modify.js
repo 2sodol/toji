@@ -576,11 +576,383 @@
     }
 
     /**
+     * 숫자 입력 필드에 대해 빈 값은 null, 숫자가 아니면 경고 메시지를 보여준다.
+     * @param {string} rawValue - 사용자가 입력한 원본 값
+     * @param {string} warningMessage - 숫자가 아닐 때 표시할 경고 메시지
+     * @param {jQuery} $input - 포커스를 줄 입력 요소
+     * @returns {number|null|undefined} - 유효한 숫자, null(빈 값), undefined(에러)
+     */
+    function parseOptionalNumber(rawValue, warningMessage, $input) {
+        if (!rawValue || rawValue === "") {
+            return null;
+        }
+
+        var parsed = parseFloat(rawValue);
+        if (isNaN(parsed)) {
+            showModifyAlert("warning", warningMessage);
+            if ($input && $input.length) {
+                $input.trigger("focus");
+            }
+            return undefined;
+        }
+
+        return parsed;
+    }
+
+    /**
+     * 조치 이력 입력 필드에서 유효한 항목만 추출한다.
+     * @returns {Array<{actnDttm: string, actnCtnt: string}>}
+     */
+    function collectActionHistories() {
+        var histories = [];
+
+        $("#modifyactionHistoryList .illegal-register-history__item").each(function () {
+            var dateValue = $(this)
+                .find(".illegal-register-history__date-input")
+                .val();
+            var descValue = $(this)
+                .find(".illegal-register-history__desc-input")
+                .val()
+                .trim();
+
+            if (dateValue && descValue) {
+                // 날짜 문자열을 ISO 8601 형식으로 변환 (LocalDateTime 형식)
+                var dateTimeValue = dateValue + "T00:00:00";
+                histories.push({
+                    actnDttm: dateTimeValue,
+                    actnCtnt: descValue,
+                });
+            }
+        });
+
+        return histories;
+    }
+
+    /**
      * 수정 버튼 클릭 핸들러
      */
     function handleModifySubmit() {
-        // TODO: 수정 제출 로직 구현
-        showModifyAlert("info", "수정 기능은 아직 구현 중입니다.");
+        if (!state.modifySeq) {
+            return;
+        }
+
+        var $headOfficeInput = $("#modifyhdqrNm");
+        var $branchOfficeInput = $("#modifymtnofNm");
+        var $routeNameInput = $("#modifyrouteCd");
+        var $drivingDirectionSelect = $("#modifydrveDrctCd");
+        var $distanceMarkInput = $("#modifyrouteDstnc");
+        var $detailAddressInput = $("#modifylndsLdnoAddr");
+        var $incidentDateInput = $("#modifyocrnDates");
+        var $managerNameInput = $("#modifyprchEmno");
+        var $actorNameInput = $("#modifytrnrNm");
+        var $relatedPersonInput = $("#modifyrltrNm");
+        var $actorAddressInput = $("#modifytrnrAddr");
+        var $relatedAddressInput = $("#modifyrltrAddr");
+        var $occupancyRateInput = $("#modifyilglPssrt");
+        var $occupancyAreaInput = $("#modifyilglPssnSqms");
+        var $lndsUnqNoInput = $("#modifylndsUnqNo");
+        var $gpsLgtdInput = $("#modifygpsLgtd");
+        var $gpsLttdInput = $("#modifygpsLttd");
+
+        var headOffice = $headOfficeInput.val().trim();
+        var branchOffice = $branchOfficeInput.val().trim();
+        var routeName = $routeNameInput.val().trim();
+        var drivingDirection = $drivingDirectionSelect.val();
+        var distanceMark = $distanceMarkInput.val().trim();
+        var category = $('input[name="modifystrcClssCd"]:checked').val();
+        var detailAddress = $detailAddressInput.val().trim();
+        var incidentDate = $incidentDateInput.val();
+        var managerName = $managerNameInput.val().trim();
+        var actorName = $actorNameInput.val().trim();
+        var relatedPersonName = $relatedPersonInput.val().trim();
+        var actorAddress = $actorAddressInput.val().trim();
+        var relatedAddress = $relatedAddressInput.val().trim();
+        var occupancyRateValue = $occupancyRateInput.val();
+        var occupancyAreaValue = $occupancyAreaInput.val();
+        var actionStatus = $('input[name="modifyilglPrvuActnStatVal"]:checked').val();
+        var lndsUnqNo = $lndsUnqNoInput.val().trim();
+        var gpsLgtdValue = $gpsLgtdInput.val().trim();
+        var gpsLttdValue = $gpsLttdInput.val().trim();
+
+        if (!headOffice) {
+            showModifyAlert("warning", "본부를 입력해주세요.");
+            return;
+        }
+        if (!branchOffice) {
+            showModifyAlert("warning", "지사를 입력해주세요.");
+            return;
+        }
+        if (!routeName) {
+            showModifyAlert("warning", "노선명을 입력해주세요.");
+            return;
+        }
+        if (!drivingDirection) {
+            showModifyAlert("warning", "주행방향을 선택해주세요.");
+            return;
+        }
+        if (!incidentDate) {
+            showModifyAlert("warning", "발생일자를 선택해주세요.");
+            $incidentDateInput.trigger("focus");
+            return;
+        }
+        if (!managerName) {
+            showModifyAlert("warning", "담당자를 입력해주세요.");
+            $managerNameInput.trigger("focus");
+            return;
+        }
+        if (!actorName) {
+            showModifyAlert("warning", "행위자명을 입력해주세요.");
+            $actorNameInput.trigger("focus");
+            return;
+        }
+        if (!actionStatus) {
+            showModifyAlert("warning", "조치상태를 선택해주세요.");
+            return;
+        }
+
+        var occupancyRate = parseOptionalNumber(
+            occupancyRateValue,
+            "점유율은 숫자로 입력해주세요.",
+            $occupancyRateInput
+        );
+        if (occupancyRate === undefined) {
+            return;
+        }
+
+        var occupancyArea = parseOptionalNumber(
+            occupancyAreaValue,
+            "점유면적은 숫자로 입력해주세요.",
+            $occupancyAreaInput
+        );
+        if (occupancyArea === undefined) {
+            return;
+        }
+
+        var actionHistories = collectActionHistories();
+
+        // GPS 좌표 파싱
+        var gpsLgtd = parseOptionalNumber(
+            gpsLgtdValue,
+            "경도는 숫자로 입력해주세요.",
+            $gpsLgtdInput
+        );
+        if (gpsLgtd === undefined && gpsLgtdValue) {
+            return;
+        }
+
+        var gpsLttd = parseOptionalNumber(
+            gpsLttdValue,
+            "위도는 숫자로 입력해주세요.",
+            $gpsLttdInput
+        );
+        if (gpsLttd === undefined && gpsLttdValue) {
+            return;
+        }
+
+        // 발생일자를 yyyyMMdd 형식으로 변환
+        var ocrnDates = null;
+        if (incidentDate) {
+            var date = new Date(incidentDate);
+            var year = date.getFullYear();
+            var month = String(date.getMonth() + 1).padStart(2, "0");
+            var day = String(date.getDate()).padStart(2, "0");
+            ocrnDates = year + month + day;
+        }
+
+        // 거리표지판을 BigDecimal로 변환
+        var routeDstnc = null;
+        if (distanceMark) {
+            routeDstnc = parseOptionalNumber(
+                distanceMark,
+                "거리표지판은 숫자로 입력해주세요.",
+                $distanceMarkInput
+            );
+            if (routeDstnc === undefined) {
+                return;
+            }
+        }
+
+        // 이미지 데이터 수집
+        var images = [];
+        var hasInvalidImage = false;
+
+        // modify-modal.jsp에서 생성된 모든 imageMappingData 히든 필드 수집 (ID 패턴 주의: mappingData_modifyimageItem_X)
+        var $mappingDataInputs = $('input[name="imageMappingData[]"]');
+
+        $mappingDataInputs.each(function () {
+            var $input = $(this);
+            var inputId = $input.attr('id');
+            // modify 모달의 이미지 아이템인지 확인 (modifyimageItem_)
+            if (!inputId || inputId.indexOf('modifyimageItem_') === -1) {
+                return;
+            }
+
+            var mappingData = $input.val();
+
+            if (!mappingData || mappingData.trim() === "") {
+                return; // 매핑 데이터가 없으면 건너뛰기
+            }
+
+            // 날짜:base64||날짜:base64 형식으로 저장된 데이터 파싱
+            var mappings = mappingData.split("||");
+
+            mappings.forEach(function (mapping) {
+                if (!mapping || mapping.trim() === "") {
+                    return;
+                }
+
+                var parts = mapping.split(":");
+                if (parts.length !== 2) {
+                    return; // 형식이 맞지 않으면 건너뛰기
+                }
+
+                var imageDate = parts[0]; // yyyy-MM-dd 형식
+                var base64Content = parts[1]; // base64 데이터
+
+                if (!imageDate || imageDate.trim() === "") {
+                    hasInvalidImage = true;
+                    return;
+                }
+
+                // base64를 완전한 형식으로 변환 (확장자 추정)
+                var mimeType = "image/png";
+                var extension = "png";
+
+                // base64 데이터 시작 부분을 확인하여 타입 판단
+                var firstChars = base64Content.substring(0, 10);
+                if (
+                    firstChars.startsWith("/9j/") ||
+                    base64Content.substring(0, 20).includes("JFIF") ||
+                    base64Content.substring(0, 20).includes("Exif")
+                ) {
+                    // JPEG
+                    mimeType = "image/jpeg";
+                    extension = "jpg";
+                } else if (firstChars.startsWith("iVBORw0KGgo")) {
+                    // PNG
+                    mimeType = "image/png";
+                    extension = "png";
+                }
+
+                var fullBase64 = "data:" + mimeType + ";base64," + base64Content;
+                var size = Math.round(base64Content.length * 0.75);
+
+                // 이미지 등록일을 yyyyMMdd 형식으로 변환
+                var dateObj = new Date(imageDate);
+                if (isNaN(dateObj.getTime())) {
+                    hasInvalidImage = true;
+                    return;
+                }
+
+                var year = dateObj.getFullYear();
+                var month = String(dateObj.getMonth() + 1).padStart(2, "0");
+                var day = String(dateObj.getDate()).padStart(2, "0");
+                var imageOcrnDatesFormatted = year + month + day;
+
+                var filename =
+                    "image_" +
+                    imageOcrnDatesFormatted +
+                    "_" +
+                    Date.now() +
+                    "_" +
+                    Math.floor(Math.random() * 10000) +
+                    "." +
+                    extension;
+
+                images.push({
+                    filename: filename,
+                    base64: fullBase64,
+                    size: size,
+                    extension: extension,
+                    ocrnDates: imageOcrnDatesFormatted,
+                    date: imageDate,
+                });
+            });
+        });
+
+        if (hasInvalidImage) {
+            showModifyAlert("warning", "모든 이미지의 등록일을 선택해주세요.");
+            return;
+        }
+
+        var files = {
+            images: images,
+            kml: null,
+        };
+
+        var payload = {
+            hdqrNm: headOffice,
+            mtnofNm: branchOffice,
+            routeCd: routeName,
+            drveDrctCd: drivingDirection,
+            routeDstnc: routeDstnc,
+            strcClssCd: category,
+            lndsLdnoAddr: detailAddress || null,
+            ocrnDates: ocrnDates,
+            prchEmno: managerName,
+            trnrNm: actorName,
+            rltrNm: relatedPersonName || null,
+            trnrAddr: actorAddress || null,
+            rltrAddr: relatedAddress || null,
+            ilglPssrt: occupancyRate,
+            ilglPssnSqms: occupancyArea,
+            ilglPrvuActnStatVal: actionStatus,
+            actionHistories: actionHistories,
+            lndsUnqNo: lndsUnqNo || null,
+            gpsLgtd: gpsLgtd,
+            gpsLttd: gpsLttd,
+            files: files,
+            deletedFileIds: state.deletedFileIds || []
+        };
+
+        // 버튼 로딩 상태
+        var $btn = $("#illegalModifySubmitBtn");
+        $btn.prop("disabled", true).text("저장 중...");
+
+        $.ajax({
+            url: "/regions/update?ilglPrvuInfoSeq=" + state.modifySeq,
+            method: "PUT",
+            contentType: "application/json",
+            data: JSON.stringify(payload),
+            dataType: "json",
+        })
+            .done(function () {
+                showModifyAlert("success", "수정이 완료되었습니다.");
+                
+                // 목록 갱신
+                if (typeof window.loadRecentRegions === "function") {
+                    window.loadRecentRegions();
+                }
+                if (
+                    window.SlidePanel &&
+                    typeof window.SlidePanel.loadList === "function"
+                ) {
+                    window.SlidePanel.loadList(1);
+                }
+
+                // 모달 닫기
+                setTimeout(function () {
+                    if (
+                        window.IllegalModifyModal &&
+                        typeof window.IllegalModifyModal.close === "function"
+                    ) {
+                        window.IllegalModifyModal.close();
+                    }
+                }, 500);
+            })
+            .fail(function (xhr) {
+                var message = "수정 중 오류가 발생했습니다.";
+                var responseJSON = xhr.responseJSON || {};
+
+                if (responseJSON.message) {
+                    message = responseJSON.message;
+                }
+
+                showModifyAlert("danger", message);
+            })
+            .always(function () {
+                $btn.prop("disabled", false).text("수정");
+            });
     }
 
     /**
