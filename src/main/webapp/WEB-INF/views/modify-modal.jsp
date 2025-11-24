@@ -916,7 +916,8 @@
                 return imageDate;
             }
 
-            // ===== 파일 처리 =====
+            // ===== 파일 처리 (modify.js로 이관됨 - 중복 실행 방지를 위해 주석 처리) =====
+            /*
             function handleImageFileSelect(event) {
                 var fileInput = event.target;
                 var itemId = $(fileInput).data("item-id");
@@ -1005,6 +1006,7 @@
                         $(fileInput).val("");
                     });
             }
+            */
 
             // ===== 모달 관리 =====
             function openModal() {
@@ -1087,6 +1089,8 @@
 
             // ===== 이벤트 바인딩 =====
             function bindEvents() {
+                // 이미지 관련 이벤트 처리는 modify.js로 이관됨
+                /*
                 $addImageBtn.on("click", function () {
                     createImageItem();
                 });
@@ -1132,6 +1136,7 @@
                         }
                     }
                 );
+                */
 
                 $modal.on("click", function (event) {
                     if (event.target === $modal[0]) {
@@ -1148,9 +1153,11 @@
                 });
 
                 $modal.on("illegalModifyModal:open", function () {
+                    /* modify.js로 이관됨
                     if ($imageList.children().length === 0) {
                         createImageItem();
                     }
+                    */
                 });
             }
 

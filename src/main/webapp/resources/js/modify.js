@@ -504,7 +504,7 @@
       // 숨겨진 파일 입력
       var $fileInput = $("<input>", {
         type: "file",
-        class: "image-file-input",
+        class: "modify-image-file-input",
         id: "modifyimageFileInput_" + itemId,
         "data-item-id": itemId,
         accept: ".png,.jpg,.jpeg",
@@ -742,9 +742,16 @@
       return;
     }
 
-    // 날짜 선택 확인
     var $dateInput = $("#modifyimageDate_" + itemId);
     var imageDate = $dateInput.val();
+
+    // 디버깅용 로그 (제거 예정)
+    // console.log("Debugging handleImageFileSelect:", {
+    //   target: event.target,
+    //   itemId: itemId,
+    //   foundDateInput: $dateInput.length > 0,
+    //   imageDate: imageDate
+    // });
 
     if (!imageDate) {
       showModifyAlert("warning", "이미지 등록일을 먼저 선택해주세요.");
@@ -914,11 +921,16 @@
 
       if (dateValue && descValue) {
         // 날짜 문자열을 ISO 8601 형식으로 변환 (LocalDateTime 형식)
-        var dateTimeValue = dateValue + "T00:00:00";
-        histories.push({
-          actnDttm: dateTimeValue,
-          actnCtnt: descValue,
-        });
+        var dateTimeValue = null;
+
+        // dateValue가 유효한 날짜 형식(yyyy-MM-dd)인지 확인
+        if (dateValue && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+          dateTimeValue = dateValue + "T00:00:00";
+          histories.push({
+            actnDttm: dateTimeValue,
+            actnCtnt: descValue,
+          });
+        }
       }
     });
 
@@ -1297,7 +1309,7 @@
     });
 
     // 파일 선택 시 처리
-    $(document).on("change", 'input[type="file"][accept*=".png"]', handleImageFileSelect);
+    $(document).on("change", ".modify-image-file-input", handleImageFileSelect);
 
     // 날짜 중복 선택 방지
     $(document).on("change", '.illegal-register-image-item input[type="date"]', function () {
