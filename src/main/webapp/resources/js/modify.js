@@ -1275,9 +1275,17 @@
       .done(function () {
         showModifyAlert("success", "삭제가 완료되었습니다.");
 
-        // 목록 갱신
-        if (typeof window.loadRecentRegions === "function") {
-          window.loadRecentRegions();
+        // 지도 및 상태 갱신 (WMS 레이어, 팝업 버튼, 슬라이드 패널 등)
+        if (typeof window.refreshMapState === "function") {
+          window.refreshMapState();
+        } else {
+          // refreshMapState가 없는 경우 기존 방식대로 개별 갱신
+          if (typeof window.loadRecentRegions === "function") {
+            window.loadRecentRegions();
+          }
+          if (window.SlidePanel && typeof window.SlidePanel.loadList === "function") {
+            window.SlidePanel.loadList(1);
+          }
         }
 
         // 모달 닫기
