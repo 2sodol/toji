@@ -502,4 +502,9 @@ public class RegionServiceImpl implements RegionService {
 
     log.info("지역 정보 삭제 완료: ilglPrvuInfoSeq={}", ilglPrvuInfoSeq);
   }
+
+  @Override
+  public Attachment findAttachmentBySeq(Long ilglAttflSeq) {
+    return regionMapper.findAttachmentBySeq(ilglAttflSeq);
+  }
 }

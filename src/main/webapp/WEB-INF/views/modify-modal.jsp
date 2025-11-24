@@ -13,7 +13,9 @@
             </header>
             <div class="illegal-register-modal__body">
                 <form id="illegalModifyForm" class="illegal-register-form" novalidate>
-                    <jsp:include page="illegal-register-form-fields.jsp" />
+                    <jsp:include page="illegal-register-form-fields.jsp">
+                        <jsp:param name="prefix" value="modify" />
+                    </jsp:include>
                 </form>
             </div>
             <footer class="illegal-register-modal__footer">

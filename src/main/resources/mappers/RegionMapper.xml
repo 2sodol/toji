@@ -379,4 +379,18 @@
     ORDER BY a.ILGL_ATTFL_SEQ DESC
   </select>
 
+  <!-- 첨부파일 상세 조회 -->
+  <select id="findAttachmentBySeq" parameterType="Long" resultType="Attachment">
+    SELECT
+      a.ILGL_ATTFL_SEQ as ilglAttflSeq,
+      a.ILGL_PRVU_ADDR_SEQ as ilglPrvuAddrSeq,
+      a.ATTFL_NM as attflNm,
+      a.ATTFL_PATH as attflPath,
+      a.ATTFL_CPCT as attflCpct,
+      a.OCRN_DATES as ocrnDates
+    FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 a
+    WHERE a.ILGL_ATTFL_SEQ = #{ilglAttflSeq}
+      AND a.USE_YN = 'Y'
+  </select>
+
 </mapper>

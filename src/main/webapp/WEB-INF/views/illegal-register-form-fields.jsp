@@ -3,32 +3,32 @@
 
         <section class="illegal-register-form__section">
             <!-- 히든 필드: PNU 및 좌표 정보 -->
-            <input id="lndsUnqNo" name="lndsUnqNo" type="hidden" />
-            <input id="gpsLgtd" name="gpsLgtd" type="hidden" />
-            <input id="gpsLttd" name="gpsLttd" type="hidden" />
+            <input id="${param.prefix}lndsUnqNo" name="lndsUnqNo" type="hidden" />
+            <input id="${param.prefix}gpsLgtd" name="gpsLgtd" type="hidden" />
+            <input id="${param.prefix}gpsLttd" name="gpsLttd" type="hidden" />
 
             <p class="illegal-register-form__section-title">
                 기본정보<span class="illegal-register-form__required">*</span>
             </p>
             <div class="illegal-register-grid illegal-register-grid--cols-3">
                 <div class="illegal-register-field">
-                    <label class="illegal-register-label" for="hdqrNm">본부</label>
-                    <input type="text" class="illegal-register-input" id="hdqrNm" value="${loginUserDept}"
+                    <label class="illegal-register-label" for="${param.prefix}hdqrNm">본부</label>
+                    <input type="text" class="illegal-register-input" id="${param.prefix}hdqrNm" value="${loginUserDept}"
                         maxlength="100" required readonly />
                 </div>
                 <div class="illegal-register-field">
-                    <label class="illegal-register-label" for="mtnofNm">지사</label>
-                    <input type="text" class="illegal-register-input" id="mtnofNm" maxlength="100" required readonly />
+                    <label class="illegal-register-label" for="${param.prefix}mtnofNm">지사</label>
+                    <input type="text" class="illegal-register-input" id="${param.prefix}mtnofNm" maxlength="100" required readonly />
                 </div>
                 <div class="illegal-register-field">
-                    <label class="illegal-register-label" for="routeCd">노선</label>
-                    <input type="text" class="illegal-register-input" id="routeCd" maxlength="100" required readonly />
+                    <label class="illegal-register-label" for="${param.prefix}routeCd">노선</label>
+                    <input type="text" class="illegal-register-input" id="${param.prefix}routeCd" maxlength="100" required readonly />
                 </div>
             </div>
             <div class="illegal-register-grid illegal-register-grid--cols-3">
                 <div class="illegal-register-field">
-                    <label class="illegal-register-label" for="drveDrctCd">주행방향</label>
-                    <select class="illegal-register-select" id="drveDrctCd" required disabled>
+                    <label class="illegal-register-label" for="${param.prefix}drveDrctCd">주행방향</label>
+                    <select class="illegal-register-select" id="${param.prefix}drveDrctCd" required disabled>
                         <option value="" disabled selected>선택하세요</option>
                         <option value="UP">상행</option>
                         <option value="DOWN">하행</option>
@@ -36,19 +36,19 @@
                     </select>
                 </div>
                 <div class="illegal-register-field">
-                    <label class="illegal-register-label" for="routeDstnc">이정 (km)</label>
-                    <input type="text" class="illegal-register-input" id="routeDstnc" placeholder="예: 123.5km"
+                    <label class="illegal-register-label" for="${param.prefix}routeDstnc">이정 (km)</label>
+                    <input type="text" class="illegal-register-input" id="${param.prefix}routeDstnc" placeholder="예: 123.5km"
                         maxlength="50" readonly />
                 </div>
                 <div class="illegal-register-field">
                     <span class="illegal-register-label">구분</span>
                     <div class="illegal-register-segmented" role="radiogroup" aria-label="구분">
                         <label class="illegal-register-segmented__option illegal-register-segmented__option_left">
-                            <input type="radio" name="strcClssCd" value="GENERAL" checked />
+                            <input type="radio" name="${param.prefix}strcClssCd" value="GENERAL" checked />
                             <span>일반</span>
                         </label>
                         <label class="illegal-register-segmented__option illegal-register-segmented__option_right">
-                            <input type="radio" name="strcClssCd" value="BRIDGE" />
+                            <input type="radio" name="${param.prefix}strcClssCd" value="BRIDGE" />
                             <span>교량</span>
                         </label>
                     </div>
@@ -56,9 +56,9 @@
             </div>
             <div class="illegal-register-grid illegal-register-grid--cols-2">
                 <div class="illegal-register-field illegal-register-field--full">
-                    <label class="illegal-register-label" for="lndsLdnoAddr">세부위치(주소)</label>
+                    <label class="illegal-register-label" for="${param.prefix}lndsLdnoAddr">세부위치(주소)</label>
                     <div class="illegal-register-input-group">
-                        <input type="text" class="illegal-register-input" id="lndsLdnoAddr" placeholder="주소를 검색하세요"
+                        <input type="text" class="illegal-register-input" id="${param.prefix}lndsLdnoAddr" placeholder="주소를 검색하세요"
                             maxlength="255" readonly />
                     </div>
                 </div>
@@ -71,29 +71,29 @@
             </p>
             <div class="illegal-register-grid illegal-register-grid--cols-4 illegal-register-grid--single-row">
                 <div class="illegal-register-field">
-                    <label class="illegal-register-label" for="ocrnDates">발생일자</label>
-                    <input type="date" class="illegal-register-input" id="ocrnDates" value="<%= todayIsoDate %>"
+                    <label class="illegal-register-label" for="${param.prefix}ocrnDates">발생일자</label>
+                    <input type="date" class="illegal-register-input" id="${param.prefix}ocrnDates" value="<%= todayIsoDate %>"
                         required />
                 </div>
                 <div class="illegal-register-field">
-                    <label class="illegal-register-label" for="prchEmno">담당자</label>
-                    <input type="text" class="illegal-register-input" id="prchEmno" value="${loginUserName}"
+                    <label class="illegal-register-label" for="${param.prefix}prchEmno">담당자</label>
+                    <input type="text" class="illegal-register-input" id="${param.prefix}prchEmno" value="${loginUserName}"
                         maxlength="100" required />
                 </div>
                 <div class="illegal-register-field">
-                    <label class="illegal-register-label" for="trnrNm">행위자명</label>
-                    <input type="text" class="illegal-register-input" id="trnrNm" maxlength="100" required />
+                    <label class="illegal-register-label" for="${param.prefix}trnrNm">행위자명</label>
+                    <input type="text" class="illegal-register-input" id="${param.prefix}trnrNm" maxlength="100" required />
                 </div>
                 <div class="illegal-register-field">
-                    <label class="illegal-register-label" for="rltrNm">관련자</label>
-                    <input type="text" class="illegal-register-input" id="rltrNm" maxlength="100" />
+                    <label class="illegal-register-label" for="${param.prefix}rltrNm">관련자</label>
+                    <input type="text" class="illegal-register-input" id="${param.prefix}rltrNm" maxlength="100" />
                 </div>
             </div>
             <div class="illegal-register-grid illegal-register-grid--cols-2">
                 <div class="illegal-register-field">
-                    <label class="illegal-register-label" for="trnrAddr">행위자 주소</label>
+                    <label class="illegal-register-label" for="${param.prefix}trnrAddr">행위자 주소</label>
                     <div class="illegal-register-input-group">
-                        <input type="text" class="illegal-register-input" id="trnrAddr" placeholder="주소를 검색하세요"
+                        <input type="text" class="illegal-register-input" id="${param.prefix}trnrAddr" placeholder="주소를 검색하세요"
                             maxlength="255" readonly />
                         <button class="illegal-register-button illegal-register-button--outline" type="button"
                             data-register-address-target="actor">
@@ -102,9 +102,9 @@
                     </div>
                 </div>
                 <div class="illegal-register-field">
-                    <label class="illegal-register-label" for="rltrAddr">관련자 주소</label>
+                    <label class="illegal-register-label" for="${param.prefix}rltrAddr">관련자 주소</label>
                     <div class="illegal-register-input-group">
-                        <input type="text" class="illegal-register-input" id="rltrAddr" placeholder="주소를 검색하세요"
+                        <input type="text" class="illegal-register-input" id="${param.prefix}rltrAddr" placeholder="주소를 검색하세요"
                             maxlength="255" readonly />
                         <button class="illegal-register-button illegal-register-button--outline" type="button"
                             data-register-address-target="related">
@@ -119,24 +119,24 @@
             <p class="illegal-register-form__section-title">점유 및 조치 정보</p>
             <div class="illegal-register-grid illegal-register-grid--cols-3">
                 <div class="illegal-register-field">
-                    <label class="illegal-register-label" for="ilglPssrt">점유율 (%)</label>
-                    <input type="number" class="illegal-register-input" id="ilglPssrt" placeholder="예: 50.5" step="0.1"
+                    <label class="illegal-register-label" for="${param.prefix}ilglPssrt">점유율 (%)</label>
+                    <input type="number" class="illegal-register-input" id="${param.prefix}ilglPssrt" placeholder="예: 50.5" step="0.1"
                         min="0" max="100" />
                 </div>
                 <div class="illegal-register-field">
-                    <label class="illegal-register-label" for="ilglPssnSqms">점유면적 (㎡)</label>
-                    <input type="number" class="illegal-register-input" id="ilglPssnSqms" placeholder="예: 10.5"
+                    <label class="illegal-register-label" for="${param.prefix}ilglPssnSqms">점유면적 (㎡)</label>
+                    <input type="number" class="illegal-register-input" id="${param.prefix}ilglPssnSqms" placeholder="예: 10.5"
                         step="0.1" min="0" />
                 </div>
                 <div class="illegal-register-field">
                     <span class="illegal-register-label">조치상태</span>
                     <div class="illegal-register-segmented" role="radiogroup" aria-label="조치상태">
                         <label class="illegal-register-segmented__option illegal-register-segmented__option_left">
-                            <input type="radio" name="ilglPrvuActnStatVal" value="COMPLETED" />
+                            <input type="radio" name="${param.prefix}ilglPrvuActnStatVal" value="COMPLETED" />
                             <span>조치완료</span>
                         </label>
                         <label class="illegal-register-segmented__option illegal-register-segmented__option_right">
-                            <input type="radio" name="ilglPrvuActnStatVal" value="IN_PROGRESS" checked />
+                            <input type="radio" name="${param.prefix}ilglPrvuActnStatVal" value="IN_PROGRESS" checked />
                             <span>조치중</span>
                         </label>
                     </div>
@@ -153,11 +153,11 @@
                     </div>
                     <button type="button"
                         class="illegal-register-button illegal-register-button--outline illegal-register-button--sm"
-                        id="addActionHistoryBtn">
+                        id="${param.prefix}addActionHistoryBtn">
                         추가
                     </button>
                 </div>
-                <div id="actionHistoryList" class="illegal-register-history__list">
+                <div id="${param.prefix}actionHistoryList" class="illegal-register-history__list">
                     <div class="illegal-register-history__item">
                         <div class="illegal-register-history__date">
                             <input type="date" class="illegal-register-input illegal-register-history__date-input"
@@ -186,11 +186,11 @@
                     </div>
                     <button type="button"
                         class="illegal-register-button illegal-register-button--outline illegal-register-button--sm"
-                        id="addImageBtn">
+                        id="${param.prefix}addImageBtn">
                         <span class="illegal-register-button__text">추가</span>
                     </button>
                 </div>
-                <div id="imageList" class="illegal-register-image-list">
+                <div id="${param.prefix}imageList" class="illegal-register-image-list">
                     <!-- 이미지 아이템들이 동적으로 추가됩니다 -->
                 </div>
             </div>

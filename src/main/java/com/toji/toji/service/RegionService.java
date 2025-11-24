@@ -1,5 +1,6 @@
 package com.toji.toji.service;
 
+import com.toji.toji.domain.Attachment;
 import com.toji.toji.dto.RegionRegisterRequest;
 import java.util.Map;
 
@@ -65,4 +66,12 @@ public interface RegionService {
    * @param ilglPrvuInfoSeq 삭제할 불법점용정보 SEQ
    */
   void deleteRegion(Long ilglPrvuInfoSeq);
+
+  /**
+   * 첨부파일 상세 정보를 조회한다.
+   *
+   * @param ilglAttflSeq 첨부파일 SEQ
+   * @return 첨부파일 정보
+   */
+  Attachment findAttachmentBySeq(Long ilglAttflSeq);
 }

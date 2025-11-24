@@ -77,4 +77,9 @@ public interface RegionMapper {
    * 첨부파일 삭제 (물리적 삭제는 서비스에서 처리하고 여기선 DB 레코드 삭제)
    */
   int deleteAttachment(Long ilglAttflSeq);
+
+  /**
+   * 첨부파일 상세 조회
+   */
+  Attachment findAttachmentBySeq(@Param("ilglAttflSeq") Long ilglAttflSeq);
 }

@@ -1,13 +1,20 @@
 package com.toji.toji.controller;
 
 import com.toji.toji.dto.RegionRegisterRequest;
+import com.toji.toji.domain.Attachment;
 import com.toji.toji.service.RegionService;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -261,6 +268,46 @@ public class RegionController {
       response.put("success", false);
       response.put("message", "지역 삭제에 실패했습니다: " + errorMessage);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+  }
+
+  /**
+   * 이미지 파일을 제공한다.
+   *
+   * @param ilglAttflSeq 첨부파일 SEQ
+   * @return 이미지 리소스
+   */
+  @RequestMapping(value = "/photo/{ilglAttflSeq}", method = RequestMethod.GET)
+  public ResponseEntity<Resource> getPhoto(@PathVariable Long ilglAttflSeq) {
+    try {
+      Attachment attachment = regionService.findAttachmentBySeq(ilglAttflSeq);
+      if (attachment == null || attachment.getAttflPath() == null || attachment.getAttflNm() == null) {
+        return ResponseEntity.notFound().build();
+      }
+
+      String projectRoot = System.getProperty("user.dir");
+      Path filePath = Paths.get(projectRoot, attachment.getAttflPath(), attachment.getAttflNm());
+      Resource resource = new UrlResource(filePath.toUri());
+
+      if (resource.exists() && resource.isReadable()) {
+        String contentType = "image/jpeg"; // Default
+        String fileName = attachment.getAttflNm().toLowerCase();
+        if (fileName.endsWith(".png")) {
+          contentType = "image/png";
+        } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+          contentType = "image/jpeg";
+        }
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType(contentType))
+            .body(resource);
+      } else {
+        log.error("파일을 찾을 수 없음: {}", filePath.toAbsolutePath());
+        return ResponseEntity.notFound().build();
+      }
+    } catch (Exception e) {
+      log.error("이미지 로드 실패: ilglAttflSeq={}", ilglAttflSeq, e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
   }
 }
