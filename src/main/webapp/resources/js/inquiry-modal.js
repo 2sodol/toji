@@ -595,11 +595,11 @@
     closeModal();
 
     // 등록 모달을 수정 모드로 열기
-    if (window.RegisterModule && typeof window.RegisterModule.openEditMode === "function") {
+    if (window.ModifyModule && typeof window.ModifyModule.open === "function") {
       // 약간의 지연을 두어 모달이 완전히 닫힌 후 열기
       setTimeout(function () {
         try {
-          window.RegisterModule.openEditMode(editSeq);
+          window.ModifyModule.open(editSeq);
         } catch (error) {
           showInquiryAlert("danger", "수정 모달을 열 수 없습니다: " + error.message);
         }

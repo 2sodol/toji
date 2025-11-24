@@ -52,10 +52,14 @@
     <!-- 등록 모달 JSP 포함 -->
     <jsp:include page="register-modal.jsp" />
 
+    <!-- 수정 모달 JSP 포함 -->
+    <jsp:include page="modify-modal.jsp" />
+
     <!-- 조회 모달 JSP 포함 -->
     <jsp:include page="inquiry-modal.jsp" />
 
     <script src="<%=request.getContextPath()%>/resources/js/register.js"></script>
+    <script src="<%=request.getContextPath()%>/resources/js/modify.js"></script>
     <script src="<%=request.getContextPath()%>/resources/js/slide-panel.js"></script>
     <script src="<%=request.getContextPath()%>/resources/js/inquiry-modal.js"></script>
 
