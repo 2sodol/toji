@@ -374,6 +374,7 @@
         $removeBtn.on("click", function () {
           var id = $(this).data("item-id");
           $('[data-item-id="' + id + '"]').remove();
+          updateImageItemNumbers();
         });
         $header.append($removeBtn);
       }
@@ -545,6 +546,19 @@
   }
 
   /**
+   * 이미지 아이템의 번호를 순차적으로 재설정한다 (#1, #2, ...)
+   */
+  function updateImageItemNumbers() {
+    var $items = $("#mod_imageList .illegal-register-image-item");
+    $items.each(function (index) {
+      var newNumber = index + 1;
+      $(this)
+        .find(".illegal-register-image-item__number")
+        .text("#" + newNumber);
+    });
+  }
+
+  /**
    * 이미지 아이템을 생성한다 (빈 입력 폼)
    */
   function createImageItem() {
@@ -661,7 +675,7 @@
     // 숨겨진 파일 입력
     var $fileInput = $("<input>", {
       type: "file",
-      class: "image-file-input",
+      class: "modify-image-file-input",
       id: "mod_imageFileInput_" + itemId,
       "data-item-id": itemId,
       accept: ".png,.jpg,.jpeg",
