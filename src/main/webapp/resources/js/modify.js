@@ -685,40 +685,9 @@
     // 숨겨진 매핑 데이터 입력
     var $mappingInput = $("<input>", {
       type: "hidden",
-      id: "mappingData_" + itemId, // modify-modal.jsp와 패턴이 다를 수 있으므로 확인 필요하나 일단 이렇게 생성
+      id: "mappingData_" + itemId,
       name: "imageMappingData[]",
     });
-    // 주의: handleModifySubmit에서는 $mappingDataInputs.each ... inputId.indexOf('modifyimageItem_') === -1 체크함
-    // 따라서 ID를 modifyimageItem_ 패턴을 포함하도록 해야 함?
-    // handleModifySubmit 로직:
-    // var inputId = $input.attr('id');
-    // if (!inputId || inputId.indexOf('modifyimageItem_') === -1) return;
-    // 따라서 hidden input ID는 modifyimageItem_을 포함해야 함.
-    // 하지만 위 코드는 input type=file만 있고 hidden input이 없음.
-    // renderModifyImages에서도 hidden input을 생성하지 않고 있음. JSP에서 생성된 구조를 사용하는 것 같음.
-    // 하지만 동적으로 추가할 때는 JS가 생성해야 함.
-
-    // renderModifyImages 코드를 다시 보면, hidden input name="imageMappingData[]"를 가진 input이 없음.
-    // 아, JSP에서 imageMappingData[]를 가진 input이 생성되어야 하는데,
-    // renderModifyImages는 기존 이미지만 보여주고, 파일 업로드 시에는 handleImageFileSelect가 hidden input을 채워야 함.
-    // handleImageFileSelect에서 hidden input을 생성하거나 값을 설정해야 함.
-
-    // renderModifyImages에서는 imageMappingData[] input을 생성하지 않고 있음.
-    // 이는 기존 이미지가 수정되지 않는다는 전제 하에 그런 것일 수도 있음.
-    // 하지만 기존 이미지를 삭제하거나 새 이미지를 추가할 때 문제가 됨.
-
-    // 다시 handleModifySubmit을 보면:
-    // $('input[name="imageMappingData[]"]').each(...)
-    // 따라서 동적으로 추가된 아이템에도 name="imageMappingData[]" 인 input이 있어야 함.
-
-    // createRegisterImageItemHtml (JSP 내장 스크립트) 참고:
-    // '<input type="hidden" id="mappingData_' + itemId + '" name="imageMappingData[]" />'
-
-    // 따라서 여기서도 추가해야 함.
-    // itemId는 modifyimageItem_X 형식이므로, inputId.indexOf('modifyimageItem_') 체크를 통과하려면
-    // id="mappingData_modifyimageItem_X" 와 같이 하면 됨.
-
-    $mappingInput.attr("id", "mappingData_" + itemId);
 
     $content.append($header).append($row).append($previewSection).append($fileInput).append($mappingInput);
     $imageItem.append($content);
@@ -754,14 +723,6 @@
 
     var $dateInput = $("#mod_imageDate_" + itemId);
     var imageDate = $dateInput.val();
-
-    // 디버깅용 로그 (제거 예정)
-    // console.log("Debugging handleImageFileSelect:", {
-    //   target: event.target,
-    //   itemId: itemId,
-    //   foundDateInput: $dateInput.length > 0,
-    //   imageDate: imageDate
-    // });
 
     if (!imageDate) {
       showModifyAlert("warning", "이미지 등록일을 먼저 선택해주세요.");
@@ -845,8 +806,6 @@
         $("#mappingData_" + itemId).val(mappingData);
 
         // 입력값 초기화 (같은 파일 다시 선택 가능하도록)
-        // $input.val(""); // 초기화하면 handleModifySubmit에서 input[type=file]을 읽을 필요 없음.
-        // 하지만 handleModifySubmit은 hidden input을 읽으므로 초기화해도 됨.
         $input.val("");
       })
       .catch(function (error) {
