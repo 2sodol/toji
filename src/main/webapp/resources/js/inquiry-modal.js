@@ -265,6 +265,10 @@
    * 모달 닫기
    */
   function closeModal() {
+    // 포커스 해제 (aria-hidden 경고 방지)
+    if (document.activeElement) {
+      document.activeElement.blur();
+    }
     state.$modal.attr("aria-hidden", "true");
     $("body").removeClass("modal-open");
 
