@@ -152,12 +152,15 @@
      */
     function createImageItem(itemId, number) {
         var $item = $("<div>", {
-            class: "illegal-register-drone-item",
+            class: "illegal-register-drone-item-container", // Changed class name for container
             "data-item-id": itemId,
         });
 
+        // Top Row (Number, Date, File, Remove)
+        var $topRow = $("<div>", { class: "illegal-register-drone-item" });
+
         // 1. Number
-        $item.append($("<span>", { class: "illegal-register-drone-item__number", text: "#" + number }));
+        $topRow.append($("<span>", { class: "illegal-register-drone-item__number", text: "#" + number }));
 
         // 2. Date Input (Wrapped for vertical error display)
         var $dateWrapper = $("<div>", {
@@ -173,7 +176,7 @@
         });
 
         $dateWrapper.append($dateInput);
-        $item.append($dateWrapper);
+        $topRow.append($dateWrapper);
 
         // 3. File Input Group
         var $fileGroup = $("<div>", { class: "illegal-register-drone-item__file-group" });
@@ -210,7 +213,7 @@
         });
 
         $fileGroup.append($fileNameInput).append($selectBtn).append($fileInput);
-        $item.append($fileGroup);
+        $topRow.append($fileGroup);
 
         // 4. Remove Button
         var $removeBtn = $("<button>", {
@@ -221,7 +224,41 @@
             title: "삭제"
         }).append($("<i>", { class: "fas fa-times" }));
 
+        $item.append($topRow); // Append topRow here
         $item.append($removeBtn);
+
+        // 5. Extent Inputs (2nd Row)
+        var $extentRow = $("<div>", { class: "illegal-register-drone-item__extent-row" });
+
+        var extentFields = [
+            { id: "extentMinX", label: "서쪽(Min X)", placeholder: "좌표값" },
+            { id: "extentMinY", label: "남쪽(Min Y)", placeholder: "좌표값" },
+            { id: "extentMaxX", label: "동쪽(Max X)", placeholder: "좌표값" },
+            { id: "extentMaxY", label: "북쪽(Max Y)", placeholder: "좌표값" }
+        ];
+
+        extentFields.forEach(function (field) {
+            var $fieldWrapper = $("<div>", { class: "illegal-register-drone-item__extent-field" });
+
+            var $label = $("<label>", {
+                class: "illegal-register-drone-item__extent-label",
+                for: field.id + "_" + itemId,
+                text: field.label
+            });
+
+            var $input = $("<input>", {
+                type: "number",
+                step: "0.000000001",
+                class: "illegal-register-input illegal-register-drone-item__extent-input",
+                id: field.id + "_" + itemId,
+                placeholder: field.placeholder
+            });
+
+            $fieldWrapper.append($label).append($input);
+            $extentRow.append($fieldWrapper);
+        });
+
+        $item.append($extentRow);
 
         return $item;
     }
@@ -235,7 +272,7 @@
     function addImageRow() {
         state.imageItemCounter++;
         var itemId = "imgItem_" + state.imageItemCounter;
-        var currentCount = $("#reg_imageList .illegal-register-drone-item").length;
+        var currentCount = $("#reg_imageList .illegal-register-drone-item-container").length;
         var $item = createImageItem(itemId, currentCount + 1);
         $("#reg_imageList").append($item);
         renumberImageItems();
@@ -246,7 +283,7 @@
      * 첫 번째 아이템의 삭제 버튼은 숨깁니다.
      */
     function renumberImageItems() {
-        var $items = $("#reg_imageList .illegal-register-drone-item");
+        var $items = $("#reg_imageList .illegal-register-drone-item-container");
         $items.each(function (index) {
             var number = index + 1;
             $(this)
@@ -293,18 +330,18 @@
         // 2. Validation
         var ext = file.name.split(".").pop().toLowerCase();
         if (CONSTANTS.ALLOWED_EXTENSIONS.indexOf(ext) === -1) {
-            showError($input.closest(".illegal-register-drone-item").find(".image-file-select-btn"), "ZIP 파일만 업로드 가능합니다.");
+            showError($input.closest(".illegal-register-drone-item-container").find(".image-file-select-btn"), "ZIP 파일만 업로드 가능합니다.");
             $input.val("");
             return;
         }
         if (file.size > CONSTANTS.MAX_FILE_SIZE) {
-            showError($input.closest(".illegal-register-drone-item").find(".image-file-select-btn"), "파일 크기는 500MB를 초과할 수 없습니다.");
+            showError($input.closest(".illegal-register-drone-item-container").find(".image-file-select-btn"), "파일 크기는 500MB를 초과할 수 없습니다.");
             $input.val("");
             return;
         }
 
         // Clear any previous file errors
-        clearError($input.closest(".illegal-register-drone-item").find(".image-file-select-btn"));
+        clearError($input.closest(".illegal-register-drone-item-container").find(".image-file-select-btn"));
 
         // 3. Process (Multipart 전송을 위해 File 객체 저장)
         var imageId = "zip_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
@@ -401,10 +438,31 @@
             if (imgData) {
                 try {
                     var base64Data = await fileToBase64(imgData.file);
+
+                    // Extent 값 수집
+                    var extentMinX = $("#extentMinX_" + key).val();
+                    var extentMinY = $("#extentMinY_" + key).val();
+                    var extentMaxX = $("#extentMaxX_" + key).val();
+                    var extentMaxY = $("#extentMaxY_" + key).val();
+
+                    // Validation: 파일이 있으면 좌표값 필수
+                    var isExtentValid = true;
+
+                    if (!extentMinX) { showError($("#extentMinX_" + key), "필수 입력"); isExtentValid = false; } else { clearError($("#extentMinX_" + key)); }
+                    if (!extentMinY) { showError($("#extentMinY_" + key), "필수 입력"); isExtentValid = false; } else { clearError($("#extentMinY_" + key)); }
+                    if (!extentMaxX) { showError($("#extentMaxX_" + key), "필수 입력"); isExtentValid = false; } else { clearError($("#extentMaxX_" + key)); }
+                    if (!extentMaxY) { showError($("#extentMaxY_" + key), "필수 입력"); isExtentValid = false; } else { clearError($("#extentMaxY_" + key)); }
+
+                    if (!isExtentValid) return null;
+
                     droneLayers.push({
                         ocrnDates: imgData.date.replace(/-/g, ""),
                         originalFilename: imgData.fileName,
-                        fileData: base64Data // Base64 String
+                        fileData: base64Data, // Base64 String
+                        extentMinX: extentMinX ? parseFloat(extentMinX) : null,
+                        extentMinY: extentMinY ? parseFloat(extentMinY) : null,
+                        extentMaxX: extentMaxX ? parseFloat(extentMaxX) : null,
+                        extentMaxY: extentMaxY ? parseFloat(extentMaxY) : null
                     });
                 } catch (e) {
                     console.error("File conversion failed:", e);
@@ -618,7 +676,7 @@
                     delete state.illegalRegisterImages[itemId];
                 }
 
-                $(".illegal-register-drone-item[data-item-id='" + itemId + "']").remove();
+                $(".illegal-register-drone-item-container[data-item-id='" + itemId + "']").remove();
                 renumberImageItems();
             });
 
@@ -650,7 +708,7 @@
 
             // Image Date Change (Update Memory State)
             $(document).on("change", ".image-date-input", function () {
-                var itemId = $(this).closest(".illegal-register-drone-item").data("item-id");
+                var itemId = $(this).closest(".illegal-register-drone-item-container").data("item-id");
                 var newDate = $(this).val();
 
                 // 이미 이미지가 등록된 상태라면 날짜 정보 업데이트

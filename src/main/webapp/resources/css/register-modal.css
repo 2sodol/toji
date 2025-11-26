@@ -469,13 +469,7 @@ body.illegal-register-modal-open {
 }
 
 /* 드론 레이어 아이템 (New Simple Design) */
-.illegal-register-drone-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-    padding: 4px 0;
-}
+
 
 .illegal-register-drone-item__number {
     font-size: 12px;
@@ -544,4 +538,50 @@ body.illegal-register-modal-open {
     border-color: #fecaca;
 }
 
-/* ZIP 파일 업로드 아이템 스타일 */
+.illegal-register-drone-item-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background-color: #f9fafb;
+}
+
+.illegal-register-drone-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0;
+    padding: 0;
+}
+
+.illegal-register-drone-item__extent-row {
+    display: flex;
+    gap: 12px;
+    padding-left: 38px;
+    /* Align with content, skipping number badge */
+    margin-top: 4px;
+}
+
+.illegal-register-drone-item__extent-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.illegal-register-drone-item__extent-label {
+    font-size: 11px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.illegal-register-drone-item__extent-input {
+    width: 100%;
+    font-size: 13px;
+    padding: 8px 10px;
+    height: 36px;
+}

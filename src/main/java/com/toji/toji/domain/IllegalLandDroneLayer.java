@@ -17,7 +17,10 @@ public class IllegalLandDroneLayer {
     private String shootYmd;
     private String lyrNm;
     private String lyrRootPath;
-    private String lyrExtentVal;
+    private Double extentMinX;
+    private Double extentMinY;
+    private Double extentMaxX;
+    private Double extentMaxY;
     private Integer minZoomLvl;
     private Integer maxZoomLvl;
     private String fsttmRgsrId;
