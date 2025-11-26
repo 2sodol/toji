@@ -1,7 +1,6 @@
 package com.toji.toji.dto;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
@@ -37,7 +36,7 @@ public class RegionRegisterRequest {
   @Getter
   @Setter
   public static class ActionHistoryRequest {
-    private LocalDateTime actnDttm;
+    private String actnDttm; // yyyyMMdd 형식
     private String actnCtnt;
   }
 

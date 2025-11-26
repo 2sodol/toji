@@ -357,7 +357,9 @@
       var date = $(this).find(".illegal-register-history__date-input").val();
       var desc = $(this).find(".illegal-register-history__desc-input").val();
       if (date && desc) {
-        histories.push({ actnDttm: date + "T00:00:00", actnCtnt: desc });
+        // yyyy-MM-dd 형식을 yyyyMMdd로 변환
+        var dateFormatted = date.replace(/-/g, "");
+        histories.push({ actnDttm: dateFormatted, actnCtnt: desc });
       }
     });
 

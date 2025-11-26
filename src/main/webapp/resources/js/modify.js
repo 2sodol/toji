@@ -180,21 +180,12 @@
         if (history.actnDttm) {
           try {
             var dateStr = String(history.actnDttm);
-            if (dateStr.indexOf("-") > -1) {
-              // ISO 8601 (yyyy-MM-ddTHH:mm:ss) or similar
+            // yyyyMMdd 형식인 경우 yyyy-MM-dd로 변환
+            if (dateStr.length === 8 && /^\d{8}$/.test(dateStr)) {
+              formattedDate = dateStr.substring(0, 4) + "-" + dateStr.substring(4, 6) + "-" + dateStr.substring(6, 8);
+            } else if (dateStr.indexOf("-") > -1) {
+              // 이미 yyyy-MM-dd 형식인 경우
               formattedDate = dateStr.substring(0, 10);
-            } else if (dateStr.length >= 8) {
-              var date = new Date(
-                dateStr.substring(0, 4),
-                parseInt(dateStr.substring(4, 6)) - 1,
-                dateStr.substring(6, 8)
-              );
-              formattedDate =
-                date.getFullYear() +
-                "-" +
-                String(date.getMonth() + 1).padStart(2, "0") +
-                "-" +
-                String(date.getDate()).padStart(2, "0");
             }
           } catch (error) {
             formattedDate = "";
@@ -903,14 +894,11 @@
       var descValue = $(this).find(".illegal-register-history__desc-input").val().trim();
 
       if (dateValue && descValue) {
-        // 날짜 문자열을 ISO 8601 형식으로 변환 (LocalDateTime 형식)
-        var dateTimeValue = null;
-
-        // dateValue가 유효한 날짜 형식(yyyy-MM-dd)인지 확인
+        // yyyy-MM-dd 형식을 yyyyMMdd로 변환
         if (dateValue && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
-          dateTimeValue = dateValue + "T00:00:00";
+          var dateFormatted = dateValue.replace(/-/g, "");
           histories.push({
-            actnDttm: dateTimeValue,
+            actnDttm: dateFormatted,
             actnCtnt: descValue,
           });
         }

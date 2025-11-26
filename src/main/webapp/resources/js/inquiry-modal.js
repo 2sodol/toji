@@ -56,6 +56,18 @@
    */
   function formatDateTime(dateTimeStr) {
     if (!dateTimeStr) return "";
+    var dateStr = String(dateTimeStr);
+    // yyyyMMdd 형식인 경우 yyyy-MM-dd로 변환
+    if (dateStr.length === 8 && /^\d{8}$/.test(dateStr)) {
+      return (
+        dateStr.substring(0, 4) +
+        "-" +
+        dateStr.substring(4, 6) +
+        "-" +
+        dateStr.substring(6, 8)
+      );
+    }
+    // 기존 형식 (ISO 8601 등) 처리
     var date = new Date(dateTimeStr);
     return (
       date.getFullYear() +
