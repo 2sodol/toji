@@ -424,216 +424,7 @@ body.illegal-register-modal-open {
     gap: 16px;
 }
 
-.illegal-register-image-item {
-    padding: 16px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    background-color: #f9fafb;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
 
-.illegal-register-image-item__content {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.illegal-register-image-item__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.illegal-register-image-item__number {
-    font-size: 16px;
-    font-weight: 600;
-    color: #374151;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 24px;
-}
-
-.illegal-register-image-item__remove {
-    background: none;
-    border: none;
-    color: #dc2626;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    font-size: 16px;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    flex-shrink: 0;
-}
-
-.illegal-register-image-item__remove:hover,
-.illegal-register-image-item__remove:focus-visible {
-    background-color: rgba(220, 38, 38, 0.1);
-    color: #b91c1c;
-}
-
-.illegal-register-image-item__row {
-    display: flex;
-    gap: 16px;
-    align-items: end;
-    flex-wrap: wrap;
-}
-
-.illegal-register-image-item__row .illegal-register-field {
-    flex: 0 0 auto;
-    min-width: 0;
-}
-
-.illegal-register-image-item__row .illegal-register-field:first-child {
-    width: auto;
-}
-
-.illegal-register-image-item__row .illegal-register-field:nth-child(2) {
-    width: 100px;
-}
-
-.illegal-register-field--inline {
-    flex-direction: row !important;
-    align-items: center;
-    gap: 8px;
-}
-
-.illegal-register-field--inline .illegal-register-label {
-    margin: 0;
-    white-space: nowrap;
-}
-
-.illegal-register-field--inline .illegal-register-input {
-    width: auto;
-    min-width: 150px;
-}
-
-.illegal-register-image-item__select-btn {
-    margin-left: auto;
-    align-self: flex-end;
-}
-
-/* 모든 input 요소와 버튼의 높이를 통일 */
-.illegal-register-image-item__row .illegal-register-input,
-.illegal-register-image-item__row .illegal-register-button {
-    height: 40px;
-    box-sizing: border-box;
-}
-
-.illegal-register-image-item__preview-section {
-    margin-top: 12px;
-}
-
-.illegal-register-image-item__preview-section .illegal-register-label {
-    padding-bottom: 8px;
-}
-
-.illegal-register-image-item__preview {
-    min-height: 120px;
-    padding: 16px;
-    border: 2px dashed #d1d5db;
-    border-radius: 12px;
-    background-color: #fafbfc;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: flex-start;
-    box-sizing: border-box;
-    transition: border-color 0.2s ease, background-color 0.2s ease;
-}
-
-.illegal-register-image-item__preview.has-images {
-    border-style: solid;
-    border-color: #e5e7eb;
-    background-color: #ffffff;
-}
-
-.illegal-register-image-item__preview-empty {
-    color: #6b7280;
-    font-size: 14px;
-    width: 100%;
-    text-align: center;
-    padding: 32px 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.illegal-register-image-item__preview-empty i {
-    font-size: 32px;
-    color: #d1d5db;
-    margin-bottom: 4px;
-    display: block;
-}
-
-.illegal-register-image-thumbnail {
-    position: relative;
-    width: 100px;
-    height: 100px;
-    border: 2px solid #e5e7eb;
-    border-radius: 10px;
-    overflow: hidden;
-    background-color: #ffffff;
-    cursor: pointer;
-    transition: border-color 0.2s ease, transform 0.2s ease,
-        box-shadow 0.2s ease;
-    flex-shrink: 0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.illegal-register-image-thumbnail:hover {
-    border-color: #2563eb;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
-}
-
-.illegal-register-image-thumbnail__img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.illegal-register-image-thumbnail__remove {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    background-color: rgba(0, 0, 0, 0.7);
-    border: none;
-    color: #ffffff;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    font-size: 12px;
-    transition: background-color 0.2s ease, transform 0.2s ease,
-        box-shadow 0.2s ease;
-    z-index: 10;
-    backdrop-filter: blur(4px);
-}
-
-.illegal-register-image-thumbnail__remove:hover,
-.illegal-register-image-thumbnail__remove:focus-visible {
-    background-color: rgba(220, 38, 38, 0.95);
-    transform: scale(1.15);
-    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
-}
-
-.illegal-register-image-thumbnail__remove i {
-    pointer-events: none;
-}
 
 @media (max-width: 768px) {
 
@@ -676,3 +467,81 @@ body.illegal-register-modal-open {
     box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
     border-color: #dc2626;
 }
+
+/* 드론 레이어 아이템 (New Simple Design) */
+.illegal-register-drone-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    padding: 4px 0;
+}
+
+.illegal-register-drone-item__number {
+    font-size: 12px;
+    font-weight: 700;
+    color: #2563eb;
+    background-color: #eff6ff;
+    padding: 4px 8px;
+    border-radius: 6px;
+    min-width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+    margin-right: 4px;
+}
+
+.illegal-register-drone-item__date-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 165px;
+    /* Reduced from 220px */
+    flex-shrink: 0;
+    position: relative;
+}
+
+.illegal-register-drone-item__date {
+    width: 100% !important;
+}
+
+.illegal-register-drone-item__file-group {
+    display: flex;
+    flex: 1;
+    gap: 8px;
+    min-width: 0;
+    /* Flex item overflow fix */
+}
+
+.illegal-register-drone-item__filename {
+    flex: 1;
+    background-color: #f9fafb;
+    cursor: pointer;
+    text-overflow: ellipsis;
+}
+
+.illegal-register-drone-item__filename:read-only {
+    background-color: #f9fafb;
+    /* Readonly input background */
+}
+
+.illegal-register-drone-item__remove {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #e5e7eb;
+    background-color: #fff;
+    color: #9ca3af;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.illegal-register-drone-item__remove:hover {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+/* ZIP 파일 업로드 아이템 스타일 */

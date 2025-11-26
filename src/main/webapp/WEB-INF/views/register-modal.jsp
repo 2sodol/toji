@@ -189,14 +189,14 @@
             </section>
 
             <section class="illegal-register-form__section">
-              <p class="illegal-register-form__section-title">사진 등록</p>
+              <p class="illegal-register-form__section-title">드론 레이어(ZIP) 등록</p>
 
               <!-- 이미지 파일 등록 섹션 (날짜와 이미지 매핑) -->
               <div class="illegal-register-image-section">
                 <div class="illegal-register-image-section__header">
                   <div>
                     <small class="illegal-register-file-upload__description">
-                      날짜와 함께 이미지를 등록하세요. 여러 개 추가할 수 있습니다.
+                      날짜와 함께 드론 촬영 데이터(ZIP)를 등록하세요. 여러 개 추가할 수 있습니다.
                     </small>
                   </div>
                   <button type="button"

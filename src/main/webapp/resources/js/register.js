@@ -13,10 +13,8 @@
     // ===== Constants & Config =====
     var CONSTANTS = {
         API_URL: "/regions/register",
-        MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
-        ALLOWED_EXTENSIONS: ["png", "jpg", "jpeg"],
-        EMPTY_PREVIEW_HTML:
-            '<span class="illegal-register-image-item__preview-empty"><i class="fas fa-image" aria-hidden="true"></i>선택된 파일이 없습니다.</span>',
+        MAX_FILE_SIZE: 500 * 1024 * 1024, // 500MB (ZIP 파일 용량 고려 증액)
+        ALLOWED_EXTENSIONS: ["zip"],
     };
 
     // ===== State Management =====
@@ -24,28 +22,14 @@
         // 이미지 아이템 고유 ID 생성을 위한 카운터
         imageItemCounter: 0,
         // 이미지 데이터를 메모리에서 관리 (DOM 의존성 제거)
-        // 구조: { itemId: { date: "YYYY-MM-DD", file: FileObject, base64: "...", fileName: "..." } }
+        // 구조: { itemId: { date: "YYYY-MM-DD", file: FileObject, fileName: "..." } }
         illegalRegisterImages: {}
     };
 
     // ===== Helper Functions =====
-    /**
-     * 파일을 Base64 문자열로 변환합니다.
-     * @param {File} file - 변환할 파일 객체
-     * @returns {Promise<string>} Base64 문자열
-     */
-    function fileToBase64(file) {
-        return new Promise(function (resolve, reject) {
-            var reader = new FileReader();
-            reader.onload = function () {
-                resolve(reader.result);
-            };
-            reader.onerror = function (error) {
-                reject(error);
-            };
-            reader.readAsDataURL(file);
-        });
-    }
+
+
+    // fileToBase64 함수 제거됨 (ZIP 파일은 바이너리로 직접 전송)
 
     // ===== Validation Helper Functions =====
     /**
@@ -141,131 +125,89 @@
     }
 
     /**
-     * 이미지 등록 아이템(날짜 선택 + 파일 업로드) DOM 요소를 생성합니다.
-     * @param {string} itemId - 아이템 고유 ID
-     * @param {number} number - 표시될 순번
-     * @returns {jQuery} 생성된 이미지 아이템 요소
+     * 드론 레이어 등록 아이템(DOM)을 생성합니다.
+     * 구조: [#번호] [날짜입력] [파일명 표시(readonly)] [파일찾기 버튼] [삭제 버튼]
+     * @param {string} itemId - 고유 ID
+     * @param {number} number - 순번
+     * @returns {jQuery} 생성된 아이템 요소
      */
     function createImageItem(itemId, number) {
-        // Main Container
         var $item = $("<div>", {
-            class: "illegal-register-image-item",
+            class: "illegal-register-drone-item",
             "data-item-id": itemId,
         });
 
-        // Header & Content Wrapper
-        var $content = $("<div>", { class: "illegal-register-image-item__content" });
-        var $header = $("<div>", { class: "illegal-register-image-item__header" });
+        // 1. Number
+        $item.append($("<span>", { class: "illegal-register-drone-item__number", text: "#" + number }));
 
-        // Numbering
-        $header.append(
-            $("<span>", {
-                class: "illegal-register-image-item__number",
-                text: "#" + number,
-            })
-        );
-
-        // Remove Item Button (Only if not #1, logic handled in renumber)
-        var $removeBtn = $("<button>", {
-            type: "button",
-            class: "illegal-register-image-item__remove remove-image-item-btn",
-            "data-item-id": itemId,
-            "aria-label": "항목 삭제",
-        }).append($("<i>", { class: "fas fa-times", "aria-hidden": "true" }));
-        $header.append($removeBtn);
-
-        // Row: Date Input + File Select Button
-        var $row = $("<div>", { class: "illegal-register-image-item__row" });
-
-        var $dateField = $("<div>", {
-            class: "illegal-register-field",
-            style: "position: relative;",
+        // 2. Date Input (Wrapped for vertical error display)
+        var $dateWrapper = $("<div>", {
+            class: "illegal-register-drone-item__date-wrapper"
         });
-        $dateField.append(
-            $("<input>", {
-                type: "date",
-                class: "illegal-register-input image-date-input",
-                id: "imageDate_" + itemId,
-                required: true,
-            })
-        );
-        $dateField.append(
-            $("<span>", {
-                class: "illegal-register-form__required",
-                style: "position: absolute; top: -5px; right: -10px;",
-                text: "*",
-            })
-        );
 
+        var $dateInput = $("<input>", {
+            type: "date",
+            class: "illegal-register-input illegal-register-drone-item__date",
+            id: "imageDate_" + itemId,
+            required: true,
+            title: "촬영일자"
+        });
+
+        $dateWrapper.append($dateInput);
+        $item.append($dateWrapper);
+
+        // 3. File Input Group
+        var $fileGroup = $("<div>", { class: "illegal-register-drone-item__file-group" });
+
+        // 3-1. File Name Display (Readonly Input)
+        var $fileNameInput = $("<input>", {
+            type: "text",
+            class: "illegal-register-input illegal-register-drone-item__filename",
+            placeholder: "드론 촬영 ZIP 파일을 선택하세요",
+            readonly: true,
+            id: "fileName_" + itemId
+        });
+
+        // 파일명 입력창 클릭 시에도 파일 선택창 열기
+        $fileNameInput.on("click", function () {
+            $("#fileInput_" + itemId).click();
+        });
+
+        // 3-2. File Select Button
         var $selectBtn = $("<button>", {
             type: "button",
-            class:
-                "illegal-register-button illegal-register-button--outline illegal-register-button--sm illegal-register-image-item__select-btn image-file-select-btn",
+            class: "illegal-register-button illegal-register-button--outline illegal-register-button--sm image-file-select-btn",
             "data-item-id": itemId,
-        })
-            .append($("<i>", { class: "fas fa-upload", "aria-hidden": "true" }))
-            .append($("<span>", { class: "illegal-register-button__text", text: "선택" }));
+            text: "선택"
+        });
 
-        $row.append($dateField).append($selectBtn);
-
-        // Preview Section
-        var $previewSection = $("<div>", { class: "illegal-register-image-item__preview-section" });
-        var $preview = $("<div>", {
-            class: "illegal-register-image-item__preview",
-            id: "preview_" + itemId,
-        }).html(CONSTANTS.EMPTY_PREVIEW_HTML);
-        $previewSection.append($preview);
-
-        // Hidden Inputs
+        // 3-3. Hidden File Input
         var $fileInput = $("<input>", {
             type: "file",
             id: "fileInput_" + itemId,
-            accept: ".png,.jpg,.jpeg",
+            accept: ".zip,application/zip,application/x-zip-compressed,multipart/x-zip",
             hidden: true,
             "data-item-id": itemId,
         });
 
-        // DOM 기반 데이터 저장용 hidden input 제거됨 (메모리 관리로 전환)
+        $fileGroup.append($fileNameInput).append($selectBtn).append($fileInput);
+        $item.append($fileGroup);
 
-        $content.append($header).append($row).append($previewSection).append($fileInput);
-        $item.append($content);
+        // 4. Remove Button
+        var $removeBtn = $("<button>", {
+            type: "button",
+            class: "illegal-register-drone-item__remove remove-image-item-btn",
+            "data-item-id": itemId,
+            "aria-label": "삭제",
+            title: "삭제"
+        }).append($("<i>", { class: "fas fa-times" }));
+
+        $item.append($removeBtn);
 
         return $item;
     }
 
-    /**
-     * 이미지 썸네일 DOM 요소를 생성합니다.
-     * @param {string} imageId - 이미지 고유 ID
-     * @param {string} base64 - 이미지 Base64 문자열
-     * @param {string} fileName - 파일명
-     * @param {string} itemId - 부모 아이템 ID
-     * @returns {jQuery} 생성된 썸네일 요소
-     */
-    function createImageThumbnail(imageId, base64, fileName, itemId) {
-        var $thumb = $("<div>", {
-            class: "illegal-register-image-thumbnail",
-            "data-image-id": imageId,
-        });
 
-        $thumb.append(
-            $("<img>", {
-                src: base64,
-                class: "illegal-register-image-thumbnail__img",
-                alt: fileName,
-            })
-        );
-
-        var $removeBtn = $("<button>", {
-            type: "button",
-            class: "illegal-register-image-thumbnail__remove remove-thumbnail-btn",
-            "data-image-id": imageId,
-            "data-item-id": itemId,
-            "aria-label": "이미지 삭제",
-        }).append($("<i>", { class: "fas fa-times", "aria-hidden": "true" }));
-
-        $thumb.append($removeBtn);
-        return $thumb;
-    }
 
     // ===== Logic: Image Handling =====
     /**
@@ -274,7 +216,7 @@
     function addImageRow() {
         state.imageItemCounter++;
         var itemId = "imgItem_" + state.imageItemCounter;
-        var currentCount = $("#reg_imageList .illegal-register-image-item").length;
+        var currentCount = $("#reg_imageList .illegal-register-drone-item").length;
         var $item = createImageItem(itemId, currentCount + 1);
         $("#reg_imageList").append($item);
         renumberImageItems();
@@ -285,11 +227,11 @@
      * 첫 번째 아이템의 삭제 버튼은 숨깁니다.
      */
     function renumberImageItems() {
-        var $items = $("#reg_imageList .illegal-register-image-item");
+        var $items = $("#reg_imageList .illegal-register-drone-item");
         $items.each(function (index) {
             var number = index + 1;
             $(this)
-                .find(".illegal-register-image-item__number")
+                .find(".illegal-register-drone-item__number")
                 .text("#" + number);
 
             // First item cannot be removed (unless logic changes, but usually keep at least one)
@@ -304,7 +246,7 @@
 
     /**
      * 파일 선택 이벤트를 처리합니다.
-     * 파일을 읽어 Base64로 변환하고 미리보기를 생성합니다.
+     * ZIP 파일을 확인하고 상태에 저장합니다.
      * @param {Event} e - 파일 선택 이벤트
      */
     function handleFileSelect(e) {
@@ -317,7 +259,7 @@
         // 1. Date Check
         if (!dateVal) {
             // 날짜 입력 필드($dateInput)에 직접 에러 표시
-            showError($dateInput, "이미지 등록일을 먼저 선택해주세요.");
+            showError($dateInput, "등록일을 먼저 선택해주세요.");
             $input.val(""); // Clear input
             setTimeout(function () {
                 $dateInput.focus();
@@ -332,48 +274,36 @@
         // 2. Validation
         var ext = file.name.split(".").pop().toLowerCase();
         if (CONSTANTS.ALLOWED_EXTENSIONS.indexOf(ext) === -1) {
-            showError($input.closest(".illegal-register-image-item").find(".image-file-select-btn"), "PNG, JPG 파일만 업로드 가능합니다.");
+            showError($input.closest(".illegal-register-drone-item").find(".image-file-select-btn"), "ZIP 파일만 업로드 가능합니다.");
             $input.val("");
             return;
         }
         if (file.size > CONSTANTS.MAX_FILE_SIZE) {
-            showError($input.closest(".illegal-register-image-item").find(".image-file-select-btn"), "파일 크기는 10MB를 초과할 수 없습니다.");
+            showError($input.closest(".illegal-register-drone-item").find(".image-file-select-btn"), "파일 크기는 500MB를 초과할 수 없습니다.");
             $input.val("");
             return;
         }
 
         // Clear any previous file errors
-        clearError($input.closest(".illegal-register-image-item").find(".image-file-select-btn"));
+        clearError($input.closest(".illegal-register-drone-item").find(".image-file-select-btn"));
 
-        // 3. Process
-        fileToBase64(file)
-            .then(function (base64) {
-                var imageId = "img_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-                var base64Content = base64.split(",")[1];
+        // 3. Process (Multipart 전송을 위해 File 객체 저장)
+        var imageId = "zip_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
 
-                // 메모리 상태 업데이트 (기존 데이터 덮어쓰기 - 날짜별 1장 제한)
-                state.illegalRegisterImages[itemId] = {
-                    date: dateVal,
-                    base64Content: base64Content,
-                    fileName: file.name,
-                    imageId: imageId
-                };
+        // 메모리 상태 업데이트
+        state.illegalRegisterImages[itemId] = {
+            date: dateVal,
+            file: file, // File 객체 직접 저장
+            fileName: file.name,
+            imageId: imageId
+        };
 
-                // Update Preview
-                var $preview = $("#preview_" + itemId);
-                $preview.empty().addClass("has-images");
+        // Update Display
+        // 기존 미리보기 로직 제거 -> 파일명 입력창에 텍스트 표시로 변경
+        $("#fileName_" + itemId).val(file.name);
 
-                var $thumb = createImageThumbnail(imageId, base64, file.name, itemId);
-                $preview.append($thumb);
-
-                // Reset input for next selection
-                $input.val("");
-            })
-            .catch(function (err) {
-                console.error("File Error:", err);
-                showError($input.closest(".illegal-register-image-item").find(".image-file-select-btn"), "파일 처리 중 오류가 발생했습니다.");
-                $input.val("");
-            });
+        // Reset input for next selection (같은 파일 다시 선택 가능하도록)
+        $input.val("");
     }
 
     /**
@@ -388,19 +318,14 @@
         }
 
         // Update UI
-        var $thumb = $(".illegal-register-image-thumbnail[data-image-id='" + imageId + "']");
-        $thumb.remove();
-
-        var $preview = $("#preview_" + itemId);
-        if ($preview.find(".illegal-register-image-thumbnail").length === 0) {
-            $preview.removeClass("has-images").html(CONSTANTS.EMPTY_PREVIEW_HTML);
-        }
+        // 파일명 입력창 초기화
+        $("#fileName_" + itemId).val("");
     }
 
     // ===== Logic: Form Submission =====
     /**
-     * 폼 데이터를 수집하고 유효성을 검사합니다.
-     * @returns {Object|null} 수집된 데이터 객체 또는 유효성 검사 실패 시 null
+     * 폼 데이터를 수집하고 FormData 객체를 생성합니다.
+     * @returns {FormData|null} 수집된 FormData 객체 또는 유효성 검사 실패 시 null
      */
     function collectFormData() {
         // Basic Validation
@@ -447,22 +372,24 @@
             }
         });
 
-        // Collect Images from Memory State
-        var images = [];
-        // state.illegalRegisterImages 객체를 순회하며 데이터 수집
+        // Collect Files & Metadata
+        var droneLayerMetadata = [];
+        var formData = new FormData();
+
         Object.keys(state.illegalRegisterImages).forEach(function (key) {
             var imgData = state.illegalRegisterImages[key];
             if (imgData) {
-                images.push({
-                    date: imgData.date,
-                    base64Content: imgData.base64Content,
-                    extension: "png", // 기본값 설정 (필요시 imgData.fileName에서 추출 가능)
-                    filename: imgData.fileName
+                // 파일 추가
+                formData.append("files", imgData.file);
+                // 메타데이터 추가 (파일명으로 매칭하거나 순서대로 매칭)
+                droneLayerMetadata.push({
+                    ocrnDates: imgData.date.replace(/-/g, ""),
+                    originalFilename: imgData.fileName
                 });
             }
         });
 
-        // Construct Payload
+        // Construct JSON Payload
         var payload = {
             hdqrNm: $("#reg_hdqrNm").val(),
             mtnofNm: $("#reg_mtnofNm").val(),
@@ -481,32 +408,25 @@
             ilglPssnSqms: $("#reg_ilglPssnSqms").val(),
             ilglPrvuActnStatVal: $('input[name="reg_ilglPrvuActnStatVal"]:checked').val(),
             actionHistories: histories,
-            files: {
-                images: images.map(function (img) {
-                    return {
-                        ocrnDates: img.date.replace(/-/g, ""),
-                        base64: "data:image/png;base64," + img.base64Content,
-                        filename: img.filename,
-                        extension: img.extension,
-                        size: Math.round(img.base64Content.length * 0.75),
-                    };
-                }),
-            },
+            droneLayers: droneLayerMetadata, // 드론 레이어 메타데이터
             // Coordinates
             lndsUnqNo: $("#reg_lndsUnqNo").val(),
             gpsLgtd: $("#reg_gpsLgtd").val(),
             gpsLttd: $("#reg_gpsLttd").val(),
         };
 
-        return payload;
+        // JSON 데이터를 Blob으로 변환하여 추가
+        formData.append("data", new Blob([JSON.stringify(payload)], { type: "application/json" }));
+
+        return formData;
     }
 
     /**
      * 등록 폼을 제출합니다.
      */
     function submitRegister() {
-        var payload = collectFormData();
-        if (!payload) return;
+        var formData = collectFormData();
+        if (!formData) return;
 
         if (!confirm("등록하시겠습니까?")) return;
 
@@ -517,8 +437,9 @@
         $.ajax({
             url: CONSTANTS.API_URL,
             method: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(payload),
+            data: formData,
+            processData: false, // FormData 전송 시 필수
+            contentType: false, // FormData 전송 시 필수
             dataType: "json",
         })
             .done(function (res) {
@@ -673,7 +594,7 @@
                     delete state.illegalRegisterImages[itemId];
                 }
 
-                $(".illegal-register-image-item[data-item-id='" + itemId + "']").remove();
+                $(".illegal-register-drone-item[data-item-id='" + itemId + "']").remove();
                 renumberImageItems();
             });
 
@@ -705,7 +626,7 @@
 
             // Image Date Change (Update Memory State)
             $(document).on("change", ".image-date-input", function () {
-                var itemId = $(this).closest(".illegal-register-image-item").data("item-id");
+                var itemId = $(this).closest(".illegal-register-drone-item").data("item-id");
                 var newDate = $(this).val();
 
                 // 이미 이미지가 등록된 상태라면 날짜 정보 업데이트
