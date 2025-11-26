@@ -21,7 +21,11 @@
 
     // ===== State Management =====
     var state = {
+        // 이미지 아이템 고유 ID 생성을 위한 카운터
         imageItemCounter: 0,
+        // 이미지 데이터를 메모리에서 관리 (DOM 의존성 제거)
+        // 구조: { itemId: { date: "YYYY-MM-DD", file: FileObject, base64: "...", fileName: "..." } }
+        illegalRegisterImages: {}
     };
 
     // ===== Helper Functions =====
@@ -174,7 +178,7 @@
         var $row = $("<div>", { class: "illegal-register-image-item__row" });
 
         var $dateField = $("<div>", {
-            class: "illegal-register-field illegal-register-field--inline",
+            class: "illegal-register-field",
             style: "position: relative;",
         });
         $dateField.append(
@@ -221,14 +225,9 @@
             "data-item-id": itemId,
         });
 
-        // Stores "date:base64||date:base64"
-        var $mappingInput = $("<input>", {
-            type: "hidden",
-            id: "mappingData_" + itemId,
-            name: "imageMappingData[]",
-        });
+        // DOM 기반 데이터 저장용 hidden input 제거됨 (메모리 관리로 전환)
 
-        $content.append($header).append($row).append($previewSection).append($fileInput).append($mappingInput);
+        $content.append($header).append($row).append($previewSection).append($fileInput);
         $item.append($content);
 
         return $item;
@@ -317,12 +316,15 @@
 
         // 1. Date Check
         if (!dateVal) {
-            alert("이미지 등록일을 먼저 선택해주세요.");
+            // 날짜 입력 필드($dateInput)에 직접 에러 표시
+            showError($dateInput, "이미지 등록일을 먼저 선택해주세요.");
             $input.val(""); // Clear input
             setTimeout(function () {
                 $dateInput.focus();
             }, 100);
             return;
+        } else {
+            clearError($dateInput);
         }
 
         if (!file) return;
@@ -330,37 +332,38 @@
         // 2. Validation
         var ext = file.name.split(".").pop().toLowerCase();
         if (CONSTANTS.ALLOWED_EXTENSIONS.indexOf(ext) === -1) {
-            alert("PNG, JPG 파일만 업로드 가능합니다.");
+            showError($input.closest(".illegal-register-image-item").find(".image-file-select-btn"), "PNG, JPG 파일만 업로드 가능합니다.");
             $input.val("");
             return;
         }
         if (file.size > CONSTANTS.MAX_FILE_SIZE) {
-            alert("파일 크기는 10MB를 초과할 수 없습니다.");
+            showError($input.closest(".illegal-register-image-item").find(".image-file-select-btn"), "파일 크기는 10MB를 초과할 수 없습니다.");
             $input.val("");
             return;
         }
+
+        // Clear any previous file errors
+        clearError($input.closest(".illegal-register-image-item").find(".image-file-select-btn"));
 
         // 3. Process
         fileToBase64(file)
             .then(function (base64) {
                 var imageId = "img_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-                // Format: date:base64Content (remove data prefix for server if needed, strictly following requirement "date:Base64data")
                 var base64Content = base64.split(",")[1];
-                var mappingValue = dateVal + ":" + base64Content;
 
-                // Append to hidden input
-                var $mappingInput = $("#mappingData_" + itemId);
-                // 날짜별 1장 제한: 기존 값 무시하고 새 값으로 덮어쓰기 (여러 장일 경우 || 로 연결하던 기존 로직 대체)
-                $mappingInput.val(mappingValue);
+                // 메모리 상태 업데이트 (기존 데이터 덮어쓰기 - 날짜별 1장 제한)
+                state.illegalRegisterImages[itemId] = {
+                    date: dateVal,
+                    base64Content: base64Content,
+                    fileName: file.name,
+                    imageId: imageId
+                };
 
                 // Update Preview
                 var $preview = $("#preview_" + itemId);
-                // 기존 이미지가 있다면 제거 (1장 제한)
                 $preview.empty().addClass("has-images");
 
                 var $thumb = createImageThumbnail(imageId, base64, file.name, itemId);
-                // Store mapping string in data for removal
-                $thumb.data("mapping", mappingValue);
                 $preview.append($thumb);
 
                 // Reset input for next selection
@@ -368,7 +371,7 @@
             })
             .catch(function (err) {
                 console.error("File Error:", err);
-                alert("파일 처리 중 오류가 발생했습니다.");
+                showError($input.closest(".illegal-register-image-item").find(".image-file-select-btn"), "파일 처리 중 오류가 발생했습니다.");
                 $input.val("");
             });
     }
@@ -379,22 +382,15 @@
      * @param {string} itemId - 부모 아이템 ID
      */
     function removeImage(imageId, itemId) {
-        var $thumb = $(".illegal-register-image-thumbnail[data-image-id='" + imageId + "']");
-        var mappingToRemove = $thumb.data("mapping");
-
-        // Update Hidden Input
-        var $mappingInput = $("#mappingData_" + itemId);
-        var currentVal = $mappingInput.val();
-        if (currentVal && mappingToRemove) {
-            var parts = currentVal.split("||");
-            var newParts = parts.filter(function (p) {
-                return p !== mappingToRemove;
-            });
-            $mappingInput.val(newParts.join("||"));
+        // 메모리 상태에서 제거
+        if (state.illegalRegisterImages[itemId] && state.illegalRegisterImages[itemId].imageId === imageId) {
+            delete state.illegalRegisterImages[itemId];
         }
 
         // Update UI
+        var $thumb = $(".illegal-register-image-thumbnail[data-image-id='" + imageId + "']");
         $thumb.remove();
+
         var $preview = $("#preview_" + itemId);
         if ($preview.find(".illegal-register-image-thumbnail").length === 0) {
             $preview.removeClass("has-images").html(CONSTANTS.EMPTY_PREVIEW_HTML);
@@ -451,25 +447,19 @@
             }
         });
 
-        // Collect Images
+        // Collect Images from Memory State
         var images = [];
-        $("input[name='imageMappingData[]']").each(function () {
-            var val = $(this).val();
-            if (!val) return;
-
-            var items = val.split("||");
-            items.forEach(function (item) {
-                if (!item) return;
-                var parts = item.split(":");
-                if (parts.length === 2) {
-                    images.push({
-                        date: parts[0],
-                        base64Content: parts[1],
-                        extension: "png",
-                        filename: "upload_" + Date.now() + ".png",
-                    });
-                }
-            });
+        // state.illegalRegisterImages 객체를 순회하며 데이터 수집
+        Object.keys(state.illegalRegisterImages).forEach(function (key) {
+            var imgData = state.illegalRegisterImages[key];
+            if (imgData) {
+                images.push({
+                    date: imgData.date,
+                    base64Content: imgData.base64Content,
+                    extension: "png", // 기본값 설정 (필요시 imgData.fileName에서 추출 가능)
+                    filename: imgData.fileName
+                });
+            }
         });
 
         // Construct Payload
@@ -568,7 +558,10 @@
             $("#reg_imageList").empty();
             $("#reg_actionHistoryList").empty().append(createActionHistoryRow());
             updateActionHistoryButtons();
+
+            // 상태 초기화
             state.imageItemCounter = 0;
+            state.illegalRegisterImages = {};
 
             // Clear all inline error messages
             $(".is-invalid").removeClass("is-invalid");
@@ -674,6 +667,12 @@
             // Image Item Remove (Row)
             $(document).on("click", ".remove-image-item-btn", function () {
                 var itemId = $(this).data("item-id");
+
+                // 메모리 상태에서도 해당 아이템 데이터 제거
+                if (state.illegalRegisterImages[itemId]) {
+                    delete state.illegalRegisterImages[itemId];
+                }
+
                 $(".illegal-register-image-item[data-item-id='" + itemId + "']").remove();
                 renumberImageItems();
             });
@@ -701,6 +700,17 @@
                 } else {
                     // If last one, just clear inputs
                     $(this).closest(".illegal-register-history__item").find("input").val("");
+                }
+            });
+
+            // Image Date Change (Update Memory State)
+            $(document).on("change", ".image-date-input", function () {
+                var itemId = $(this).closest(".illegal-register-image-item").data("item-id");
+                var newDate = $(this).val();
+
+                // 이미 이미지가 등록된 상태라면 날짜 정보 업데이트
+                if (state.illegalRegisterImages[itemId]) {
+                    state.illegalRegisterImages[itemId].date = newDate;
                 }
             });
 
