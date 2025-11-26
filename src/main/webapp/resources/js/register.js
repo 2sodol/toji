@@ -29,7 +29,26 @@
     // ===== Helper Functions =====
 
 
-    // fileToBase64 함수 제거됨 (ZIP 파일은 바이너리로 직접 전송)
+    // fileToBase64 함수 제거됨 (ZIP 파일은 바이너리로 직접 전송) -> Base64로 다시 복원
+    /**
+     * 파일을 Base64 문자열로 변환합니다.
+     * @param {File} file - 변환할 파일 객체
+     * @returns {Promise<string>} Base64 문자열
+     */
+    function fileToBase64(file) {
+        return new Promise(function (resolve, reject) {
+            var reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function () {
+                // Remove data:application/zip;base64, prefix
+                var base64 = reader.result.split(",")[1];
+                resolve(base64);
+            };
+            reader.onerror = function (error) {
+                reject(error);
+            };
+        });
+    }
 
     // ===== Validation Helper Functions =====
     /**
@@ -324,10 +343,10 @@
 
     // ===== Logic: Form Submission =====
     /**
-     * 폼 데이터를 수집하고 FormData 객체를 생성합니다.
-     * @returns {FormData|null} 수집된 FormData 객체 또는 유효성 검사 실패 시 null
+     * 폼 데이터를 수집하고 JSON 객체를 생성합니다.
+     * @returns {Promise<Object>|null} 수집된 JSON 객체 (Promise) 또는 유효성 검사 실패 시 null
      */
-    function collectFormData() {
+    async function collectFormData() {
         // Basic Validation
         var isValid = true;
         var requiredFields = [
@@ -372,22 +391,28 @@
             }
         });
 
-        // Collect Files & Metadata
-        var droneLayerMetadata = [];
-        var formData = new FormData();
+        // Collect Files & Metadata (Base64 Conversion)
+        var droneLayers = [];
+        var keys = Object.keys(state.illegalRegisterImages);
 
-        Object.keys(state.illegalRegisterImages).forEach(function (key) {
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
             var imgData = state.illegalRegisterImages[key];
             if (imgData) {
-                // 파일 추가
-                formData.append("files", imgData.file);
-                // 메타데이터 추가 (파일명으로 매칭하거나 순서대로 매칭)
-                droneLayerMetadata.push({
-                    ocrnDates: imgData.date.replace(/-/g, ""),
-                    originalFilename: imgData.fileName
-                });
+                try {
+                    var base64Data = await fileToBase64(imgData.file);
+                    droneLayers.push({
+                        ocrnDates: imgData.date.replace(/-/g, ""),
+                        originalFilename: imgData.fileName,
+                        fileData: base64Data // Base64 String
+                    });
+                } catch (e) {
+                    console.error("File conversion failed:", e);
+                    alert("파일 처리 중 오류가 발생했습니다.");
+                    return null;
+                }
             }
-        });
+        }
 
         // Construct JSON Payload
         var payload = {
@@ -408,25 +433,25 @@
             ilglPssnSqms: $("#reg_ilglPssnSqms").val(),
             ilglPrvuActnStatVal: $('input[name="reg_ilglPrvuActnStatVal"]:checked').val(),
             actionHistories: histories,
-            droneLayers: droneLayerMetadata, // 드론 레이어 메타데이터
+            droneLayers: droneLayers, // Base64 Data Included
             // Coordinates
             lndsUnqNo: $("#reg_lndsUnqNo").val(),
             gpsLgtd: $("#reg_gpsLgtd").val(),
             gpsLttd: $("#reg_gpsLttd").val(),
         };
 
-        // JSON 데이터를 Blob으로 변환하여 추가
-        formData.append("data", new Blob([JSON.stringify(payload)], { type: "application/json" }));
-
-        return formData;
+        return payload;
     }
 
     /**
      * 등록 폼을 제출합니다.
      */
-    function submitRegister() {
-        var formData = collectFormData();
-        if (!formData) return;
+    /**
+     * 등록 폼을 제출합니다.
+     */
+    async function submitRegister() {
+        var payload = await collectFormData();
+        if (!payload) return;
 
         if (!confirm("등록하시겠습니까?")) return;
 
@@ -437,9 +462,8 @@
         $.ajax({
             url: CONSTANTS.API_URL,
             method: "POST",
-            data: formData,
-            processData: false, // FormData 전송 시 필수
-            contentType: false, // FormData 전송 시 필수
+            data: JSON.stringify(payload),
+            contentType: "application/json; charset=utf-8", // JSON 전송
             dataType: "json",
         })
             .done(function (res) {
