@@ -32,7 +32,7 @@ import org.springframework.util.StringUtils;
 public class RegionServiceImpl implements RegionService {
 
   private final RegionMapper regionMapper;
-  private static final String UPLOAD_PATH = "src/main/resources/static/CDIGIT_CCTV01/attach/extension/illegalLands";
+  private static final String UPLOAD_PATH = "/CDIGIT_CCTV01/attach/extension/illegalLands";
 
   /**
    * 지역 등록 요청을 받아 기본 정보 및 관련 이력을 저장한다.
@@ -147,16 +147,15 @@ public class RegionServiceImpl implements RegionService {
 
     log.info("insertAttachments 시작: basicInfoId={}, 이미지 개수={}", basicInfoId, images.size());
 
-    // 파일 업로드 경로 디렉토리 생성 (프로젝트 루트 기준)
-    String projectRoot = System.getProperty("user.dir");
-    Path uploadPath = Paths.get(projectRoot, UPLOAD_PATH);
+    // 파일 업로드 경로 디렉토리 생성 (절대 경로)
+    Path savePath = Paths.get(UPLOAD_PATH);
     try {
-      if (!Files.exists(uploadPath)) {
-        Files.createDirectories(uploadPath);
-        log.info("파일 업로드 경로 생성: {}", uploadPath.toAbsolutePath());
+      if (!Files.exists(savePath)) {
+        Files.createDirectories(savePath);
+        log.info("파일 업로드 경로 생성: {}", savePath.toAbsolutePath());
       }
     } catch (IOException e) {
-      log.error("파일 업로드 경로 생성 실패: {}", uploadPath.toAbsolutePath(), e);
+      log.error("파일 업로드 경로 생성 실패: {}", savePath.toAbsolutePath(), e);
       throw new RuntimeException("파일 저장 경로를 생성할 수 없습니다.", e);
     }
 
@@ -182,7 +181,7 @@ public class RegionServiceImpl implements RegionService {
         }
 
         // 파일 저장 경로
-        Path filePath = uploadPath.resolve(filename);
+        Path filePath = savePath.resolve(filename);
 
         // 파일 저장
         try (FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
@@ -199,7 +198,7 @@ public class RegionServiceImpl implements RegionService {
         attachment.setUseYn("Y");
 
         int result = regionMapper.insertAttachment(attachment);
-        log.info("첨부파일 저장 완료: {} -> {}, DB insert 결과={}, ilglAttflSeq={}", filename, uploadPath.toAbsolutePath(),
+        log.info("첨부파일 저장 완료: {} -> {}, DB insert 결과={}, ilglAttflSeq={}", filename, savePath.toAbsolutePath(),
             result,
             attachment.getIlglAttflSeq());
 
@@ -269,10 +268,9 @@ public class RegionServiceImpl implements RegionService {
     String attflNm = attachment.getAttflNm();
 
     // 웹 접근 가능한 경로로 변환
-    // attflPath:
-    // "src/main/resources/static/CDIGIT_CCTV01/attach/extension/illegalLands"
+    // attflPath: "/CDIGIT_CCTV01/attach/extension/illegalLands"
     // 변환 후: "/CDIGIT_CCTV01/attach/extension/illegalLands/파일명"
-    String imagePath = attflPath.replace("src/main/resources/static", "").replace("\\", "/");
+    String imagePath = attflPath.replace("\\", "/");
     imagePath = imagePath.replaceAll("^/+", "").replaceAll("/+$", "");
     return imagePath.isEmpty() ? "/" + attflNm : "/" + imagePath + "/" + attflNm;
   }

@@ -285,8 +285,8 @@ public class RegionController {
         return ResponseEntity.notFound().build();
       }
 
-      String projectRoot = System.getProperty("user.dir");
-      Path filePath = Paths.get(projectRoot, attachment.getAttflPath(), attachment.getAttflNm());
+      // 절대 경로 사용
+      Path filePath = Paths.get(attachment.getAttflPath(), attachment.getAttflNm());
       Resource resource = new UrlResource(filePath.toUri());
 
       if (resource.exists() && resource.isReadable()) {

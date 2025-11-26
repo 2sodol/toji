@@ -178,7 +178,7 @@
             a.ILGL_PRVU_ADDR_SEQ,
             CASE 
               WHEN a.ATTFL_PATH IS NOT NULL THEN
-                REPLACE(REPLACE(a.ATTFL_PATH, 'src/main/resources/static', ''), '\', '/') || '/' || a.ATTFL_NM
+                REPLACE(a.ATTFL_PATH, '\', '/') || '/' || a.ATTFL_NM
               ELSE '/' || a.ATTFL_NM
             END as imagePath,
             ROW_NUMBER() OVER (PARTITION BY a.ILGL_PRVU_ADDR_SEQ ORDER BY a.ILGL_ATTFL_SEQ DESC) as rn

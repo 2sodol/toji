@@ -59,13 +59,7 @@
     var dateStr = String(dateTimeStr);
     // yyyyMMdd 형식인 경우 yyyy-MM-dd로 변환
     if (dateStr.length === 8 && /^\d{8}$/.test(dateStr)) {
-      return (
-        dateStr.substring(0, 4) +
-        "-" +
-        dateStr.substring(4, 6) +
-        "-" +
-        dateStr.substring(6, 8)
-      );
+      return dateStr.substring(0, 4) + "-" + dateStr.substring(4, 6) + "-" + dateStr.substring(6, 8);
     }
     // 기존 형식 (ISO 8601 등) 처리
     var date = new Date(dateTimeStr);
@@ -937,8 +931,6 @@
           }
 
           // webPath가 있으면 사용, 없으면 기존 로직 사용
-
-          // webPath가 있으면 사용, 없으면 기존 로직 사용
           var imageUrl;
           if (photo.webPath) {
             imageUrl = photo.webPath;
@@ -947,20 +939,12 @@
             var fileName = photo.attflNm;
             imageUrl = rawPath;
 
-            // 1. 경로 정규화 (src/main/resources/static 제거)
-            if (imageUrl && imageUrl.indexOf("src/main/resources/static") !== -1) {
-              var parts = imageUrl.split("src/main/resources/static");
-              if (parts.length > 1) {
-                imageUrl = parts[1];
-              }
-            }
-
-            // 2. 슬래시 정규화
+            // 1. 슬래시 정규화
             if (imageUrl) {
               imageUrl = imageUrl.replace(/\\/g, "/");
             }
 
-            // 3. 파일명 결합 (경로에 파일명이 포함되지 않은 경우)
+            // 2. 파일명 결합 (경로에 파일명이 포함되지 않은 경우)
             if (fileName && imageUrl) {
               if (!imageUrl.endsWith(fileName)) {
                 if (!imageUrl.endsWith("/")) {
@@ -970,7 +954,7 @@
               }
             }
 
-            // 4. 중복 슬래시 제거 및 선행 슬래시 보장
+            // 3. 중복 슬래시 제거 및 선행 슬래시 보장
             if (imageUrl) {
               imageUrl = imageUrl.replace(/\/\//g, "/");
               if (!imageUrl.startsWith("/")) {
