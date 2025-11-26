@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="<%=request.getContextPath()%>/resources/css/index.css" />
     <link rel="stylesheet" href="<%=request.getContextPath()%>/resources/css/slide-panel.css" />
     <link rel="stylesheet" href="<%=request.getContextPath()%>/resources/css/inquiry-modal.css" />
+    <link rel="stylesheet" href="<%=request.getContextPath()%>/resources/css/register-modal.css" />
   </head>
 
   <body>
@@ -738,12 +739,12 @@
           if (typeof window.clearImageLayer === "function") {
             window.clearImageLayer();
           }
-          
+
           // 3. 이미지 데이터 다시 로드
           if (typeof window.SlidePanel !== 'undefined' && typeof window.SlidePanel.loadList === 'function') {
             // 슬라이드 패널의 리스트를 다시 로드하면서 이미지 레이어도 함께 갱신됨
             // 단, 1페이지를 다시 로드하여 최신 상태 반영
-             window.SlidePanel.loadList(1);
+            window.SlidePanel.loadList(1);
           }
 
           // 4. 현재 선택된 Feature가 있다면 상태(데이터 존재 여부) 재확인
