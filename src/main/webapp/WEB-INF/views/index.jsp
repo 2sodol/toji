@@ -33,17 +33,17 @@
     </div>
 
     <!-- 지도 선택 결과를 보여주는 팝업 -->
-    <div id="popup" class="ol-popup">
-      <a href="#" id="popup-closer" class="ol-popup-closer"></a>
-      <div id="popup-header" class="ol-popup-header">
-        <h3 class="ol-popup-title">불법점용점검</h3>
+    <div id="ilgl-popup" class="ilgl-popup">
+      <a href="#" id="ilgl-popup-closer" class="ilgl-popup-closer"></a>
+      <div id="ilgl-popup-header" class="ilgl-popup-header">
+        <h3 class="ilgl-popup-title">불법점용점검</h3>
       </div>
-      <div id="popup-content"></div>
-      <div id="popup-buttons">
-        <button id="popup-register-btn" class="map-register-btn">
+      <div id="ilgl-popup-content"></div>
+      <div id="ilgl-popup-buttons">
+        <button id="ilgl-popup-register-btn" class="ilgl-map-register-btn">
           <i class="fas fa-plus"></i>등록
         </button>
-        <button id="popup-inquiry-btn" class="map-inquiry-btn" style="display: none">
+        <button id="ilgl-popup-inquiry-btn" class="ilgl-map-inquiry-btn" style="display: none">
           <i class="fas fa-search"></i>조회
         </button>
       </div>
@@ -291,14 +291,14 @@
 
       // 팝업 버튼을 기본 상태로 리셋 (등록 버튼만 표시)
       function resetPopupButtons() {
-        $("#popup-register-btn").show();
-        $("#popup-inquiry-btn").hide();
+        $("#ilgl-popup-register-btn").show();
+        $("#ilgl-popup-inquiry-btn").hide();
       }
 
       // 등록 버튼과 조회 버튼 모두 표시
       function showBothButtons() {
-        $("#popup-register-btn").show();
-        $("#popup-inquiry-btn").show();
+        $("#ilgl-popup-register-btn").show();
+        $("#ilgl-popup-inquiry-btn").show();
       }
 
       // HTML 이스케이프 함수 (전역에 등록)
@@ -947,9 +947,9 @@
         };
 
         // 팝업 관련 DOM 요소 레퍼런스 (전역 변수로 등록)
-        var container = document.getElementById("popup");
-        window.popupContent = document.getElementById("popup-content");
-        var closer = document.getElementById("popup-closer");
+        var container = document.getElementById("ilgl-popup");
+        window.popupContent = document.getElementById("ilgl-popup-content");
+        var closer = document.getElementById("ilgl-popup-closer");
         window.popupOverlay = new ol.Overlay({
           element: container,
           autoPan: true,
@@ -971,6 +971,13 @@
 
         // 단일 클릭 시 지적 정보 조회
         window.map.on("singleclick", function (evt) {
+          // 불법용지 이미지 보기 체크박스가 켜져있을 때만 실행
+          var $imageToggle = $("#slide-panel-image-toggle");
+          var isImageToggleChecked = $imageToggle.length > 0 ? $imageToggle.is(":checked") : false;
+          if (!isImageToggleChecked) {
+            return;
+          }
+
           var currentZoom = view.getZoom();
 
           // 너무 낮은 줌 레벨에서는 토스트 메시지만 노출
@@ -1042,7 +1049,7 @@
         }
 
         // 팝업 내 등록 버튼 클릭 시 모달 띄우기
-        $("#popup-register-btn").on("click", function () {
+        $("#ilgl-popup-register-btn").on("click", function () {
           if (selectedRegionData) {
             if (
               window.IllegalRegisterModal &&
@@ -1058,7 +1065,7 @@
         });
 
         // 팝업 내 조회 버튼 클릭 시 조회 모달 띄우기
-        $("#popup-inquiry-btn").on("click", function () {
+        $("#ilgl-popup-inquiry-btn").on("click", function () {
           if (selectedRegionData && selectedRegionData.pnu) {
             if (
               window.illegalInquiryModal &&
