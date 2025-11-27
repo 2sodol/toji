@@ -159,10 +159,142 @@ body.slide-panel-open #map {
   visibility: visible;
 }
 
+/* ... (이전 스타일 유지) ... */
+
+/* 검색 영역 수정 */
+.slide-panel-search {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  position: relative;
+  /* X 버튼 위치 잡기 위해 */
+}
+
+.slide-panel-search__input-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.slide-panel-search__input {
+  width: 100%;
+  height: 40px;
+  padding: 0 36px 0 12px;
+  /* 오른쪽 패딩 늘림 (X 버튼 공간) */
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #333333;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.slide-panel-search__input:focus {
+  outline: none;
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
+}
+
+.slide-panel-search__clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 4px;
+  display: none;
+  /* 기본적으로 숨김 */
+  border-radius: 50%;
+  font-size: 12px;
+}
+
+.slide-panel-search__clear:hover {
+  background-color: #f1f3f4;
+  color: #666;
+}
+
+/* ... (버튼 스타일 유지) ... */
+
+/* 리스트 아이템 애니메이션 */
+.slide-panel-list-item {
+  display: flex;
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s;
+  cursor: pointer;
+  opacity: 0;
+  /* 초기 상태 투명 */
+  animation: fadeInUp 0.4s ease forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 로딩 영역 개선 */
+.slide-panel-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.6);
+  /* 투명도 조절 */
+  backdrop-filter: blur(2px);
+  /* 블러 효과 추가 */
+  z-index: 20;
+  border-radius: 6px;
+  transition: opacity 0.2s;
+}
+
+/* ... (나머지 스타일 유지) ... */
+
+.slide-panel-search__btn {
+  width: 40px;
+  height: 40px;
+  background-color: #1a73e8;
+  border: none;
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.slide-panel-search__btn:hover {
+  background-color: #1557b0;
+}
+
+.slide-panel-search__btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.25);
+}
+
 /* 리스트 영역 */
 .slide-panel-list-wrapper {
   min-height: 300px;
+  position: relative;
 }
+
+/* ... (중략) ... */
+
+
 
 .slide-panel-list-container {
   border: 1px solid #e0e0e0;
@@ -204,12 +336,7 @@ body.slide-panel-open #map {
 }
 
 /* 데이터그리드 행 */
-.slide-panel-list-item {
-  display: flex;
-  border-bottom: 1px solid #e9ecef;
-  transition: background-color 0.2s;
-  cursor: pointer;
-}
+
 
 .slide-panel-list-item:hover {
   background-color: #f8f9fa;
@@ -279,9 +406,7 @@ body.slide-panel-open #map {
   justify-content: center;
 }
 
-.slide-panel-pagination__btn:hover:not(
-    .slide-panel-pagination__btn--disabled
-  ):not(.slide-panel-pagination__btn--active) {
+.slide-panel-pagination__btn:hover:not(.slide-panel-pagination__btn--disabled):not(.slide-panel-pagination__btn--active) {
   background-color: #f8f9fa;
   border-color: #1a73e8;
   color: #1a73e8;
@@ -310,18 +435,25 @@ body.slide-panel-open #map {
   font-size: 14px;
 }
 
-/* 로딩 영역 */
-.slide-panel-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  min-height: 200px;
+
+
+.slide-panel-loading__spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #1a73e8;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
-.slide-panel-loading__text {
-  color: #666666;
-  font-size: 14px;
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* 빈 상태 영역 */

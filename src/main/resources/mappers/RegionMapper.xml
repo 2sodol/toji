@@ -171,6 +171,9 @@
             MAX(p.OCRN_DATES) as ocrnDates
           FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1 p
           WHERE p.USE_YN = 'Y'
+          <if test="keyword != null and keyword != ''">
+            AND p.LNDS_LDNO_ADDR LIKE '%' || #{keyword} || '%'
+          </if>
           GROUP BY p.LNDS_UNQ_NO
         ) main
         LEFT JOIN (
@@ -214,6 +217,9 @@
         LNDS_UNQ_NO
       FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
       WHERE USE_YN = 'Y'
+      <if test="keyword != null and keyword != ''">
+        AND LNDS_LDNO_ADDR LIKE '%' || #{keyword} || '%'
+      </if>
       GROUP BY LNDS_UNQ_NO
     )
   </select>

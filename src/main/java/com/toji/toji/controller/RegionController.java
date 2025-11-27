@@ -77,10 +77,11 @@ public class RegionController {
   @RequestMapping(value = "/list", method = RequestMethod.GET)
   public ResponseEntity<Map<String, Object>> getIllegalList(
       @RequestParam(defaultValue = "1") int page,
-      @RequestParam(defaultValue = "5") int size) {
+      @RequestParam(defaultValue = "5") int size,
+      @RequestParam(required = false) String keyword) {
     try {
-      log.info("불법점용 리스트 조회 요청: page={}, size={}", page, size);
-      Map<String, Object> result = regionService.findAllWithPaging(page, size);
+      log.info("불법점용 리스트 조회 요청: page={}, size={}, keyword={}", page, size, keyword);
+      Map<String, Object> result = regionService.findAllWithPaging(page, size, keyword);
       Map<String, Object> response = new HashMap<>();
       response.put("success", true);
       response.put("data", result);

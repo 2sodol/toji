@@ -12,9 +12,14 @@
     $body: null,
     $closeBtn: null,
     $listContainer: null,
+    $listItems: null,
     $paginationWrapper: null,
     $loading: null,
     $empty: null,
+    $searchInput: null,
+    $searchBtn: null,
+    $searchClearBtn: null,
+    searchKeyword: "",
     currentPage: 1,
     pageSize: 5,
     totalPages: 0,
@@ -30,9 +35,13 @@
       this.$body = $("body");
       this.$closeBtn = $("#slide-panel-close-btn");
       this.$listContainer = $("#slide-panel-list-container");
+      this.$listItems = $("#slide-panel-list-items");
       this.$paginationWrapper = $("#slide-panel-pagination-wrapper");
       this.$loading = $("#slide-panel-loading");
       this.$empty = $("#slide-panel-empty");
+      this.$searchInput = $("#slide-panel-search-input");
+      this.$searchBtn = $("#slide-panel-search-btn");
+      this.$searchClearBtn = $("#slide-panel-search-clear");
 
       // 토글 버튼 클릭 이벤트
       if (this.$toggle.length) {
@@ -63,6 +72,30 @@
       var $imageToggle = $("#slide-panel-image-toggle");
       if ($imageToggle.length) {
         $imageToggle.on("change", this.handleImageToggle.bind(this));
+      }
+
+      // 검색 이벤트
+      if (this.$searchBtn.length) {
+        this.$searchBtn.on("click", this.search.bind(this));
+      }
+
+      if (this.$searchInput.length) {
+        var self = this;
+        this.$searchInput.on("keydown", function (e) {
+          if (e.key === "Enter") {
+            self.search();
+          }
+        });
+
+        // 입력 시 X 버튼 표시 제어
+        this.$searchInput.on("input", function () {
+          self.toggleClearBtn();
+        });
+      }
+
+      // 검색 초기화 버튼 이벤트
+      if (this.$searchClearBtn.length) {
+        this.$searchClearBtn.on("click", this.clearSearch.bind(this));
       }
     },
 
@@ -113,6 +146,37 @@
     },
 
     /**
+     * 검색
+     */
+    search: function () {
+      var keyword = this.$searchInput.val().trim();
+      this.searchKeyword = keyword;
+      this.toggleClearBtn();
+      this.loadList(1);
+    },
+
+    /**
+     * 검색 초기화
+     */
+    clearSearch: function () {
+      this.$searchInput.val("");
+      this.searchKeyword = "";
+      this.toggleClearBtn();
+      this.loadList(1);
+    },
+
+    /**
+     * 검색 초기화 버튼 표시 토글
+     */
+    toggleClearBtn: function () {
+      if (this.$searchInput.val().length > 0) {
+        this.$searchClearBtn.show();
+      } else {
+        this.$searchClearBtn.hide();
+      }
+    },
+
+    /**
      * 리스트 데이터 로드
      */
     loadList: function (page) {
@@ -135,6 +199,7 @@
         data: {
           page: this.currentPage,
           size: this.pageSize,
+          keyword: this.searchKeyword,
         },
         dataType: "json",
       })
@@ -206,7 +271,7 @@
         var imagePath = item.imagePath || "";
         var hasData = item.hasData === true || item.hasData === "true" || item.hasData === 1;
 
-        var $item = $('<div class="slide-panel-list-item"></div>')
+        var $item = $('<div class="slide-panel-list-item" style="animation-delay: ' + (index * 0.05) + 's"></div>')
           .attr({
             "data-id": item.ilglPrvuInfoSeq || "",
             "data-lnds-unq-no": item.lndsUnqNo || "",
@@ -225,7 +290,7 @@
             "</div>"
           );
 
-        self.$listContainer.append($item);
+        self.$listItems.append($item);
 
         // 이미지 레이어 추가 (리스트 로드 시 모든 이미지 표시)
         if (imagePath && imagePath.trim().length > 0 && gpsLgtd && gpsLttd && typeof window.updateImageLayer === "function") {
@@ -441,7 +506,7 @@
      * 리스트 아이템 제거
      */
     clearListItems: function () {
-      this.$listContainer.find(".slide-panel-list-item").remove();
+      this.$listItems.empty();
     },
 
     /**
@@ -460,8 +525,9 @@
      */
     showLoading: function () {
       this.$loading.show();
-      this.$listContainer.hide();
-      this.$paginationWrapper.hide();
+      // 리스트 아이템은 숨기지 않고 오버레이로 덮음
+      this.$empty.hide();
+      // 페이징은 유지
     },
 
     /**
@@ -469,7 +535,7 @@
      */
     hideLoading: function () {
       this.$loading.hide();
-      this.$listContainer.show();
+      // this.$listItems.show(); // 이미 보여지고 있음
       this.$paginationWrapper.show();
     },
 
@@ -478,7 +544,8 @@
      */
     showEmpty: function () {
       this.$empty.show();
-      this.$listContainer.hide();
+      this.$listItems.hide();
+      this.$loading.hide();
       this.$paginationWrapper.hide();
     },
 
@@ -487,7 +554,7 @@
      */
     hideEmpty: function () {
       this.$empty.hide();
-      this.$listContainer.show();
+      this.$listItems.show();
       this.$paginationWrapper.show();
     },
 
