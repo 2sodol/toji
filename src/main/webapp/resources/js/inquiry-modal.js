@@ -700,16 +700,16 @@
       state.$compareModal.attr("aria-hidden", "true");
     }
 
-    // 지도 객체 정리 및 초기화 (좌표가 다른 용지 조회 시 뷰 갱신을 위해 필수)
+    // 지도 컨테이너를 먼저 비우기 (getComputedStyle 에러 방지)
+    // 컨테이너를 비우면 지도가 DOM에서 제거되므로 추가 정리가 필요 없음
+    $(".photo-compare-map").empty();
+
+    // 지도 객체 배열 초기화 (좌표가 다른 용지 조회 시 뷰 갱신을 위해 필수)
+    // setTarget(null) 호출을 생략: 컨테이너를 이미 비웠으므로 불필요하며,
+    // setTarget(null) 호출 시 내부에서 getTargetElement() -> getComputedStyle(null) 에러 발생 가능
     if (state.compareMaps && state.compareMaps.length > 0) {
-      state.compareMaps.forEach(function (map) {
-        map.setTarget(null);
-      });
       state.compareMaps = [];
     }
-
-    // 지도 컨테이너 비우기
-    $(".photo-compare-map").empty();
 
     // 날짜 선택박스 초기화
     $(".photo-compare-select").empty().append('<option value="">날짜 선택</option>');
@@ -797,7 +797,7 @@
       }
 
       // VWorld 배경 레이어 (일반 - GRAPHIC)
-      var baseLayer = new ol.layer.Tile({
+      var inquiryBaseLayer = new ol.layer.Tile({
         source: new ol.source.XYZ({
           url: "https://api.vworld.kr/req/wmts/1.0.0/" + VWORLD_API_KEY + "/Base/{z}/{y}/{x}.png",
           crossOrigin: "anonymous",
@@ -806,7 +806,7 @@
       });
 
       // VWorld 위성 레이어 (위성 - PHOTO)
-      var satelliteLayer = new ol.layer.Tile({
+      var inquirySatelliteLayer = new ol.layer.Tile({
         source: new ol.source.XYZ({
           url: "https://api.vworld.kr/req/wmts/1.0.0/" + VWORLD_API_KEY + "/Satellite/{z}/{y}/{x}.jpeg",
           crossOrigin: "anonymous",
@@ -814,21 +814,21 @@
         visible: false,
       });
 
-      var map = new ol.Map({
+      var inquiryMap = new ol.Map({
         target: targetId,
-        layers: [baseLayer, satelliteLayer],
+        layers: [inquiryBaseLayer, inquirySatelliteLayer],
         view: sharedView,
         controls: [], // 컨트롤 제거
         // interactions 옵션을 제거하여 기본 상호작용(드래그, 줌 등) 활성화
         // 단, view의 extent 설정으로 인해 이동 범위는 제한됨
       });
 
-      map.customImageLayer = null;
+      inquiryMap.customImageLayer = null;
       // 레이어 참조 저장
-      map.baseLayer = baseLayer;
-      map.satelliteLayer = satelliteLayer;
+      inquiryMap.baseLayer = inquiryBaseLayer;
+      inquiryMap.satelliteLayer = inquirySatelliteLayer;
 
-      state.compareMaps.push(map);
+      state.compareMaps.push(inquiryMap);
     }
 
     // 초기 라디오 버튼 상태에 따라 레이어 가시성 설정
@@ -851,6 +851,9 @@
         if (map.baseLayer) map.baseLayer.setVisible(true);
         if (map.satelliteLayer) map.satelliteLayer.setVisible(false);
       }
+      // 지도 즉시 렌더링하여 변경사항 반영
+      map.updateSize();
+      map.render();
     });
   }
 
