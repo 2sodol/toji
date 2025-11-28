@@ -71,4 +71,12 @@
         </div>
       </div>
     </div>
+
+    <!-- 하단 버튼 영역 -->
+    <div class="slide-panel__footer" style="padding: 15px; border-top: 1px solid #eee; margin-top: auto;">
+      <button type="button" id="drone-image-download-btn" class="slide-panel__btn"
+        style="width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+        <i class="fas fa-download"></i> 드론 촬영 이미지 다운로드
+      </button>
+    </div>
   </div>
