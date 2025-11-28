@@ -24,6 +24,12 @@
     <!-- 슬라이드 패널 JSP 포함 -->
     <jsp:include page="slide-panel.jsp" />
 
+    <!-- 주소 검색 버튼 (예시) -->
+    <button onclick="openAddressSearchModal()" 
+            style="position: fixed; top: 20px; right: 20px; z-index: 1000; padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+      <i class="fas fa-search"></i> 주소 검색
+    </button>
+
     <!-- 지도 렌더링 컨테이너 -->
     <div id="map"></div>
 
@@ -57,6 +63,12 @@
 
     <!-- 조회 모달 JSP 포함 -->
     <jsp:include page="inquiry-modal.jsp" />
+
+    <!-- 주소 검색 모달 iframe -->
+    <iframe id="addressSearchModalFrame" 
+            src="<%=request.getContextPath()%>/address-search-modal" 
+            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: none; z-index: 9999; background-color: rgba(0,0,0,0.4);">
+    </iframe>
 
     <script src="<%=request.getContextPath()%>/resources/js/register.js"></script>
     <script src="<%=request.getContextPath()%>/resources/js/modify.js"></script>
@@ -1092,6 +1104,80 @@
         ) {
           window.SlidePanel.loadList(1);
         }
+      };
+
+      // ============================================
+      // 주소 검색 모달 관련 함수
+      // ============================================
+      
+      /**
+       * 주소 검색 모달 열기
+       */
+      window.openAddressSearchModal = function() {
+        var iframe = document.getElementById('addressSearchModalFrame');
+        if (iframe) {
+          iframe.style.display = 'block';
+          // iframe 내부의 openAddressModal 함수 호출
+          try {
+            var iframeWindow = iframe.contentWindow;
+            if (iframeWindow && typeof iframeWindow.openAddressModal === 'function') {
+              iframeWindow.openAddressModal();
+            }
+          } catch (e) {
+            console.warn('iframe 접근 실패:', e);
+          }
+        }
+      };
+
+      /**
+       * 주소 검색 모달 닫기
+       */
+      window.closeAddressSearchModal = function() {
+        var iframe = document.getElementById('addressSearchModalFrame');
+        if (iframe) {
+          iframe.style.display = 'none';
+        }
+      };
+
+      /**
+       * 주소 검색 모달에서 선택한 주소를 받는 함수
+       * @param {Object} addressData - 선택된 주소 정보
+       * @param {String} addressData.zipcode - 우편번호
+       * @param {String} addressData.roadAddress - 도로명 주소
+       * @param {String} addressData.parcelAddress - 지번 주소
+       * @param {Object} addressData.coordinates - 좌표 정보 {x, y}
+       */
+      window.receiveSelectedAddress = function(addressData) {
+        console.log('선택된 주소:', addressData);
+        
+        // 여기에 주소를 사용하는 로직을 추가하세요
+        // 예시: 입력 필드에 주소 설정, 지도 이동 등
+        
+        if (addressData) {
+          // 예시 1: 알림으로 표시
+          alert(
+            '선택된 주소:\n' +
+            '우편번호: ' + (addressData.zipcode || '-') + '\n' +
+            '도로명: ' + (addressData.roadAddress || '-') + '\n' +
+            '지번: ' + (addressData.parcelAddress || '-')
+          );
+
+          // 예시 2: 좌표가 있으면 지도 이동
+          if (addressData.coordinates && addressData.coordinates.x && addressData.coordinates.y) {
+            var x = parseFloat(addressData.coordinates.x);
+            var y = parseFloat(addressData.coordinates.y);
+            
+            // EPSG:900913 (Web Mercator) 좌표를 EPSG:3857로 변환 (동일한 좌표계)
+            if (window.map && window.map.getView()) {
+              var view = window.map.getView();
+              view.setCenter([x, y]);
+              view.setZoom(18); // 적절한 줌 레벨로 설정
+            }
+          }
+        }
+        
+        // 모달 닫기
+        window.closeAddressSearchModal();
       };
     </script>
   </body>

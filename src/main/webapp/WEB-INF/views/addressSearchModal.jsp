@@ -90,6 +90,31 @@
 }
 
 /* --- 3. 결과 영역 및 리스트 (명확한 구획) --- */
+#searchResults {
+    position: relative;
+    min-height: 50px;
+    transition: opacity 0.2s ease-in-out;
+}
+
+#searchResults.loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.address-modal-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border-radius: 4px;
+}
+
 .address-modal-result-count { 
     font-size: 14px; 
     text-align: left; 
@@ -97,6 +122,7 @@
     margin-bottom: 10px;
     padding-left: 0; 
     font-weight: 500;
+    transition: opacity 0.2s ease-in-out;
 }
 
 .address-modal-list {
@@ -107,6 +133,7 @@
     border-radius: 4px; 
     margin-bottom: 15px; 
     border: 1px solid #e0e0e0; /* 전체 리스트 테두리 추가 */
+    transition: opacity 0.2s ease-in-out;
 }
 
 /* 스크롤바 커스터마이징 */
@@ -119,7 +146,7 @@
     padding: 12px 15px;
     border-bottom: 1px solid #f0f0f0; 
     cursor: pointer;
-    transition: background-color 0.15s;
+    transition: background-color 0.15s, opacity 0.2s ease-in-out;
 }
 
 .address-modal-list li:last-child {
@@ -203,6 +230,7 @@
     color: #666;
     border-radius: 4px;
     margin-bottom: 15px;
+    transition: opacity 0.2s ease-in-out;
 }
 .address-modal-loading { 
     color: #007bff; 
@@ -217,9 +245,7 @@
 </head>
 <body>
 
-<button onclick="openAddressModal()">주소 검색</button>
-
-<div id="addressSearchModal" class="address-modal">
+<div id="addressSearchModal" class="address-modal" style="display: block;">
   <div class="address-modal-content">
     <span class="address-modal-close" onclick="closeAddressModal()">&times;</span>
     <h2 class="address-modal-title">주소 검색</h2>
@@ -256,6 +282,10 @@ function openAddressModal() {
 
 function closeAddressModal() {
     document.getElementById('addressSearchModal').style.display = 'none';
+    // 부모 페이지의 모달 닫기 함수 호출
+    if (window.parent && typeof window.parent.closeAddressSearchModal === 'function') {
+        window.parent.closeAddressSearchModal();
+    }
 }
 
 // 주소 검색 함수
@@ -266,8 +296,22 @@ function searchAddress(page) {
         return;
     }
 
-    $('#searchResults').html('<p class="address-modal-loading">검색 중입니다... 🔍</p>');
-    $('#pagination').empty();
+    var resultElement = $('#searchResults');
+    var paginationElement = $('#pagination');
+    
+    // 기존 결과가 있으면 로딩 오버레이만 표시, 없으면 로딩 메시지 표시
+    if (resultElement.find('.address-modal-list').length > 0 || resultElement.find('.address-modal-no-results').length > 0) {
+        // 기존 결과가 있는 경우 오버레이 방식으로 로딩 표시
+        resultElement.addClass('loading');
+        if (resultElement.find('.address-modal-loading-overlay').length === 0) {
+            resultElement.append('<div class="address-modal-loading-overlay"><p class="address-modal-loading">검색 중입니다... 🔍</p></div>');
+        }
+    } else {
+        // 초기 상태인 경우 로딩 메시지로 교체
+        resultElement.html('<p class="address-modal-loading">검색 중입니다... 🔍</p>');
+    }
+    
+    paginationElement.fadeOut(100);
 
     // VWorld API 파라미터 설정
     var apiUrl = VWORLD_API_URL + 
@@ -294,7 +338,12 @@ function searchAddress(page) {
         },
         error: function(xhr, status, error) {
             console.error("API 호출 실패:", status, error);
-            $('#searchResults').html('<p class="address-modal-error">주소 검색에 실패했습니다.</p>');
+            var resultElement = $('#searchResults');
+            resultElement.removeClass('loading');
+            resultElement.find('.address-modal-loading-overlay').remove();
+            resultElement.fadeOut(100, function() {
+                $(this).html('<p class="address-modal-error">주소 검색에 실패했습니다.</p>').fadeIn(200);
+            });
             $('#pagination').empty();
         }
     });
@@ -303,12 +352,18 @@ function searchAddress(page) {
 // 검색 결과를 처리하고 화면에 표시하는 함수
 function handleSearchResults(response, currentPage, searchQuery) {
     var resultElement = $('#searchResults');
-    resultElement.empty();
-    $('#pagination').empty(); 
+    var paginationElement = $('#pagination');
+    
+    // 로딩 상태 제거
+    resultElement.removeClass('loading');
+    resultElement.find('.address-modal-loading-overlay').remove();
 
     // API 응답 구조 확인
     if (!response || !response.response || !response.response.result) {
-        resultElement.html('<p class="address-modal-no-results">검색 결과를 가져올 수 없습니다. 🤔</p>');
+        resultElement.fadeOut(100, function() {
+            $(this).html('<p class="address-modal-no-results">검색 결과를 가져올 수 없습니다. 🤔</p>').fadeIn(200);
+        });
+        paginationElement.empty();
         return;
     }
 
@@ -317,12 +372,16 @@ function handleSearchResults(response, currentPage, searchQuery) {
     var totalCount = parseInt(response.response.record ? response.response.record.total : 0);
 
     if (response.response.status !== 'OK' || totalCount === 0 || !items || items.length === 0) {
-        resultElement.html('<p class="address-modal-no-results">검색어에 해당하는 주소가 없거나 오류가 발생했습니다. 🤔</p>');
+        resultElement.fadeOut(100, function() {
+            $(this).html('<p class="address-modal-no-results">검색어에 해당하는 주소가 없거나 오류가 발생했습니다. 🤔</p>').fadeIn(200);
+        });
+        paginationElement.empty();
         return;
     }
 
     // 결과 목록 표시
-    var html = '<ul class="address-modal-list">';
+    var html = '<p class="address-modal-result-count">총 <strong>' + totalCount + '</strong>건의 결과가 검색되었습니다.</p>';
+    html += '<ul class="address-modal-list">';
     $.each(items, function(index, item) {
         // API 응답에서 주소 정보 추출
         var roadName = item.address ? item.address.road || '' : '';
@@ -371,12 +430,17 @@ function handleSearchResults(response, currentPage, searchQuery) {
     });
     html += '</ul>';
 
-    resultElement.html(html);
-    resultElement.prepend('<p class="address-modal-result-count">총 <strong>' + totalCount + '</strong>건의 결과가 검색되었습니다.</p>');
+    // 부드러운 페이드 효과로 결과 업데이트
+    resultElement.fadeOut(100, function() {
+        $(this).html(html).fadeIn(200);
+    });
 
     // 페이징 처리
     var totalPages = Math.ceil(totalCount / RESULT_SIZE);
-    renderPagination(totalPages, currentPage);
+    setTimeout(function() {
+        renderPagination(totalPages, currentPage);
+        paginationElement.fadeIn(200);
+    }, 150);
 }
 
 // 주소 선택 함수 (item 객체를 통째로 받아서 처리)
