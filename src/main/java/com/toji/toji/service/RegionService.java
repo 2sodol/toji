@@ -24,7 +24,7 @@ public interface RegionService {
    * @param size 페이지 크기
    * @return 페이징 정보와 리스트를 포함한 맵
    */
-  Map<String, Object> findAllWithPaging(int page, int size);
+  Map<String, Object> findAllWithPaging(int page, int size, String keyword);
 
   /**
    * 특정 토지의 등록일 리스트를 타입별로 조회한다.

@@ -5,6 +5,9 @@ import com.toji.toji.domain.Attachment;
 import com.toji.toji.domain.BasicInfo;
 import com.toji.toji.dto.RegionRegisterRequest;
 import com.toji.toji.mapper.RegionMapper;
+
+import jakarta.servlet.ServletContext;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -19,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -32,6 +36,8 @@ import org.springframework.util.StringUtils;
 public class RegionServiceImpl implements RegionService {
 
   private final RegionMapper regionMapper;
+  private final ServletContext servletContext;
+
   private static final String UPLOAD_PATH = "/CDIGIT_CCTV01/attach/extension/illegalLands";
 
   /**
@@ -148,7 +154,8 @@ public class RegionServiceImpl implements RegionService {
     log.info("insertAttachments 시작: basicInfoId={}, 이미지 개수={}", basicInfoId, images.size());
 
     // 파일 업로드 경로 디렉토리 생성 (절대 경로)
-    Path savePath = Paths.get(UPLOAD_PATH);
+    // Path savePath = Paths.get(UPLOAD_PATH);
+    Path savePath = Paths.get(servletContext.getRealPath(UPLOAD_PATH));
     try {
       if (!Files.exists(savePath)) {
         Files.createDirectories(savePath);
@@ -283,7 +290,7 @@ public class RegionServiceImpl implements RegionService {
    * @return 페이징 정보와 리스트를 포함한 맵
    */
   @Override
-  public Map<String, Object> findAllWithPaging(int page, int size) {
+  public Map<String, Object> findAllWithPaging(int page, int size, String keyword) {
     if (page < 1) {
       page = 1;
     }
@@ -292,11 +299,11 @@ public class RegionServiceImpl implements RegionService {
     }
 
     int offset = (page - 1) * size;
-    int totalCount = regionMapper.countAll();
+    int totalCount = regionMapper.countAll(keyword);
     int totalPages = (int) Math.ceil((double) totalCount / size);
 
     // 최적화된 쿼리 사용: N+1 문제 해결 (hasData, imagePath 포함)
-    List<Map<String, Object>> list = regionMapper.findAllWithPagingOptimized(offset, size);
+    List<Map<String, Object>> list = regionMapper.findAllWithPagingOptimized(offset, size, keyword);
 
     // 결과 데이터 변환 (쿼리에서 이미 조회된 데이터를 메모리에서 변환)
     List<Map<String, Object>> listWithData = new ArrayList<>();
