@@ -31,19 +31,23 @@ function searchAddress(page) {
     var resultElement = $('#searchResults');
     var paginationElement = $('#pagination');
 
-    // 기존 결과가 있으면 로딩 오버레이만 표시, 없으면 로딩 메시지 표시
-    if (resultElement.find('.address-modal-list').length > 0 || resultElement.find('.address-modal-no-results').length > 0) {
-        // 기존 결과가 있는 경우 오버레이 방식으로 로딩 표시
-        resultElement.addClass('loading');
-        if (resultElement.find('.address-modal-loading-overlay').length === 0) {
-            resultElement.append('<div class="address-modal-loading-overlay"><p class="address-modal-loading">검색 중입니다... 🔍</p></div>');
-        }
-    } else {
-        // 초기 상태인 경우 로딩 메시지로 교체
-        resultElement.html('<p class="address-modal-loading">검색 중입니다... 🔍</p>');
-    }
+    // 버튼 비활성화
+    paginationElement.find('button').prop('disabled', true);
 
-    paginationElement.hide(); // fadeOut 대신 hide 사용
+    // 로딩 인디케이터 지연 표시 (300ms)
+    // 짧은 요청에는 로딩을 표시하지 않아 깜빡임 방지
+    var loadingTimer = setTimeout(function () {
+        if (resultElement.find('.address-modal-list').length > 0 || resultElement.find('.address-modal-no-results').length > 0) {
+            // 기존 결과가 있는 경우 오버레이 방식으로 로딩 표시
+            resultElement.addClass('loading');
+            if (resultElement.find('.address-modal-loading-overlay').length === 0) {
+                resultElement.append('<div class="address-modal-loading-overlay"><div class="address-modal-spinner"></div></div>');
+            }
+        } else {
+            // 초기 상태인 경우 로딩 스피너로 교체
+            resultElement.html('<div class="address-modal-loading"><div class="address-modal-spinner"></div></div>');
+        }
+    }, 300);
 
     // VWorld API 파라미터 설정
     var apiUrl = VWORLD_API_URL +
@@ -65,10 +69,16 @@ function searchAddress(page) {
         method: 'GET',
         dataType: 'jsonp',
         success: function (response) {
+            // 로딩 타이머 취소 (빠른 응답 시 로딩 표시 안함)
+            clearTimeout(loadingTimer);
+
             var currentPage = parseInt(page || 1);
             handleSearchResults(response, currentPage, query);
         },
         error: function (xhr, status, error) {
+            // 로딩 타이머 취소
+            clearTimeout(loadingTimer);
+
             console.error("API 호출 실패:", status, error);
             var resultElement = $('#searchResults');
             resultElement.removeClass('loading');
@@ -151,7 +161,7 @@ function handleSearchResults(response, currentPage, searchQuery) {
         // 하지만 문자열 연결 방식이므로, data-item에 넣을 때 single quote를 escape 처리하여 넣음.
         var jsonString = JSON.stringify(formattedItem).replace(/'/g, "&#39;");
 
-        html += '<li class="address-item" data-item=\'' + jsonString + '\'>';
+        html += '<li class="address-item" data-item=\'' + jsonString + '\' style="animation-delay: ' + (index * 0.05) + 's">';
 
         if (roadDisplay.length > 0) {
             html += '<div class="address-modal-main-address">' + roadDisplay + '</div>';
