@@ -159,15 +159,12 @@ body.slide-panel-open #map {
   visibility: visible;
 }
 
-/* ... (이전 스타일 유지) ... */
-
 /* 검색 영역 수정 */
 .slide-panel-search {
   display: flex;
   gap: 8px;
   margin-bottom: 20px;
   position: relative;
-  /* X 버튼 위치 잡기 위해 */
 }
 
 .slide-panel-search__input-wrapper {
@@ -181,7 +178,6 @@ body.slide-panel-open #map {
   width: 100%;
   height: 40px;
   padding: 0 36px 0 12px;
-  /* 오른쪽 패딩 늘림 (X 버튼 공간) */
   border: 1px solid #e0e0e0;
   border-radius: 4px;
   font-size: 14px;
@@ -206,7 +202,6 @@ body.slide-panel-open #map {
   cursor: pointer;
   padding: 4px;
   display: none;
-  /* 기본적으로 숨김 */
   border-radius: 50%;
   font-size: 12px;
 }
@@ -215,52 +210,6 @@ body.slide-panel-open #map {
   background-color: #f1f3f4;
   color: #666;
 }
-
-/* ... (버튼 스타일 유지) ... */
-
-/* 리스트 아이템 애니메이션 */
-.slide-panel-list-item {
-  display: flex;
-  border-bottom: 1px solid #e9ecef;
-  transition: background-color 0.2s;
-  cursor: pointer;
-  opacity: 0;
-  /* 초기 상태 투명 */
-  animation: fadeInUp 0.4s ease forwards;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 로딩 영역 개선 */
-.slide-panel-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(255, 255, 255, 0.6);
-  /* 투명도 조절 */
-  backdrop-filter: blur(2px);
-  /* 블러 효과 추가 */
-  z-index: 20;
-  border-radius: 6px;
-  transition: opacity 0.2s;
-}
-
-/* ... (나머지 스타일 유지) ... */
 
 .slide-panel-search__btn {
   width: 40px;
@@ -286,15 +235,19 @@ body.slide-panel-open #map {
   box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.25);
 }
 
+/* 리스트 아이템 */
+.slide-panel-list-item {
+  display: flex;
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
 /* 리스트 영역 */
 .slide-panel-list-wrapper {
   min-height: 300px;
   position: relative;
 }
-
-/* ... (중략) ... */
-
-
 
 .slide-panel-list-container {
   border: 1px solid #e0e0e0;
@@ -336,8 +289,6 @@ body.slide-panel-open #map {
 }
 
 /* 데이터그리드 행 */
-
-
 .slide-panel-list-item:hover {
   background-color: #f8f9fa;
 }
@@ -435,7 +386,21 @@ body.slide-panel-open #map {
   font-size: 14px;
 }
 
-
+/* 로딩 영역 개선 */
+.slide-panel-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.6);
+  z-index: 20;
+  border-radius: 6px;
+  transition: opacity 0.2s;
+}
 
 .slide-panel-loading__spinner {
   width: 40px;

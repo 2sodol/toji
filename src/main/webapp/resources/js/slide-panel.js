@@ -271,7 +271,7 @@
         var imagePath = item.imagePath || "";
         var hasData = item.hasData === true || item.hasData === "true" || item.hasData === 1;
 
-        var $item = $('<div class="slide-panel-list-item" style="animation-delay: ' + (index * 0.05) + 's"></div>')
+        var $item = $('<div class="slide-panel-list-item"></div>')
           .attr({
             "data-id": item.ilglPrvuInfoSeq || "",
             "data-lnds-unq-no": item.lndsUnqNo || "",

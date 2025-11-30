@@ -161,7 +161,7 @@ function handleSearchResults(response, currentPage, searchQuery) {
         // 하지만 문자열 연결 방식이므로, data-item에 넣을 때 single quote를 escape 처리하여 넣음.
         var jsonString = JSON.stringify(formattedItem).replace(/'/g, "&#39;");
 
-        html += '<li class="address-item" data-item=\'' + jsonString + '\' style="animation-delay: ' + (index * 0.05) + 's">';
+        html += '<li class="address-item" data-item=\'' + jsonString + '\'>';
 
         if (roadDisplay.length > 0) {
             html += '<div class="address-modal-main-address">' + roadDisplay + '</div>';
