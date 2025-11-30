@@ -1,0 +1,252 @@
+.address-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.address-modal-content {
+    background-color: #fff;
+    margin: 8% auto;
+    padding: 25px;
+    border: none;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 6px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.address-modal-close {
+    color: #888;
+    float: right;
+    font-size: 28px;
+    font-weight: normal;
+    transition: color 0.2s;
+}
+
+.address-modal-close:hover {
+    color: #333;
+    cursor: pointer;
+}
+
+.address-modal-title {
+    font-size: 22px;
+    color: #222;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+/* --- 2. 검색 폼 (깔끔한 라인 스타일) --- */
+.address-modal-search-form {
+    display: flex;
+    margin-bottom: 15px;
+}
+
+.address-modal-search-form input[type="text"] {
+    flex-grow: 1;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-right: none;
+    border-radius: 4px 0 0 4px;
+    font-size: 16px;
+    outline: none;
+    background-color: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.address-modal-search-form input[type="text"]:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 1px #007bff inset;
+}
+
+.address-modal-search-form button {
+    padding: 10px 18px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.address-modal-search-form button:hover {
+    background-color: #0056b3;
+}
+
+/* --- 3. 결과 영역 및 리스트 (명확한 구획) --- */
+#searchResults {
+    position: relative;
+    min-height: 50px;
+    transition: opacity 0.2s ease-in-out;
+}
+
+#searchResults.loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.address-modal-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border-radius: 4px;
+}
+
+.address-modal-result-count {
+    font-size: 14px;
+    text-align: left;
+    color: #666;
+    margin-bottom: 10px;
+    padding-left: 0;
+    font-weight: 500;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.address-modal-list {
+    list-style: none;
+    padding: 0;
+    max-height: 350px;
+    overflow-y: auto;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    border: 1px solid #e0e0e0;
+    /* 전체 리스트 테두리 추가 */
+    transition: opacity 0.2s ease-in-out;
+}
+
+/* 스크롤바 커스터마이징 */
+.address-modal-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.address-modal-list::-webkit-scrollbar-thumb {
+    background-color: #c0c0c0;
+    border-radius: 3px;
+}
+
+.address-modal-list::-webkit-scrollbar-track {
+    background-color: #f7f7f7;
+}
+
+
+.address-modal-list li {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.15s, opacity 0.2s ease-in-out;
+}
+
+.address-modal-list li:last-child {
+    border-bottom: none;
+}
+
+.address-modal-list li:hover {
+    background-color: #f8f8f8;
+}
+
+/* 주소 유형 레이블 스타일링 */
+.address-modal-type-label {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #007bff;
+    background-color: #e0f0ff;
+    padding: 2px 2px;
+    border-radius: 3px;
+    margin-right: 8px;
+
+    /* ★★★ 수정된 부분: 레이블 너비를 고정하여 정렬합니다. ★★★ */
+    min-width: 48px;
+    /* 너비 조정 (폰트 크기에 따라 적절한 값 설정) */
+    text-align: center;
+    /* 텍스트를 중앙 정렬하여 시각적 균형 유지 */
+}
+
+
+/* 주소 텍스트 스타일 */
+.address-modal-main-address {
+    font-size: 14px;
+    color: #666;
+    margin-top: 4px;
+    font-weight: 400;
+}
+
+.address-modal-sub-address {
+    font-size: 14px;
+    color: #666;
+    margin-top: 4px;
+    font-weight: 400;
+}
+
+/* --- 4. 페이징 영역 --- */
+.address-modal-pagination-area {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.address-modal-page-btn {
+    padding: 8px 13px;
+    margin: 0 3px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    color: #555;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s, color 0.2s;
+    font-size: 14px;
+}
+
+.address-modal-page-btn:hover {
+    background-color: #f0f0f0;
+}
+
+.address-modal-page-btn.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+    font-weight: 600;
+}
+
+.address-modal-page-edge {
+    font-size: 14px;
+    padding: 8px 11px;
+}
+
+/* 기타 메시지 스타일 */
+.address-modal-initial-message,
+.address-modal-no-results,
+.address-modal-loading,
+.address-modal-error {
+    padding: 15px;
+    text-align: center;
+    font-size: 15px;
+    color: #666;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.address-modal-loading {
+    color: #007bff;
+    font-weight: 500;
+}
+
+.address-modal-error {
+    color: #dc3545;
+    background-color: #ffebeb;
+    border: 1px solid #dc3545;
+}
