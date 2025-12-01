@@ -100,16 +100,14 @@
       ATTFL_NM,
       ATTFL_PATH,
       ATTFL_CPCT,
-      OCRN_DATES,
-      USE_YN
+      OCRN_DATES
     ) VALUES (
       #{ilglAttflSeq},
       #{ilglPrvuAddrSeq},
       #{attflNm},
       #{attflPath},
       #{attflCpct},
-      #{ocrnDates},
-      NVL(#{useYn}, 'Y')
+      #{ocrnDates}
     )
   </insert>
 
@@ -186,7 +184,6 @@
             END as imagePath,
             ROW_NUMBER() OVER (PARTITION BY a.ILGL_PRVU_ADDR_SEQ ORDER BY a.ILGL_ATTFL_SEQ DESC) as rn
           FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 a
-          WHERE a.USE_YN = 'Y'
         ) img ON img.ILGL_PRVU_ADDR_SEQ = main.ilglPrvuInfoSeq AND img.rn = 1
         ORDER BY main.ocrnDates DESC NULLS LAST, main.ilglPrvuInfoSeq DESC
       ) t
@@ -205,7 +202,6 @@
         a.OCRN_DATES as ocrnDates
       FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 a
       WHERE a.ILGL_PRVU_ADDR_SEQ = #{ilglPrvuInfoSeq}
-        AND a.USE_YN = 'Y'
       ORDER BY a.ILGL_ATTFL_SEQ DESC
     ) WHERE ROWNUM = 1
   </select>
@@ -275,11 +271,10 @@
     WHERE ILGL_PRVU_INFO_SEQ = #{basicInfoId}
   </delete>
 
-  <update id="deleteAttachmentsByBasicInfoId" parameterType="Long">
-    UPDATE DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1
-    SET USE_YN = 'N'
+  <delete id="deleteAttachmentsByBasicInfoId" parameterType="Long">
+    DELETE FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1
     WHERE ILGL_PRVU_ADDR_SEQ = #{basicInfoId}
-  </update>
+  </delete>
 
   <update id="deleteBasicInfo" parameterType="BasicInfo">
     UPDATE DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
@@ -290,11 +285,10 @@
       AND USE_YN = 'Y'
   </update>
 
-  <update id="deleteAttachment" parameterType="Long">
-    UPDATE DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1
-    SET USE_YN = 'N'
+  <delete id="deleteAttachment" parameterType="Long">
+    DELETE FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1
     WHERE ILGL_ATTFL_SEQ = #{ilglAttflSeq}
-  </update>
+  </delete>
 
   <!-- 첨부파일 관련 쿼리 -->
   
@@ -324,7 +318,6 @@
       ON a.ILGL_PRVU_ADDR_SEQ = p.ILGL_PRVU_INFO_SEQ
     WHERE p.LNDS_UNQ_NO = #{lndsUnqNo}
       AND p.USE_YN = 'Y'
-      AND a.USE_YN = 'Y'
       AND a.OCRN_DATES IS NOT NULL
     ORDER BY a.OCRN_DATES DESC, a.ILGL_ATTFL_SEQ DESC
   </select>
@@ -381,7 +374,6 @@
       a.OCRN_DATES as ocrnDates
     FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 a
     WHERE a.ILGL_PRVU_ADDR_SEQ = #{ilglPrvuInfoSeq}
-      AND a.USE_YN = 'Y'
     ORDER BY a.ILGL_ATTFL_SEQ DESC
   </select>
 
@@ -396,7 +388,6 @@
       a.OCRN_DATES as ocrnDates
     FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 a
     WHERE a.ILGL_ATTFL_SEQ = #{ilglAttflSeq}
-      AND a.USE_YN = 'Y'
   </select>
 
 </mapper>

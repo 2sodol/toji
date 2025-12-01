@@ -31,6 +31,12 @@
       <i class="fas fa-search"></i> 주소 검색
     </button>
 
+    <!-- 드론 모니터링 버튼 -->
+    <button onclick="location.href='<%=request.getContextPath()%>/drone/monitor.do'"
+      style="position: fixed; top: 70px; right: 20px; z-index: 1000; padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+      <i class="fas fa-plane"></i> 드론 모니터링
+    </button>
+
     <!-- 지도 렌더링 컨테이너 -->
     <div id="map"></div>
 

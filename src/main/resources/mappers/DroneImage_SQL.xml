@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.toji.toji.mapper.DroneImageMapper">
+
+    <insert id="insertDroneImage" parameterType="DroneImageVO">
+        <selectKey keyProperty="imgId" resultType="long" order="BEFORE">
+            SELECT DTJ_MAIN.SEQ_DRONE_IMG.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO DTJ_MAIN.TB_DRONE_IMAGE (
+            IMG_ID,
+            REMOTE_URL,
+            FILE_NAME,
+            STORE_PATH,
+            FILE_SIZE,
+            LATITUDE,
+            LONGITUDE,
+            ADDR_FULL,
+            ADDR_GROUP,
+            COLLECT_TIME,
+            REG_DATE
+        ) VALUES (
+            #{imgId},
+            #{remoteUrl},
+            #{fileName},
+            #{storePath},
+            #{fileSize},
+            #{latitude},
+            #{longitude},
+            #{addrFull},
+            #{addrGroup},
+            #{collectTime},
+            SYSDATE
+        )
+    </insert>
+
+    <select id="selectDroneImageDateList" resultType="map">
+        SELECT 
+            TO_CHAR(COLLECT_TIME, 'YYYY-MM-DD') AS WORK_DATE,
+            COUNT(*) AS PHOTO_CNT
+        FROM DTJ_MAIN.TB_DRONE_IMAGE
+        GROUP BY TO_CHAR(COLLECT_TIME, 'YYYY-MM-DD')
+        ORDER BY WORK_DATE DESC
+    </select>
+
+    <select id="selectDroneImageList" parameterType="String" resultType="DroneImageVO">
+        SELECT
+            IMG_ID as imgId,
+            REMOTE_URL as remoteUrl,
+            FILE_NAME as fileName,
+            STORE_PATH as storePath,
+            FILE_SIZE as fileSize,
+            LATITUDE as latitude,
+            LONGITUDE as longitude,
+            ADDR_FULL as addrFull,
+            ADDR_GROUP as addrGroup,
+            COLLECT_TIME as collectTime,
+            REG_DATE as regDate
+        FROM DTJ_MAIN.TB_DRONE_IMAGE
+        WHERE TO_CHAR(COLLECT_TIME, 'YYYY-MM-DD') = #{searchDate}
+        ORDER BY COLLECT_TIME ASC
+    </select>
+
+</mapper>
