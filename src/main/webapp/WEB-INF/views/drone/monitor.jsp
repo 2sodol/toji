@@ -23,6 +23,7 @@
                     --text-color: #333;
                     --text-muted: #6c757d;
                     --border-radius: 12px;
+                    --card-border-radius: 8px;
                 }
 
                 body {
@@ -33,14 +34,17 @@
 
                 /* 모달 커스텀 */
                 .modal-lg {
-                    max-width: 95%;
-                    /* 더 넓게 */
+                    max-width: 90%;
+                    margin: 1.75rem auto;
                 }
 
                 .modal-content {
                     border: none;
                     border-radius: var(--border-radius);
                     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                    height: 90vh;
+                    display: flex;
+                    flex-direction: column;
                 }
 
                 .modal-header {
@@ -49,6 +53,7 @@
                     background-color: #fff;
                     border-top-left-radius: var(--border-radius);
                     border-top-right-radius: var(--border-radius);
+                    flex-shrink: 0;
                 }
 
                 .modal-title {
@@ -57,143 +62,201 @@
                 }
 
                 .modal-body {
-                    padding: 2rem;
+                    padding: 0;
                     background-color: var(--bg-color);
-                    min-height: 70vh;
-                }
-
-                /* 좌측 리스트 영역 */
-                .list-container {
-                    background: #fff;
-                    border-radius: var(--border-radius);
-                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-                    height: 100%;
                     display: flex;
                     flex-direction: column;
                     overflow: hidden;
+                    flex: 1;
                 }
 
-                .list-header {
-                    padding: 1.2rem;
-                    border-bottom: 1px solid #f0f0f0;
-                    font-weight: 600;
+                /* 액션 바 */
+                .action-bar {
+                    background-color: #fff;
+                    padding: 1rem 2rem;
+                    border-bottom: 1px solid #eee;
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
+                    flex-shrink: 0;
+                    z-index: 10;
                 }
 
-                .img-list-group {
+                .selection-info {
+                    display: flex;
+                    align-items: center;
+                    font-weight: 500;
+                    color: var(--text-color);
+                }
+
+                .custom-checkbox-lg {
+                    width: 20px;
+                    height: 20px;
+                    cursor: pointer;
+                }
+
+                /* 갤러리 영역 */
+                .gallery-container {
                     flex: 1;
                     overflow-y: auto;
-                    padding: 0.5rem;
+                    padding: 2rem;
                 }
 
-                /* 커스텀 스크롤바 */
-                .img-list-group::-webkit-scrollbar {
-                    width: 6px;
+                .gallery-container::-webkit-scrollbar {
+                    width: 8px;
                 }
 
-                .img-list-group::-webkit-scrollbar-track {
+                .gallery-container::-webkit-scrollbar-track {
                     background: #f1f1f1;
                 }
 
-                .img-list-group::-webkit-scrollbar-thumb {
+                .gallery-container::-webkit-scrollbar-thumb {
                     background: #ccc;
-                    border-radius: 3px;
+                    border-radius: 4px;
                 }
 
-                .img-list-group::-webkit-scrollbar-thumb:hover {
+                .gallery-container::-webkit-scrollbar-thumb:hover {
                     background: #aaa;
                 }
 
-                /* 리스트 아이템 (카드 스타일) */
-                .list-card {
-                    display: block;
-                    padding: 1rem;
-                    margin-bottom: 0.5rem;
+                /* 그룹 섹션 */
+                .group-section {
+                    margin-bottom: 2.5rem;
+                }
+
+                .group-header {
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 1rem;
+                    padding-bottom: 0.5rem;
+                    border-bottom: 2px solid #eee;
+                }
+
+                .group-title {
+                    font-size: 1.2rem;
+                    font-weight: 700;
+                    color: var(--primary-color);
+                    margin-bottom: 0;
+                    margin-right: 0.8rem;
+                }
+
+                .group-count {
+                    background-color: #e9ecef;
+                    color: var(--text-muted);
+                    padding: 0.2rem 0.6rem;
+                    border-radius: 12px;
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                }
+
+                /* 갤러리 카드 */
+                .gallery-card {
                     background: #fff;
-                    border: 1px solid #eee;
-                    border-radius: 8px;
+                    border-radius: var(--card-border-radius);
+                    overflow: hidden;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
                     transition: all 0.2s ease;
                     cursor: pointer;
-                    text-decoration: none !important;
-                    color: var(--text-color);
                     position: relative;
-                    overflow: hidden;
-                }
-
-                .list-card:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-                    border-color: var(--accent-color);
-                }
-
-                .list-card.active {
-                    background-color: #f0f7ff;
-                    border-color: var(--accent-color);
-                    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.15);
-                }
-
-                .list-card.active::before {
-                    content: '';
-                    position: absolute;
-                    left: 0;
-                    top: 0;
-                    bottom: 0;
-                    width: 4px;
-                    background-color: var(--accent-color);
-                }
-
-                .list-card-time {
-                    font-size: 0.85rem;
-                    color: var(--accent-color);
-                    font-weight: 600;
-                    margin-bottom: 0.2rem;
-                }
-
-                .list-card-addr {
-                    font-size: 1rem;
-                    font-weight: 500;
-                    color: #2c3e50;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-
-                /* 우측 프리뷰 영역 */
-                .preview-container {
-                    background: #fff;
-                    border-radius: var(--border-radius);
-                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+                    border: 2px solid transparent;
                     height: 100%;
-                    padding: 2rem;
-                    display: flex;
-                    flex-direction: column;
                 }
 
-                .img-wrapper {
+                .gallery-card:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+                }
+
+                .gallery-card.selected {
+                    border-color: var(--accent-color);
+                    background-color: #f0f7ff;
+                }
+
+                .gallery-card.selected .card-check-indicator {
+                    background-color: var(--accent-color);
+                    border-color: var(--accent-color);
+                }
+
+                .gallery-card.selected .card-check-indicator i {
+                    display: block;
+                }
+
+                .card-img-wrapper {
+                    position: relative;
                     width: 100%;
-                    height: 400px;
-                    background-color: #f8f9fa;
-                    border-radius: 8px;
+                    padding-top: 75%;
+                    /* 4:3 Aspect Ratio */
+                    background-color: #eee;
                     overflow: hidden;
+                }
+
+                .card-img {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    transition: transform 0.3s ease;
+                }
+
+                .gallery-card:hover .card-img {
+                    transform: scale(1.05);
+                }
+
+                .card-check-indicator {
+                    position: absolute;
+                    top: 10px;
+                    right: 10px;
+                    width: 24px;
+                    height: 24px;
+                    background-color: rgba(255, 255, 255, 0.8);
+                    border: 2px solid #ccc;
+                    border-radius: 50%;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    margin-bottom: 1.5rem;
-                    border: 1px solid #eee;
+                    z-index: 2;
+                    transition: all 0.2s;
                 }
 
-                .preview-img {
-                    max-width: 100%;
-                    max-height: 100%;
-                    object-fit: contain;
-                    transition: transform 0.3s ease;
+                .card-check-indicator i {
+                    color: white;
+                    font-size: 12px;
+                    display: none;
+                }
+
+
+
+                /* 버튼 스타일 */
+                .btn-download-selected {
+                    background-color: var(--accent-color);
+                    border-color: var(--accent-color);
+                    color: white;
+                    border-radius: 50px;
+                    padding: 0.5rem 1.5rem;
+                    font-weight: 500;
+                    transition: all 0.2s;
+                }
+
+                .btn-download-selected:hover:not(:disabled) {
+                    background-color: #2980b9;
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+                    color: white;
+                }
+
+                .btn-download-selected:disabled {
+                    background-color: #bdc3c7;
+                    border-color: #bdc3c7;
+                    cursor: not-allowed;
+                    opacity: 0.7;
                 }
 
                 /* Empty State */
                 .empty-state {
                     text-align: center;
+                    padding: 5rem 0;
                     color: var(--text-muted);
                 }
 
@@ -203,57 +266,13 @@
                     color: #dee2e6;
                 }
 
-                /* 상세 정보 (Description List) */
-                .info-dl {
-                    display: grid;
-                    grid-template-columns: 100px 1fr;
-                    gap: 0.8rem 1rem;
-                    font-size: 0.95rem;
-                }
-
-                .info-dt {
-                    font-weight: 600;
-                    color: var(--text-muted);
-                }
-
-                .info-dd {
-                    color: var(--text-color);
-                    margin-bottom: 0;
-                }
-
-                .btn-download {
-                    background-color: var(--accent-color);
-                    border-color: var(--accent-color);
-                    color: white;
-                    padding: 0.6rem 1.5rem;
-                    border-radius: 50px;
-                    font-weight: 500;
-                    box-shadow: 0 4px 6px rgba(52, 152, 219, 0.2);
-                    transition: all 0.2s;
-                }
-
-                .btn-download:hover {
-                    background-color: #2980b9;
-                    transform: translateY(-1px);
-                    box-shadow: 0 6px 8px rgba(52, 152, 219, 0.3);
-                    color: white;
-                }
-
-                .btn-download.disabled {
-                    background-color: #bdc3c7;
-                    border-color: #bdc3c7;
-                    box-shadow: none;
-                }
-
-                /* Select Box Custom */
+                /* Select Box */
                 .custom-select-lg {
                     height: calc(2.875rem + 2px);
                     padding: .5rem 1rem;
                     font-size: 1rem;
-                    line-height: 1.5;
                     border-radius: 0.3rem;
                     border: 1px solid #ced4da;
-                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
                 }
             </style>
         </head>
@@ -278,80 +297,47 @@
                 <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title"><i class="fas fa-drone-alt mr-2"></i>드론 수집 이미지 조회</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <!-- 상단 필터 -->
-                            <div class="d-flex align-items-center mb-4">
-                                <label for="searchDate" class="mr-3 mb-0 font-weight-bold text-muted">촬영 일자</label>
-                                <div style="width: 300px;">
-                                    <select class="custom-select custom-select-lg" id="searchDate">
+                            <div class="d-flex align-items-center w-100">
+                                <h5 class="modal-title mr-4"><i class="fas fa-drone-alt mr-2"></i>드론 수집 이미지 조회</h5>
+                                <div style="width: 250px;">
+                                    <select class="custom-select" id="searchDate">
                                         <option value="">날짜를 선택하세요</option>
                                     </select>
                                 </div>
                             </div>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
 
-                            <div class="row h-100" style="min-height: 500px;">
-                                <!-- 좌측 리스트 -->
-                                <div class="col-md-4 h-100">
-                                    <div class="list-container">
-                                        <div class="list-header">
-                                            <span>이미지 목록</span>
-                                            <span class="badge badge-primary badge-pill" id="listCount">0</span>
-                                        </div>
-                                        <div class="img-list-group" id="imgList">
-                                            <!-- JS로 렌더링 -->
-                                            <div class="text-center py-5 text-muted">
-                                                <i class="far fa-calendar-alt mb-2 d-block"
-                                                    style="font-size: 2rem;"></i>
-                                                날짜를 선택해주세요.
-                                            </div>
-                                        </div>
+                        <div class="modal-body">
+                            <!-- 액션 바 -->
+                            <div class="action-bar">
+                                <div class="selection-info">
+                                    <div class="custom-control custom-checkbox mr-3">
+                                        <input type="checkbox" class="custom-control-input" id="checkAll">
+                                        <label class="custom-control-label" for="checkAll" style="cursor: pointer;">전체
+                                            선택</label>
                                     </div>
+                                    <span class="text-primary font-weight-bold" id="selectedCount">0</span>
+                                    <span class="text-muted ml-1">개 선택됨</span>
                                 </div>
-
-                                <!-- 우측 프리뷰 -->
-                                <div class="col-md-8 h-100">
-                                    <div class="preview-container">
-                                        <!-- 이미지 영역 -->
-                                        <div class="img-wrapper">
-                                            <img src="" class="preview-img" id="previewImg" alt="이미지 미리보기"
-                                                style="display:none;">
-                                            <div id="previewPlaceholder" class="empty-state">
-                                                <i class="far fa-image"></i>
-                                                <p>목록에서 이미지를 선택해주세요.</p>
-                                            </div>
-                                        </div>
-
-                                        <!-- 상세 정보 영역 -->
-                                        <div class="d-flex justify-content-between align-items-end">
-                                            <div class="info-dl">
-                                                <div class="info-dt">파일명</div>
-                                                <div class="info-dd" id="infoFileName">-</div>
-
-                                                <div class="info-dt">촬영일시</div>
-                                                <div class="info-dd" id="infoCollectTime">-</div>
-
-                                                <div class="info-dt">위치</div>
-                                                <div class="info-dd" id="infoAddrFull">-</div>
-
-                                                <div class="info-dt">좌표</div>
-                                                <div class="info-dd" id="infoGps">-</div>
-                                            </div>
-
-                                            <div>
-                                                <a href="#" class="btn btn-download disabled" id="btnDownload" download>
-                                                    <i class="fas fa-download mr-1"></i> 원본 다운로드
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div>
+                                    <button type="button" class="btn btn-download-selected" id="btnDownloadSelected"
+                                        disabled>
+                                        <i class="fas fa-download mr-2"></i>선택 다운로드
+                                    </button>
                                 </div>
                             </div>
-                        </div> <!-- modal-body -->
+
+                            <!-- 갤러리 영역 -->
+                            <div class="gallery-container" id="galleryContainer">
+                                <div class="empty-state">
+                                    <i class="far fa-calendar-alt"></i>
+                                    <p>상단에서 촬영 날짜를 선택해주세요.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -362,22 +348,43 @@
 
             <script>
                 $(document).ready(function () {
+                    let currentData = []; // 현재 로드된 전체 데이터
+                    let selectedIds = new Set(); // 선택된 이미지 ID (또는 고유 식별자)
 
-                    // 모달 열기 버튼 클릭
+                    // 모달 열기
                     $('#btnOpenMonitor').on('click', function () {
                         $('#droneMonitorModal').modal('show');
                         loadDateList();
                     });
 
-                    // 날짜 변경 시 리스트 조회
+                    // 날짜 변경
                     $('#searchDate').on('change', function () {
                         var date = $(this).val();
                         if (date) {
                             loadImgList(date);
                         } else {
-                            renderEmptyList('날짜를 선택해주세요.');
-                            resetPreview();
+                            renderEmptyState('날짜를 선택해주세요.');
                         }
+                    });
+
+                    // 전체 선택 체크박스
+                    $('#checkAll').on('change', function () {
+                        const isChecked = $(this).is(':checked');
+                        if (isChecked) {
+                            // 전체 선택
+                            $('.gallery-card').addClass('selected');
+                            currentData.forEach(item => selectedIds.add(item.fileName)); // fileName을 ID로 사용
+                        } else {
+                            // 전체 해제
+                            $('.gallery-card').removeClass('selected');
+                            selectedIds.clear();
+                        }
+                        updateSelectionUI();
+                    });
+
+                    // 선택 다운로드 버튼
+                    $('#btnDownloadSelected').on('click', function () {
+                        downloadSelectedImages();
                     });
 
                     // 날짜 목록 로드
@@ -389,6 +396,7 @@
                             success: function (data) {
                                 var $select = $('#searchDate');
                                 $select.empty();
+                                $select.append('<option value="">날짜를 선택하세요</option>');
 
                                 if (data && data.length > 0) {
                                     $.each(data, function (i, item) {
@@ -398,9 +406,8 @@
                                             text: text
                                         }));
                                     });
-                                    $select.trigger('change');
-                                } else {
-                                    $select.append('<option value="">데이터 없음</option>');
+                                    // 가장 최근 날짜 자동 선택 (옵션)
+                                    // $select.val(data[0].WORK_DATE).trigger('change');
                                 }
                             },
                             error: function (xhr, status, error) {
@@ -409,7 +416,7 @@
                         });
                     }
 
-                    // 이미지 리스트 로드
+                    // 이미지 리스트 로드 및 렌더링
                     function loadImgList(date) {
                         $.ajax({
                             url: '/drone/api/list.do',
@@ -417,72 +424,85 @@
                             data: { date: date },
                             dataType: 'json',
                             success: function (data) {
-                                var $list = $('#imgList');
-                                $list.empty();
-                                $('#listCount').text(data.length);
+                                currentData = data;
+                                selectedIds.clear(); // 데이터 새로 로드 시 선택 초기화
+                                $('#checkAll').prop('checked', false);
+                                updateSelectionUI();
 
                                 if (data && data.length > 0) {
-                                    $.each(data, function (i, item) {
-                                        // 시간 포맷팅 (HH:mm)
-                                        var timeStr = '-';
-                                        if (item.collectTime) {
-                                            var d = new Date(item.collectTime);
-                                            var hh = String(d.getHours()).padStart(2, '0');
-                                            var mm = String(d.getMinutes()).padStart(2, '0');
-                                            timeStr = hh + ':' + mm;
-                                        }
-
-                                        // 주소 포맷팅 (번지 제거)
-                                        // 예: "충남 천안시 서북구 성정동 123-1" -> "충남 천안시 서북구 성정동"
-                                        var displayAddr = item.addrFull || '주소미상';
-                                        // 정규식: 공백 뒤에 숫자(-숫자)로 끝나는 패턴 제거
-                                        displayAddr = displayAddr.replace(/\s[\d]+(-[\d]+)?$/, '');
-
-                                        var $card = $('<a>', {
-                                            class: 'list-card',
-                                            href: '#',
-                                            html: '<div class="list-card-time"><i class="far fa-clock mr-1"></i>' + timeStr + '</div>' +
-                                                '<div class="list-card-addr" title="' + displayAddr + '">' + displayAddr + '</div>'
-                                        });
-
-                                        $card.data('info', item);
-
-                                        $card.on('click', function (e) {
-                                            e.preventDefault();
-                                            $list.find('.active').removeClass('active');
-                                            $(this).addClass('active');
-                                            showPreview(item);
-                                        });
-
-                                        $list.append($card);
-                                    });
+                                    renderGallery(data);
                                 } else {
-                                    renderEmptyList('데이터가 없습니다.');
-                                    resetPreview();
+                                    renderEmptyState('해당 날짜에 수집된 이미지가 없습니다.');
                                 }
                             },
                             error: function (xhr, status, error) {
                                 console.error("이미지 목록 로드 실패:", error);
+                                renderEmptyState('데이터 로드 중 오류가 발생했습니다.');
                             }
                         });
                     }
 
-                    function renderEmptyList(msg) {
-                        $('#imgList').html(
-                            '<div class="text-center py-5 text-muted">' +
-                            '<i class="far fa-folder-open mb-2 d-block" style="font-size: 2rem;"></i>' +
-                            msg + '</div>'
-                        );
-                        $('#listCount').text('0');
+                    // 갤러리 렌더링 (그룹핑 로직 포함)
+                    function renderGallery(data) {
+                        const $container = $('#galleryContainer');
+                        $container.empty();
+
+                        // 1. 그룹핑 (ADDR_GROUP 기준)
+                        const grouped = {};
+                        data.forEach(item => {
+                            const groupKey = item.addrGroup || '주소 미상';
+                            if (!grouped[groupKey]) {
+                                grouped[groupKey] = [];
+                            }
+                            grouped[groupKey].push(item);
+                        });
+
+                        // 2. 그룹별 섹션 생성
+                        Object.keys(grouped).forEach(groupName => {
+                            const items = grouped[groupName];
+
+                            // 섹션 컨테이너
+                            const $section = $('<div>').addClass('group-section');
+
+                            // 헤더
+                            const $header = $('<div>').addClass('group-header')
+                                .append($('<h5>').addClass('group-title').text(groupName))
+                                .append($('<span>').addClass('group-count').text(items.length + '장'));
+
+                            $section.append($header);
+
+                            // 그리드 로우
+                            const $row = $('<div>').addClass('row');
+
+                            // 아이템 카드 생성
+                            items.forEach(item => {
+                                const $col = $('<div>').addClass('col-6 col-md-4 col-lg-3 mb-4');
+                                const $card = createGalleryCard(item);
+                                $col.append($card);
+                                $row.append($col);
+                            });
+
+                            $section.append($row);
+                            $container.append($section);
+                        });
                     }
 
-                    // 프리뷰 표시
-                    function showPreview(item) {
-                        // 경로 변환
-                        var webPath = '';
+                    // 카드 요소 생성
+                    function createGalleryCard(item) {
+                        // 시간 포맷팅
+                        let timeStr = '-';
+                        if (item.collectTime) {
+                            const d = new Date(item.collectTime);
+                            const hh = String(d.getHours()).padStart(2, '0');
+                            const mm = String(d.getMinutes()).padStart(2, '0');
+                            timeStr = hh + ':' + mm;
+                        }
+
+                        // 이미지 경로 처리
+                        let webPath = '';
                         if (item.storePath) {
-                            var splitKey = 'src/main/webapp';
-                            var idx = item.storePath.indexOf(splitKey);
+                            const splitKey = 'src/main/webapp';
+                            const idx = item.storePath.indexOf(splitKey);
                             if (idx !== -1) {
                                 webPath = item.storePath.substring(idx + splitKey.length);
                                 webPath = webPath.replace(/\\/g, '/');
@@ -491,42 +511,94 @@
                             }
                         }
 
-                        // 이미지 로드
-                        var $img = $('#previewImg');
-                        $img.attr('src', webPath).hide();
-                        $img.on('load', function () {
-                            $(this).fadeIn(300);
+                        const $card = $('<div>').addClass('gallery-card').attr('data-id', item.fileName).attr('data-url', webPath);
+
+                        // 이미지 래퍼
+                        const $imgWrapper = $('<div>').addClass('card-img-wrapper');
+                        const $img = $('<img>').addClass('card-img').attr('src', webPath).attr('alt', item.fileName);
+
+                        // 체크박스 인디케이터
+                        const $indicator = $('<div>').addClass('card-check-indicator')
+                            .append($('<i>').addClass('fas fa-check'));
+
+                        $imgWrapper.append($img).append($indicator);
+
+                        $card.append($imgWrapper);
+
+                        // 클릭 이벤트 (토글)
+                        $card.on('click', function () {
+                            const id = $(this).attr('data-id');
+
+                            if (selectedIds.has(id)) {
+                                selectedIds.delete(id);
+                                $(this).removeClass('selected');
+                            } else {
+                                selectedIds.add(id);
+                                $(this).addClass('selected');
+                            }
+                            updateSelectionUI();
                         });
 
-                        $('#previewPlaceholder').hide();
-
-                        // 상세 정보 바인딩
-                        $('#infoFileName').text(item.fileName);
-
-                        var d = new Date(item.collectTime);
-                        $('#infoCollectTime').text(d.toLocaleString());
-
-                        $('#infoAddrFull').text(item.addrFull || '-');
-
-                        var gpsText = '-';
-                        if (item.latitude && item.longitude) {
-                            gpsText = item.latitude.toFixed(5) + ', ' + item.longitude.toFixed(5);
-                        }
-                        $('#infoGps').text(gpsText);
-
-                        // 다운로드 버튼 활성화
-                        $('#btnDownload').attr('href', webPath).removeClass('disabled');
+                        return $card;
                     }
 
-                    // 프리뷰 초기화
-                    function resetPreview() {
-                        $('#previewImg').attr('src', '').hide();
-                        $('#previewPlaceholder').show();
-                        $('#infoFileName').text('-');
-                        $('#infoCollectTime').text('-');
-                        $('#infoAddrFull').text('-');
-                        $('#infoGps').text('-');
-                        $('#btnDownload').attr('href', '#').addClass('disabled');
+                    // 선택 상태 UI 업데이트
+                    function updateSelectionUI() {
+                        const count = selectedIds.size;
+                        $('#selectedCount').text(count);
+
+                        // 다운로드 버튼 활성/비활성
+                        if (count > 0) {
+                            $('#btnDownloadSelected').prop('disabled', false);
+                        } else {
+                            $('#btnDownloadSelected').prop('disabled', true);
+                        }
+
+                        // 전체 선택 체크박스 상태 동기화
+                        const totalCount = currentData.length;
+                        if (totalCount > 0 && count === totalCount) {
+                            $('#checkAll').prop('checked', true);
+                        } else {
+                            $('#checkAll').prop('checked', false);
+                        }
+                    }
+
+                    // 빈 상태 렌더링
+                    function renderEmptyState(msg) {
+                        const $container = $('#galleryContainer');
+                        $container.empty();
+                        $container.append(
+                            $('<div>').addClass('empty-state')
+                                .append($('<i>').addClass('far fa-folder-open'))
+                                .append($('<p>').text(msg))
+                        );
+                    }
+
+                    // 선택된 이미지 다운로드
+                    function downloadSelectedImages() {
+                        if (selectedIds.size === 0) return;
+
+                        // 선택된 카드의 URL 수집
+                        const urls = [];
+                        $('.gallery-card.selected').each(function () {
+                            urls.push($(this).attr('data-url'));
+                        });
+
+                        if (urls.length === 0) return;
+
+                        if (!confirm(urls.length + '개의 이미지를 다운로드 하시겠습니까?')) return;
+
+                        // 순차 다운로드 트리거
+                        urls.forEach((url, index) => {
+                            setTimeout(() => {
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = ''; // 파일명은 브라우저가 결정하거나 URL 따름
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                            }, index * 500); // 0.5초 간격으로 다운로드 시도
+                        });
                     }
                 });
             </script>
