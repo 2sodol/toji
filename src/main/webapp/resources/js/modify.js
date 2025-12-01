@@ -699,8 +699,11 @@
     var file = files[0];
 
     // 유효성 검사
-    if (!file.name.toLowerCase().endsWith(".png")) {
-      showModifyAlert("warning", "PNG 파일만 선택할 수 있습니다.");
+    var ext = file.name.split(".").pop().toLowerCase();
+    var allowedExtensions = ["png", "jpg", "jpeg"];
+
+    if (allowedExtensions.indexOf(ext) === -1) {
+      showModifyAlert("warning", "PNG, JPG 파일만 선택할 수 있습니다.");
       $input.val("");
       return;
     }
@@ -790,10 +793,10 @@
         $thumbnail.append($img).append($removeBtn);
         $preview.append($thumbnail);
 
-        // 매핑 데이터 저장 (날짜:base64)
+        // 매핑 데이터 저장 (날짜:base64:ext)
         // handleModifySubmit에서 || 로 구분하여 여러 개 처리 가능하지만
         // 현재 UI상 1아이템 1이미지인 경우 덮어쓰기로 처리
-        var mappingData = imageDate + ":" + base64Content;
+        var mappingData = imageDate + ":" + base64Content + ":" + ext;
         $("#mappingData_" + itemId).val(mappingData);
 
         // 입력값 초기화 (같은 파일 다시 선택 가능하도록)
@@ -1059,36 +1062,25 @@
         }
 
         var parts = mapping.split(":");
-        if (parts.length !== 2) {
+        if (parts.length < 2) {
           return; // 형식이 맞지 않으면 건너뛰기
         }
 
         var imageDate = parts[0]; // yyyy-MM-dd 형식
         var base64Content = parts[1]; // base64 데이터
+        var ext = parts.length > 2 ? parts[2] : "png";
 
         if (!imageDate || imageDate.trim() === "") {
           hasInvalidImage = true;
           return;
         }
 
-        // base64를 완전한 형식으로 변환 (확장자 추정)
+        // base64를 완전한 형식으로 변환
         var mimeType = "image/png";
-        var extension = "png";
+        var extension = ext;
 
-        // base64 데이터 시작 부분을 확인하여 타입 판단
-        var firstChars = base64Content.substring(0, 10);
-        if (
-          firstChars.startsWith("/9j/") ||
-          base64Content.substring(0, 20).includes("JFIF") ||
-          base64Content.substring(0, 20).includes("Exif")
-        ) {
-          // JPEG
+        if (ext === "jpg" || ext === "jpeg") {
           mimeType = "image/jpeg";
-          extension = "jpg";
-        } else if (firstChars.startsWith("iVBORw0KGgo")) {
-          // PNG
-          mimeType = "image/png";
-          extension = "png";
         }
 
         var fullBase64 = "data:" + mimeType + ";base64," + base64Content;
@@ -1163,7 +1155,7 @@
 
     // 버튼 로딩 상태
     var $btn = $("#illegalModifySubmitBtn");
-    $btn.prop("disabled", true).text("저장 중...");
+    $btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin"></i> 저장 중...');
 
     $.ajax({
       url: "/regions/update?ilglPrvuInfoSeq=" + state.modifySeq,
@@ -1199,7 +1191,7 @@
         showModifyAlert("danger", message);
       })
       .always(function () {
-        $btn.prop("disabled", false).text("수정");
+        $btn.prop("disabled", false).html("수정");
       });
   }
 

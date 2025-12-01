@@ -272,7 +272,7 @@
         var imageId = "img_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
         // Format: date:base64Content (remove data prefix for server if needed, strictly following requirement "date:Base64data")
         var base64Content = base64.split(",")[1];
-        var mappingValue = dateVal + ":" + base64Content;
+        var mappingValue = dateVal + ":" + base64Content + ":" + ext;
 
         // Append to hidden input
         var $mappingInput = $("#mappingData_" + itemId);
@@ -373,12 +373,16 @@
       items.forEach(function (item) {
         if (!item) return;
         var parts = item.split(":");
-        if (parts.length === 2) {
+        if (parts.length >= 2) {
+          var date = parts[0];
+          var content = parts[1];
+          var ext = parts.length > 2 ? parts[2] : "png";
+
           images.push({
-            date: parts[0],
-            base64Content: parts[1],
-            extension: "png",
-            filename: "upload_" + Date.now() + ".png",
+            date: date,
+            base64Content: content,
+            extension: ext,
+            filename: "upload_" + Date.now() + "." + ext,
           });
         }
       });
@@ -430,7 +434,7 @@
     if (!confirm("등록하시겠습니까?")) return;
 
     var $btn = $("#illegalRegisterSubmitBtn");
-    $btn.prop("disabled", true).text("저장 중...");
+    $btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin"></i> 저장 중...');
 
     $.ajax({
       url: CONSTANTS.API_URL,
@@ -454,7 +458,7 @@
         alert(msg);
       })
       .always(function () {
-        $btn.prop("disabled", false).text("완료");
+        $btn.prop("disabled", false).html("완료");
       });
   }
 
