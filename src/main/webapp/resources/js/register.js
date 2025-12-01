@@ -546,6 +546,30 @@
         self.close();
       });
 
+      // Address Search Button Click
+      $("[data-register-address-target]").on("click", function () {
+        var targetType = $(this).data("register-address-target");
+        var targetInputId = "";
+
+        if (targetType === "actor") {
+          targetInputId = "reg_trnrAddr";
+        } else if (targetType === "related") {
+          targetInputId = "reg_rltrAddr";
+        }
+
+        if (targetInputId) {
+          // 전역 변수에 타겟 ID 설정 (index.jsp의 receiveSelectedAddress에서 사용)
+          window.currentAddressTargetId = targetInputId;
+
+          // 주소 검색 모달 열기
+          if (typeof window.openAddressSearchModal === "function") {
+            window.openAddressSearchModal();
+          } else {
+            alert("주소 검색 기능을 사용할 수 없습니다.");
+          }
+        }
+      });
+
       // Image Add Row
       $("#reg_addImageBtn").on("click", function () {
         addImageRow();

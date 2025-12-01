@@ -1112,6 +1112,201 @@
         ) {
           window.SlidePanel.loadList(1);
         }
+
+
+        // ============================================
+        // 주소 검색 모달 관련 함수
+        // ============================================
+
+        /**
+         * 주소 검색 모달 열기
+         */
+        window.openAddressSearchModal = function () {
+          var iframe = document.getElementById('addressSearchModalFrame');
+          if (iframe) {
+            iframe.style.display = 'block';
+            // iframe 내부의 openAddressModal 함수 호출
+            try {
+              var iframeWindow = iframe.contentWindow;
+              if (iframeWindow && typeof iframeWindow.openAddressModal === 'function') {
+                iframeWindow.openAddressModal();
+              }
+            } catch (e) {
+              console.warn('iframe 접근 실패:', e);
+            }
+          }
+        };
+
+        /**
+         * 주소 검색 모달 닫기
+         */
+        window.closeAddressSearchModal = function () {
+          var iframe = document.getElementById('addressSearchModalFrame');
+          if (iframe) {
+            iframe.style.display = 'none';
+          }
+        };
+
+        /**
+         * 주소 검색 모달에서 선택한 주소를 받는 함수
+         * @param {Object} addressData - 선택된 주소 정보
+           */
+        window.clearImageLayer = function () {
+          if (window.imageLayers && window.imageLayers.length > 0) {
+            window.imageLayers.forEach(function (layer) {
+              window.map.removeLayer(layer);
+            });
+          }
+          window.imageLayers = [];
+          window.loadedImages = {};
+        };
+
+        // 팝업 관련 DOM 요소 레퍼런스 (전역 변수로 등록)
+        var container = document.getElementById("ilgl-popup");
+        window.popupContent = document.getElementById("ilgl-popup-content");
+        var closer = document.getElementById("ilgl-popup-closer");
+        window.popupOverlay = new ol.Overlay({
+          element: container,
+          autoPan: true,
+          autoPanAnimation: { duration: 250 },
+        });
+        window.map.addOverlay(window.popupOverlay);
+
+        // 팝업 닫기 버튼 이벤트
+        closer.onclick = function () {
+          clearSelection();
+          resetPopupButtons();
+          closer.blur();
+          return false;
+        };
+
+        // ============================================
+        // 이벤트 핸들러
+        // ============================================
+
+        // 단일 클릭 시 지적 정보 조회
+        window.map.on("singleclick", function (evt) {
+          // 불법용지 이미지 보기 체크박스가 켜져있을 때만 실행
+          var $imageToggle = $("#slide-panel-image-toggle");
+          var isImageToggleChecked = $imageToggle.length > 0 ? $imageToggle.is(":checked") : false;
+          if (!isImageToggleChecked) {
+            return;
+          }
+
+          var currentZoom = view.getZoom();
+
+          // 너무 낮은 줌 레벨에서는 토스트 메시지만 노출
+          if (currentZoom < MIN_ZOOM_LEVEL) {
+            clearSelection();
+            showToastMessage();
+            return;
+          }
+
+          var coordinate = evt.coordinate;
+
+          // WMS GetFeatureInfo로 지적 정보 조회
+          var viewResolution = view.getResolution();
+          var source = window.cadastralLayer.getSource();
+          var getFeatureInfoUrl = source.getGetFeatureInfoUrl(
+            coordinate,
+            viewResolution,
+            "EPSG:3857",
+            {
+              INFO_FORMAT: "application/json",
+              QUERY_LAYERS: LAYER_NAME,
+              FEATURE_COUNT: 1,
+              info_format: "text/javascript",
+            }
+          );
+
+          if (!getFeatureInfoUrl) {
+            console.error("GetFeatureInfo URL을 생성할 수 없습니다.");
+            return;
+          }
+
+          $.ajax({
+            url: getFeatureInfoUrl,
+            dataType: "jsonp",
+            jsonpCallback: "parseResponse",
+          })
+            .done(function (json) {
+              var featureData = parseVWorldFeatureResponse(json);
+
+              if (!featureData) {
+                console.warn("지적 정보를 찾을 수 없습니다.");
+                clearSelection();
+                return;
+              }
+
+              // WMS로 받아온 정보를 직접 사용하여 영역 표시
+              window.showMapPopupFromWMS({
+                featureData: featureData,
+                coordinate: coordinate,
+                checkDataExistence: true,
+              });
+            })
+            .fail(function (err) {
+              console.error("GetFeatureInfo Error:", err);
+              clearSelection();
+            });
+        });
+
+        /**
+         * 토스트 메시지 표시
+         */
+        function showToastMessage() {
+          var toast = $("#toast-message");
+          toast.stop().fadeIn(400, function () {
+            setTimeout(function () {
+              toast.fadeOut(400);
+            }, 2000);
+          });
+        }
+
+        // 팝업 내 등록 버튼 클릭 시 모달 띄우기
+        $("#ilgl-popup-register-btn").on("click", function () {
+          if (selectedRegionData) {
+            if (
+              window.IllegalRegisterModal &&
+              typeof window.IllegalRegisterModal.open === "function"
+            ) {
+              window.IllegalRegisterModal.open(selectedRegionData);
+            } else {
+              console.warn("IllegalRegisterModal이 초기화되지 않았습니다.");
+            }
+          } else {
+            alert("등록할 정보가 없습니다. 지도를 다시 클릭해주세요.");
+          }
+        });
+
+        // 팝업 내 조회 버튼 클릭 시 조회 모달 띄우기
+        $("#ilgl-popup-inquiry-btn").on("click", function () {
+          if (selectedRegionData && selectedRegionData.pnu) {
+            if (
+              window.illegalInquiryModal &&
+              typeof window.illegalInquiryModal.open === "function"
+            ) {
+              window.illegalInquiryModal.open(selectedRegionData.pnu);
+            } else {
+              console.warn("IllegalInquiryModal이 초기화되지 않았습니다.");
+            }
+          } else {
+            alert("조회할 정보가 없습니다. 지도를 다시 클릭해주세요.");
+          }
+        });
+
+        // 조회 모달 초기화
+        if (typeof IllegalInquiryModal === "function") {
+          illegalInquiryModal = new IllegalInquiryModal();
+        }
+
+        // 페이지 로드 시 패널 데이터 조회
+        if (
+          window.SlidePanel &&
+          typeof window.SlidePanel.loadList === "function"
+        ) {
+          window.SlidePanel.loadList(1);
+        }
       };
 
       // ============================================
@@ -1158,30 +1353,34 @@
       window.receiveSelectedAddress = function (addressData) {
         console.log('선택된 주소:', addressData);
 
-        // 여기에 주소를 사용하는 로직을 추가하세요
-        // 예시: 입력 필드에 주소 설정, 지도 이동 등
-
         if (addressData) {
-          // 예시 1: 알림으로 표시
-          alert(
-            '선택된 주소:\n' +
-            '우편번호: ' + (addressData.zipcode || '-') + '\n' +
-            '도로명: ' + (addressData.roadAddress || '-') + '\n' +
-            '지번: ' + (addressData.parcelAddress || '-')
-          );
+          var fullAddress = addressData.roadAddress || addressData.parcelAddress || "";
 
-          // 예시 2: 좌표가 있으면 지도 이동
+          // 전역 변수 window.currentAddressTargetId가 설정되어 있다면 해당 입력 필드에 값 설정
+          if (window.currentAddressTargetId) {
+            var $targetInput = $("#" + window.currentAddressTargetId);
+            if ($targetInput.length > 0) {
+              $targetInput.val(fullAddress);
+              // 필요한 경우 change 이벤트 트리거
+              $targetInput.trigger("change");
+            }
+            // 사용 후 초기화
+            window.currentAddressTargetId = null;
+          } else {
+            // 타겟이 없는 경우 (기존 로직 유지 또는 알림)
+            // alert('선택된 주소:\n' + fullAddress);
+          }
+
+          // 좌표가 있고, 지도 이동이 필요한 경우 (옵션)
+          /*
           if (addressData.coordinates && addressData.coordinates.x && addressData.coordinates.y) {
             var x = parseFloat(addressData.coordinates.x);
             var y = parseFloat(addressData.coordinates.y);
-
-            // EPSG:900913 (Web Mercator) 좌표를 EPSG:3857로 변환 (동일한 좌표계)
             if (window.map && window.map.getView()) {
-              var view = window.map.getView();
-              view.setCenter([x, y]);
-              view.setZoom(18); // 적절한 줌 레벨로 설정
+              window.map.getView().setCenter([x, y]);
             }
           }
+          */
         }
 
         // 모달 닫기

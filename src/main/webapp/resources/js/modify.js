@@ -1266,6 +1266,30 @@
     var $closeButtons = $modal.find("[data-register-modal-close]");
     var $imageList = $("#mod_imageList");
 
+    // Address Search Button Click
+    $("#illegalModifyModal [data-register-address-target]").on("click", function () {
+      var targetType = $(this).data("register-address-target");
+      var targetInputId = "";
+
+      if (targetType === "actor") {
+        targetInputId = "mod_trnrAddr";
+      } else if (targetType === "related") {
+        targetInputId = "mod_rltrAddr";
+      }
+
+      if (targetInputId) {
+        // 전역 변수에 타겟 ID 설정 (index.jsp의 receiveSelectedAddress에서 사용)
+        window.currentAddressTargetId = targetInputId;
+
+        // 주소 검색 모달 열기
+        if (typeof window.openAddressSearchModal === "function") {
+          window.openAddressSearchModal();
+        } else {
+          alert("주소 검색 기능을 사용할 수 없습니다.");
+        }
+      }
+    });
+
     // 이미지 추가 버튼
     $("#mod_addImageBtn").on("click", function () {
       createImageItem();
