@@ -316,7 +316,7 @@
       var $prevBtn = $(
         '<button type="button" class="slide-panel-pagination__btn slide-panel-pagination__btn--prev"></button>'
       )
-        .html("&lt;")
+        .html('<i class="fas fa-chevron-left"></i>')
         .attr("data-page", this.currentPage - 1);
 
       if (this.currentPage <= 1) {
@@ -350,7 +350,7 @@
       var $nextBtn = $(
         '<button type="button" class="slide-panel-pagination__btn slide-panel-pagination__btn--next"></button>'
       )
-        .html("&gt;")
+        .html('<i class="fas fa-chevron-right"></i>')
         .attr("data-page", this.currentPage + 1);
 
       if (this.currentPage >= this.totalPages) {
