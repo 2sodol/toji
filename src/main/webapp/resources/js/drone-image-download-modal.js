@@ -172,24 +172,71 @@
                 return;
             }
 
-            var startTimestamp = new Date(startDate).getTime();
-            var endTimestamp = new Date(endDate).getTime();
+            var startObj = new Date(startDate);
+            var endObj = new Date(endDate);
+
+            // 시작일이 종료일보다 크면 종료일을 시작일 + 1일로 설정
+            if (startObj > endObj) {
+                var nextDay = new Date(startObj);
+                nextDay.setDate(nextDay.getDate() + 1);
+
+                var year = nextDay.getFullYear();
+                var month = String(nextDay.getMonth() + 1).padStart(2, '0');
+                var day = String(nextDay.getDate()).padStart(2, '0');
+
+                endDate = year + '-' + month + '-' + day;
+                this.$endDate.val(endDate);
+                endObj = nextDay;
+            }
+
+            var startTimestamp = startObj.getTime();
+            var endTimestamp = endObj.getTime();
 
             console.log("Search params:", { start: startTimestamp, end: endTimestamp });
 
             /*
-            // 실제 API 연동 (추후 활성화)
+            // 실제 API 연동
             var self = this;
             $.ajax({
-                url: "/drone/images", // 실제 API 엔드포인트로 변경 필요
+                url: "https://dsc.ex.co.kr:9630/drone/images", // 실제 API 엔드포인트 (외부 서버)
                 type: "GET",
                 data: {
                     startDate: startTimestamp,
                     endDate: endTimestamp
                 },
-                success: function (data) {
-                    // data는 이미지 객체 배열이어야 함: [{id, url, name, date}, ...]
-                    self.currentData = data;
+                success: function (response) {
+                    // response는 이미지 URL 문자열 배열: ["url1", "url2", ...]
+                    if (Array.isArray(response)) {
+                        self.currentData = response.map(function (url, index) {
+                            // URL 구조: .../flight/{timestamp}/images/{filename}
+                            // 예: https://dsc.ex.co.kr:9630/flight/1761616951155/images/camera_110336.png
+                            var parts = url.split('/');
+                            var filename = parts[parts.length - 1];
+
+                            // timestamp 추출 (flight 다음 세그먼트)
+                            var timestamp = new Date().getTime(); // 기본값
+                            for (var i = 0; i < parts.length; i++) {
+                                if (parts[i] === 'flight' && i + 1 < parts.length) {
+                                    var ts = parseInt(parts[i + 1]);
+                                    if (!isNaN(ts)) {
+                                        timestamp = ts;
+                                    }
+                                    break;
+                                }
+                            }
+
+                            return {
+                                id: "img_" + timestamp + "_" + index,
+                                url: url,
+                                name: filename,
+                                date: timestamp
+                            };
+                        });
+                    } else {
+                        console.warn("예상치 못한 응답 형식:", response);
+                        self.currentData = [];
+                    }
+
                     self.currentPage = 1;
                     self.selectedIds.clear();
                     self.updateSelectedCount();
@@ -200,7 +247,7 @@
                     alert("이미지 조회 중 오류가 발생했습니다.");
                 }
             });
-            return; // API 연동 시 아래 Mock 데이터 로직은 제거하거나 이 return으로 막아야 함
+            return;
             */
 
             // Mock 데이터 사용
@@ -271,19 +318,39 @@
             var totalPages = Math.ceil(this.currentData.length / this.pageSize);
             if (totalPages <= 1) return;
 
+            var pageGroupSize = 10;
+            var currentGroup = Math.ceil(this.currentPage / pageGroupSize);
+            var startPage = (currentGroup - 1) * pageGroupSize + 1;
+            var endPage = Math.min(startPage + pageGroupSize - 1, totalPages);
+
+            // << (이전 그룹)
+            if (startPage > 1) {
+                var $prevGroupBtn = $('<button class="drone-modal__page-btn" data-page="' + (startPage - 1) + '">&lt;&lt;</button>');
+                this.$pagination.append($prevGroupBtn);
+            }
+
+            // < (이전 페이지)
             var $prevBtn = $('<button class="drone-modal__page-btn" data-page="' + (this.currentPage - 1) + '">&lt;</button>');
             if (this.currentPage === 1) $prevBtn.prop("disabled", true);
             this.$pagination.append($prevBtn);
 
-            for (var i = 1; i <= totalPages; i++) {
+            // 페이지 번호
+            for (var i = startPage; i <= endPage; i++) {
                 var $btn = $('<button class="drone-modal__page-btn" data-page="' + i + '">' + i + '</button>');
                 if (i === this.currentPage) $btn.addClass("drone-modal__page-btn--active");
                 this.$pagination.append($btn);
             }
 
+            // > (다음 페이지)
             var $nextBtn = $('<button class="drone-modal__page-btn" data-page="' + (this.currentPage + 1) + '">&gt;</button>');
             if (this.currentPage === totalPages) $nextBtn.prop("disabled", true);
             this.$pagination.append($nextBtn);
+
+            // >> (다음 그룹)
+            if (endPage < totalPages) {
+                var $nextGroupBtn = $('<button class="drone-modal__page-btn" data-page="' + (endPage + 1) + '">&gt;&gt;</button>');
+                this.$pagination.append($nextGroupBtn);
+            }
         },
 
         /**
