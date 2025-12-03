@@ -18,7 +18,6 @@
     <link rel="stylesheet" href="<%=request.getContextPath()%>/resources/css/index.css" />
     <link rel="stylesheet" href="<%=request.getContextPath()%>/resources/css/slide-panel.css" />
     <link rel="stylesheet" href="<%=request.getContextPath()%>/resources/css/inquiry-modal.css" />
-    <link rel="stylesheet" href="<%=request.getContextPath()%>/resources/css/drone-image-download-modal.css" />
   </head>
 
   <body>
@@ -29,12 +28,6 @@
     <button onclick="openAddressSearchModal()"
       style="position: fixed; top: 20px; right: 20px; z-index: 1000; padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
       <i class="fas fa-search"></i> 주소 검색
-    </button>
-
-    <!-- 드론 모니터링 버튼 -->
-    <button onclick="location.href='<%=request.getContextPath()%>/drone/monitor.do'"
-      style="position: fixed; top: 70px; right: 20px; z-index: 1000; padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
-      <i class="fas fa-plane"></i> 드론 모니터링
     </button>
 
     <!-- 지도 렌더링 컨테이너 -->
@@ -71,9 +64,6 @@
     <!-- 조회 모달 JSP 포함 -->
     <jsp:include page="inquiry-modal.jsp" />
 
-    <!-- 드론 이미지 다운로드 모달 JSP 포함 -->
-    <jsp:include page="drone-image-download-modal.jsp" />
-
     <!-- 주소 검색 모달 iframe -->
     <iframe id="addressSearchModalFrame" src="<%=request.getContextPath()%>/address-search-modal"
       style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: none; z-index: 9999; background-color: rgba(0,0,0,0.4);">
@@ -86,8 +76,7 @@
     <script src="<%=request.getContextPath()%>/resources/js/register.js"></script>
     <script src="<%=request.getContextPath()%>/resources/js/modify.js"></script>
     <script src="<%=request.getContextPath()%>/resources/js/slide-panel.js"></script>
-    <script src="<%=request.getContextPath()%>/resources/js/inquiry-modal.js"></script>
-    <script src="<%=request.getContextPath()%>/resources/js/drone-image-download-modal.js"></script>
+    <script src="<%=request.getContextPath()%>/resour몬ces/js/inquiry-modal.js"></script>
 
     <script type="text/javascript">
       // ============================================

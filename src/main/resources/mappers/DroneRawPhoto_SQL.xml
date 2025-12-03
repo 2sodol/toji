@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.toji.toji.mapper.DroneRawPhotoMapper">
+
+    <insert id="insertRawPhoto" parameterType="com.toji.toji.domain.DroneRawPhotoVO">
+        <selectKey keyProperty="photoSeq" resultType="long" order="BEFORE">
+            SELECT DTJ_MAIN.SEQ_DRONE_RAW_PHOTO.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO DTJ_MAIN.T_DRONE_RAW_PHOTO (
+            PHOTO_SEQ,
+            FLIGHT_ID,
+            SHOOT_DT,
+            FILE_PATH,
+            FILE_NM,
+            GPS_LAT,
+            GPS_LON
+        ) VALUES (
+            #{photoSeq},
+            #{flightId},
+            #{shootDt},
+            #{filePath},
+            #{fileNm},
+            #{gpsLat},
+            #{gpsLon}
+        )
+    </insert>
+
+    <select id="selectRawPhotosByDate" resultType="com.toji.toji.domain.DroneRawPhotoVO">
+        SELECT
+            PHOTO_SEQ,
+            FLIGHT_ID,
+            SHOOT_DT,
+            FILE_PATH,
+            FILE_NM,
+            GPS_LAT,
+            GPS_LON
+        FROM DTJ_MAIN.T_DRONE_RAW_PHOTO
+        WHERE TO_CHAR(SHOOT_DT, 'YYYYMMDD') = #{date}
+    </select>
+
+</mapper>
