@@ -286,7 +286,7 @@
                                     <input type="checkbox" id="drp-select-all" class="drp-checkbox"> 전체 선택
                                 </label>
                                 <span style="margin-left: 10px; font-size: 11px; color: #999; letter-spacing: -0.5px;">
-                                    ※ GPS 오차 주의
+                                    ※ GPS 오차로 인해 주소가 실제와 다를 수 있습니다.
                                 </span>
                             </div>
                             <button id="drp-download-selected-btn" class="drp-download-btn" 
@@ -323,6 +323,7 @@
             var isMapInitialized = false;
             var VWORLD_GEOCODER_KEY = "F0529714-44EF-31EC-BCD3-9BB544307DDB"; // 주소 검색용 키
             var isListClickMove = false; // 리스트 클릭에 의한 지도 이동인지 확인하는 플래그
+            var selectedPhotoSeq = null; // 현재 선택된 사진 ID
 
             // Initialize Modal
             function initDrpModal() {
@@ -487,17 +488,39 @@
                     source: clusterSourceWrapper,
                     style: function (feature) {
                         var size = feature.get('features').length;
-                        var style = styleCache[size];
+                        var features = feature.get('features');
+                        var isSelected = false;
+
+                        // 클러스터 내에 선택된 사진이 있는지 확인
+                        if (selectedPhotoSeq) {
+                            for (var i = 0; i < features.length; i++) {
+                                if (features[i].get('photoData').photoSeq === selectedPhotoSeq) {
+                                    isSelected = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        var cacheKey = size + '_' + isSelected;
+                        var style = styleCache[cacheKey];
+                        
                         if (!style) {
+                            // 선택된 경우 붉은색(#FF5722), 기본은 파란색(#3399CC)
+                            var color = isSelected ? '#FF5722' : '#3399CC';
+                            // 선택된 경우 테두리 강조
+                            var strokeColor = isSelected ? '#FFFF00' : '#fff';
+                            var strokeWidth = isSelected ? 4 : 3;
+                            var zIndex = isSelected ? 100 : 1; // 선택된 마커를 위로 올림
+
                             style = new ol.style.Style({
                                 image: new ol.style.Circle({
                                     radius: 20,
                                     stroke: new ol.style.Stroke({
-                                        width: 3,
-                                        color: '#fff'
+                                        width: strokeWidth,
+                                        color: strokeColor
                                     }),
                                     fill: new ol.style.Fill({
-                                        color: '#3399CC'
+                                        color: color
                                     })
                                 }),
                                 text: new ol.style.Text({
@@ -506,9 +529,10 @@
                                     fill: new ol.style.Fill({
                                         color: '#fff'
                                     })
-                                })
+                                }),
+                                zIndex: zIndex
                             });
-                            styleCache[size] = style;
+                            styleCache[cacheKey] = style;
                         }
                         return style;
                     }
@@ -550,7 +574,29 @@
                                     duration: 500
                                 });
                             } else {
-                                // 단일 마커(사진 1장)인 경우에도 중앙으로 이동
+                                // 단일 마커(사진 1장)인 경우: 선택 처리 및 중앙 이동
+                                var photo = features[0].get('photoData');
+                                
+                                // 1. 지도상 하이라이트 (선택된 사진 ID 업데이트)
+                                selectedPhotoSeq = photo.photoSeq;
+                                vectorLayer.changed();
+                                
+                                // 2. 리스트에서 해당 아이템 하이라이트
+                                isListClickMove = true; // 리스트 갱신 방지
+                                $('.drp-photo-item').removeClass('active');
+                                
+                                // 리스트 아이템 찾기 (현재 리스트에 렌더링된 항목 중에서)
+                                var $targetItem = $('.drp-photo-item').filter(function() {
+                                    return $(this).find('.drp-photo-checkbox').val() == photo.photoSeq;
+                                });
+                                
+                                if ($targetItem.length > 0) {
+                                    $targetItem.addClass('active');
+                                    // 스크롤 이동
+                                    $targetItem[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+
+                                // 3. 지도 중앙 이동
                                 doneRawMap.getView().animate({
                                     center: center,
                                     duration: 500
@@ -567,6 +613,10 @@
                         isListClickMove = false;
                         return;
                     }
+
+                    // 사용자가 직접 지도를 이동/확대한 경우 선택 상태 초기화
+                    selectedPhotoSeq = null;
+                    vectorLayer.changed(); // 스타일 초기화
 
                     var extent = doneRawMap.getView().calculateExtent(doneRawMap.getSize());
                     var visiblePhotos = [];
@@ -725,6 +775,10 @@
                         // Highlight on map
                         $('.drp-photo-item').removeClass('active');
                         $(this).addClass('active');
+
+                        // 선택된 사진 ID 업데이트 및 지도 스타일 갱신
+                        selectedPhotoSeq = photo.photoSeq;
+                        vectorLayer.changed(); // 스타일 재적용 트리거
 
                         if (photo.gpsLon && photo.gpsLat) {
                             // 리스트 클릭에 의한 이동임을 표시 (리스트 갱신 방지)
