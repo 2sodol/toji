@@ -99,7 +99,6 @@
         }
 
         .drp-list-header {
-            padding: 15px;
             border-bottom: 1px solid #eee;
             font-weight: 600;
             color: #555;
@@ -108,8 +107,33 @@
             top: 0;
             z-index: 10;
             display: flex;
+            flex-direction: column;
+        }
+
+        .drp-list-header-top {
+            padding: 15px;
+            display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .drp-list-controls {
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #fafafa;
+            font-size: 13px;
+        }
+
+        .drp-checkbox {
+            margin-right: 10px;
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+            margin-top: 0;
+            margin-bottom: 0;
         }
 
         .drp-photo-list {
@@ -120,6 +144,7 @@
 
         .drp-photo-item {
             display: flex;
+            align-items: center;
             padding: 15px;
             border-bottom: 1px solid #f0f0f0;
             cursor: pointer;
@@ -198,11 +223,25 @@
                 <div id="drp-map" class="drp-map-container"></div>
                 <div id="drp-list" class="drp-list-container">
                     <div class="drp-list-header">
-                        <span>사진 목록 <span id="drp-photo-count">(0)</span></span>
-                        <select id="drp-date-selector" class="drp-date-selector"
-                            style="padding: 4px 8px; font-size: 14px;">
-                            <option value="">날짜 선택</option>
-                        </select>
+                        <div class="drp-list-header-top">
+                            <span>사진 목록 <span id="drp-photo-count">(0)</span></span>
+                            <div style="display: flex; align-items: center;">
+                                <span style="margin-right: 8px; font-size: 14px; color: #555;">촬영일 :</span>
+                                <select id="drp-date-selector" class="drp-date-selector"
+                                    style="padding: 4px 8px; font-size: 14px;">
+                                    <option value="">날짜 선택</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="drp-list-controls">
+                            <label style="cursor:pointer; display:flex; align-items:center;">
+                                <input type="checkbox" id="drp-select-all" class="drp-checkbox"> 전체 선택
+                            </label>
+                            <button id="drp-download-selected-btn" class="drp-download-btn" 
+                                style="display:none; margin-left:auto; font-size:12px; padding:4px 10px;">
+                                선택 다운로드
+                            </button>
+                        </div>
                     </div>
                     <ul id="drp-photo-list-ul" class="drp-photo-list">
                         <!-- Photo items will be appended here -->
@@ -233,6 +272,16 @@
                         loadPhotos(selectedDate);
                     }
                 });
+
+                // Select All Checkbox
+                $('#drp-select-all').on('change', function () {
+                    var isChecked = $(this).is(':checked');
+                    $('.drp-photo-checkbox').prop('checked', isChecked);
+                    updateDownloadBtnState();
+                });
+
+                // Download Selected Button
+                $('#drp-download-selected-btn').on('click', downloadSelectedPhotos);
 
                 // Close on click outside
                 $(window).on('click', function (event) {
@@ -486,6 +535,10 @@
                 var $count = $('#drp-photo-count');
                 var $empty = $('#drp-empty-state');
 
+                // Reset select all checkbox
+                $('#drp-select-all').prop('checked', false);
+                updateDownloadBtnState();
+
                 $ul.empty();
                 $count.text('(' + photos.length + ')');
 
@@ -500,6 +553,17 @@
                     if (!photo) return; // Skip null objects
 
                     var $li = $('<li>').addClass('drp-photo-item');
+
+                    // Checkbox
+                    var $checkbox = $('<input>').attr('type', 'checkbox')
+                        .addClass('drp-photo-checkbox drp-checkbox')
+                        .val(photo.photoSeq)
+                        .on('click', function (e) {
+                            e.stopPropagation();
+                            updateSelectAllState();
+                        });
+                    
+                    $li.append($checkbox);
 
                     // Thumbnail placeholder or actual URL
                     var thumbSrc = '/api/drone/thumbnail/' + photo.photoSeq;
@@ -578,6 +642,64 @@
 
                     $ul.append($li);
                 });
+            }
+
+            // Helper: Update "Select All" checkbox state based on individual checkboxes
+            function updateSelectAllState() {
+                var total = $('.drp-photo-checkbox').length;
+                var checked = $('.drp-photo-checkbox:checked').length;
+                
+                $('#drp-select-all').prop('checked', total > 0 && total === checked);
+                updateDownloadBtnState();
+            }
+
+            // Helper: Update Download Button visibility
+            function updateDownloadBtnState() {
+                var count = $('.drp-photo-checkbox:checked').length;
+                var $btn = $('#drp-download-selected-btn');
+                
+                if (count > 0) {
+                    $btn.text(count + '개 다운로드').show();
+                } else {
+                    $btn.hide();
+                }
+            }
+
+            // Action: Download selected photos as ZIP (Backend)
+            function downloadSelectedPhotos() {
+                var selectedIds = [];
+                $('.drp-photo-checkbox:checked').each(function () {
+                    selectedIds.push($(this).val());
+                });
+
+                if (selectedIds.length === 0) {
+                    alert('선택된 사진이 없습니다.');
+                    return;
+                }
+
+                // Use a hidden form to submit POST request for download
+                var $form = $('<form>').attr({
+                    method: 'POST',
+                    action: '/api/drone/download/zip', // Backend endpoint for ZIP download
+                    target: '_blank' // Optional: open in new tab if needed, or remove to download in same
+                }).css('display', 'none');
+
+                // Add IDs as input fields
+                selectedIds.forEach(function (id) {
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'photoSeqs',
+                        value: id
+                    }).appendTo($form);
+                });
+
+                $('body').append($form);
+                $form.submit();
+                
+                // Clean up
+                setTimeout(function () {
+                    $form.remove();
+                }, 1000);
             }
 
             // Initialize on document ready

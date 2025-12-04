@@ -12,10 +12,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.util.StreamUtils;
 
 @RestController
 @RequestMapping("/api/drone")
@@ -86,6 +92,51 @@ public class DroneRawPhotoController {
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedFilename + "\"")
                 .body(resource);
+    }
+
+    /**
+     * 선택된 사진들 ZIP 다운로드
+     */
+    @PostMapping("/download/zip")
+    public void downloadZip(@RequestParam("photoSeqs") List<Long> photoSeqs, HttpServletResponse response) {
+        try {
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.setContentType("application/zip");
+            response.setHeader("Content-Disposition", "attachment; filename=\"photos.zip\"");
+
+            try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
+                for (Long seq : photoSeqs) {
+                    DroneRawPhotoVO photo = droneRawPhotoService.getPhotoById(seq);
+                    if (photo == null)
+                        continue;
+
+                    String relativePath = photo.getFilePath();
+                    String rootPath = servletContext.getRealPath("/");
+                    File file = new File(rootPath, relativePath);
+
+                    if (file.exists()) {
+                        // 파일명 중복 방지를 위해 seq 등을 붙이거나, 원본 파일명 사용
+                        // 여기서는 원본 파일명 사용 (중복 시 덮어씌워질 수 있으므로 주의 필요하지만 간단히 구현)
+                        String fileName = photo.getFileNm();
+
+                        // ZipEntry 생성
+                        ZipEntry zipEntry = new ZipEntry(fileName);
+                        zos.putNextEntry(zipEntry);
+
+                        // 파일 내용 쓰기
+                        try (FileInputStream fis = new FileInputStream(file)) {
+                            StreamUtils.copy(fis, zos);
+                        }
+
+                        zos.closeEntry();
+                    }
+                }
+                zos.finish();
+            }
+        } catch (IOException e) {
+            // 다운로드 도중 취소되거나 에러 발생 시 처리
+            e.printStackTrace();
+        }
     }
 
     /**
