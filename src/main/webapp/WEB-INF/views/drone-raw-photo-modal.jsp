@@ -535,11 +535,19 @@
 
                         if (photo.gpsLon && photo.gpsLat) {
                             var coordinate = ol.proj.fromLonLat([photo.gpsLon, photo.gpsLat]);
-                            doneRawMap.getView().animate({
-                                center: coordinate,
-                                zoom: 18,
-                                duration: 500
-                            });
+                            var currentZoom = doneRawMap.getView().getZoom();
+                            if (currentZoom > 18) {
+                                doneRawMap.getView().animate({
+                                    center: coordinate,
+                                    duration: 500
+                                });
+                            } else {
+                                doneRawMap.getView().animate({
+                                    center: coordinate,
+                                    zoom: 18,
+                                    duration: 500
+                                });
+                            }
                         }
                     });
 
