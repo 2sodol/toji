@@ -359,8 +359,9 @@
                         if (!style) {
                             style = new ol.style.Style({
                                 image: new ol.style.Circle({
-                                    radius: 10,
+                                    radius: 20,
                                     stroke: new ol.style.Stroke({
+                                        width: 3,
                                         color: '#fff'
                                     }),
                                     fill: new ol.style.Fill({
@@ -368,6 +369,7 @@
                                     })
                                 }),
                                 text: new ol.style.Text({
+                                    font: 'bold 16px sans-serif',
                                     text: size.toString(),
                                     fill: new ol.style.Fill({
                                         color: '#fff'
