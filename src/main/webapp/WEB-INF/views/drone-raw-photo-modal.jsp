@@ -419,10 +419,27 @@
                             }
 
                             // Update list to show only these photos
-                            var clusterPhotos = features.map(function (f) { return f.get('photoData'); });
-                            updateList(clusterPhotos);
+                            // var clusterPhotos = features.map(function (f) { return f.get('photoData'); });
+                            // updateList(clusterPhotos);
+                            // -> 클릭 시 리스트 갱신은 moveend 이벤트에서 처리하도록 위 코드는 주석 처리 또는 삭제
                         }
                     }
+                });
+
+                // 지도 이동/줌 종료 시 현재 화면에 보이는 마커만 리스트에 표시
+                doneRawMap.on('moveend', function () {
+                    var extent = doneRawMap.getView().calculateExtent(doneRawMap.getSize());
+                    var visiblePhotos = [];
+                    
+                    // 원본 벡터 소스에서 현재 화면 범위 내의 피처만 추출
+                    clusterSource.forEachFeatureInExtent(extent, function (feature) {
+                        var data = feature.get('photoData');
+                        if (data) {
+                            visiblePhotos.push(data);
+                        }
+                    });
+
+                    updateList(visiblePhotos);
                 });
             }
 
