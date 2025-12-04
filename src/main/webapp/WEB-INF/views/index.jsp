@@ -974,7 +974,7 @@
 
         // 팝업 닫기 버튼 이벤트
         closer.onclick = function () {
-          clearSelection();
+          window.popupOverlay.setPosition(undefined);
           resetPopupButtons();
           closer.blur();
           return false;
