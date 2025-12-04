@@ -218,7 +218,7 @@
     <script>
         (function ($) {
             // Global variables for this module
-            var map;
+            var doneRawMap;
             var clusterSource;
             var vectorLayer;
             var isMapInitialized = false;
@@ -250,7 +250,7 @@
                     isMapInitialized = true;
                 } else {
                     setTimeout(function () {
-                        map.updateSize();
+                        doneRawMap.updateSize();
                     }, 200);
                 }
 
@@ -378,18 +378,19 @@
                     }
                 });
 
-                map = new ol.Map({
+                doneRawMap = new ol.Map({
                     target: 'drp-map',
                     layers: [baseLayer, vectorLayer],
                     view: new ol.View({
-                        center: ol.proj.fromLonLat([127.0, 37.5]), // Default center
+                        //center: ol.proj.fromLonLat([127.0, 37.5]), // Default center
+                        center: [14213121.711211301, 4338175.153863268],
                         zoom: 7
                     })
                 });
 
                 // Map Click Interaction
-                map.on('click', function (evt) {
-                    var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature) {
+                doneRawMap.on('click', function (evt) {
+                    var feature = doneRawMap.forEachFeatureAtPixel(evt.pixel, function (feature) {
                         return feature;
                     });
 
@@ -402,7 +403,7 @@
                                 features.forEach(function (f) {
                                     ol.extent.extend(extent, f.getGeometry().getExtent());
                                 });
-                                map.getView().fit(extent, { duration: 500, padding: [50, 50, 50, 50] });
+                                doneRawMap.getView().fit(extent, { duration: 500, padding: [50, 50, 50, 50] });
                             }
 
                             // Update list to show only these photos
@@ -441,7 +442,7 @@
                 clusterSource.addFeatures(features);
 
                 if (hasValidGeo) {
-                    map.getView().fit(extent, { duration: 500, padding: [50, 50, 50, 50] });
+                    doneRawMap.getView().fit(extent, { duration: 500, padding: [50, 50, 50, 50] });
                 }
             }
 
@@ -525,7 +526,7 @@
 
                         if (photo.gpsLon && photo.gpsLat) {
                             var coordinate = ol.proj.fromLonLat([photo.gpsLon, photo.gpsLat]);
-                            map.getView().animate({
+                            doneRawMap.getView().animate({
                                 center: coordinate,
                                 zoom: 18,
                                 duration: 500
