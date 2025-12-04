@@ -65,6 +65,29 @@ public class DroneMigrationServiceImpl implements DroneMigrationService {
         // 1. 이미지 URL 리스트 조회 (현재는 더미 데이터)
         List<String> imageUrls = fetchImageUrls();
 
+        for (String imageUrl : imageUrls) {
+            // 2. 이미지 다운로드 (여기서 에러 나면 롤백)
+            File downloadedFile = downloadImage(imageUrl);
+
+            // 3. EXIF 정보 추출
+            DroneRawPhotoVO vo = extractExif(downloadedFile);
+            String realFlightId = downloadedFile.getParentFile().getName();
+            vo.setFlightId(realFlightId);
+
+            // 4. DB 적재 (여기서 에러 나도 롤백)
+            droneRawPhotoMapper.insertRawPhoto(vo);
+        }
+    }
+
+    /**
+     * 외부 API를 호출하여 다운로드할 이미지 URL 리스트를 가져옵니다.
+     * (현재는 테스트를 위한 더미 데이터를 반환합니다.)
+     * 
+     * @return 이미지 URL 리스트
+     */
+    private List<String> fetchImageUrls() {
+        List<String> urls = new ArrayList<>();
+
         // // 1. 어제 날짜 구하기 (예: 오늘이 5일이면 yesterday는 4일)
         // LocalDate yesterday = LocalDate.now().minusDays(1);
 
@@ -132,29 +155,6 @@ public class DroneMigrationServiceImpl implements DroneMigrationService {
         // e.printStackTrace();
         // return Collections.emptyList();
         // }
-
-        for (String imageUrl : imageUrls) {
-            // 2. 이미지 다운로드 (여기서 에러 나면 롤백)
-            File downloadedFile = downloadImage(imageUrl);
-
-            // 3. EXIF 정보 추출
-            DroneRawPhotoVO vo = extractExif(downloadedFile);
-            String realFlightId = downloadedFile.getParentFile().getName();
-            vo.setFlightId(realFlightId);
-
-            // 4. DB 적재 (여기서 에러 나도 롤백)
-            droneRawPhotoMapper.insertRawPhoto(vo);
-        }
-    }
-
-    /**
-     * 외부 API를 호출하여 다운로드할 이미지 URL 리스트를 가져옵니다.
-     * (현재는 테스트를 위한 더미 데이터를 반환합니다.)
-     * 
-     * @return 이미지 URL 리스트
-     */
-    private List<String> fetchImageUrls() {
-        List<String> urls = new ArrayList<>();
 
         // 로컬 테스트용 이미지 경로
         // String localImagePath =
