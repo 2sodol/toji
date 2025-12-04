@@ -64,6 +64,9 @@
     <!-- 조회 모달 JSP 포함 -->
     <jsp:include page="inquiry-modal.jsp" />
 
+    <!-- 드론 원본 사진 탐색 모달 JSP 포함 -->
+    <jsp:include page="drone-raw-photo-modal.jsp" />
+
     <!-- 주소 검색 모달 iframe -->
     <iframe id="addressSearchModalFrame" src="<%=request.getContextPath()%>/address-search-modal"
       style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: none; z-index: 9999; background-color: rgba(0,0,0,0.4);">
@@ -76,7 +79,7 @@
     <script src="<%=request.getContextPath()%>/resources/js/register.js"></script>
     <script src="<%=request.getContextPath()%>/resources/js/modify.js"></script>
     <script src="<%=request.getContextPath()%>/resources/js/slide-panel.js"></script>
-    <script src="<%=request.getContextPath()%>/resour몬ces/js/inquiry-modal.js"></script>
+    <script src="<%=request.getContextPath()%>/resources/js/inquiry-modal.js"></script>
 
     <script type="text/javascript">
       // ============================================

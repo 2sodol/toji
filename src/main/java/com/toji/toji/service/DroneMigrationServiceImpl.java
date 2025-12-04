@@ -7,6 +7,9 @@ import com.drew.lang.GeoLocation;
 import com.drew.lang.Rational;
 import com.toji.toji.domain.DroneRawPhotoVO;
 import com.toji.toji.mapper.DroneRawPhotoMapper;
+
+import jakarta.servlet.ServletContext;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -20,11 +23,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URL;
-import java.text.SimpleDateFormat;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -45,11 +51,16 @@ public class DroneMigrationServiceImpl implements DroneMigrationService {
     // 서비스 설정 상수
     // private static final String NAS_ROOT_PATH = "/nas/drone/raw/";
     // [수정 후] 로컬 Mac 테스트용 경로 (바탕화면 등에 폴더 미리 생성 추천)
-    private static final String NAS_ROOT_PATH = "/Users/wooseok/Desktop/nas_test/";
+    // private static final String NAS_ROOT_PATH =
+    // "/CDIGIT_CCTV01/attach/extension/illegalLands/orginal"; // mac
+    private static final String NAS_ROOT_PATH = "/CDIGIT_CCTV01/attach/extension/illegalLands/orginal";
     private static final String EXTERNAL_API_URL = "http://external-api.com/drone/photos";
 
     @Autowired
     private DroneRawPhotoMapper droneRawPhotoMapper;
+
+    @Autowired
+    private ServletContext servletContext;
 
     /**
      * 마이그레이션 실행 메인 로직
@@ -66,8 +77,6 @@ public class DroneMigrationServiceImpl implements DroneMigrationService {
         List<String> imageUrls = fetchImageUrls();
 
         for (String imageUrl : imageUrls) {
-            // try-catch 제거! (예외 발생 시 즉시 중단 및 롤백됨)
-
             // 2. 이미지 다운로드 (여기서 에러 나면 롤백)
             File downloadedFile = downloadImage(imageUrl);
 
@@ -159,7 +168,9 @@ public class DroneMigrationServiceImpl implements DroneMigrationService {
         // }
 
         // 로컬 테스트용 이미지 경로
-        String localImagePath = "/Users/wooseok/Desktop/toji/src/main/webapp/resources/static/images";
+        // String localImagePath =
+        // "/Users/wooseok/Desktop/toji/src/main/webapp/resources/static/images"; //MAC
+        String localImagePath = "C:\\toji\\src\\main\\webapp\\resources\\static\\images"; // Windows
         File dir = new File(localImagePath);
 
         if (dir.exists() && dir.isDirectory()) {
@@ -210,20 +221,23 @@ public class DroneMigrationServiceImpl implements DroneMigrationService {
             // 파싱 실패 시 기본 폴더에 저장하거나 에러 처리
         }
 
-        // 2. 저장할 디렉토리 경로 구성 (NAS_ROOT + 실행일자 + Flight_ID)
-        // 실행일자: 이관 작업을 수행한 날짜 (관리 목적)
-        String today = new SimpleDateFormat("yyyyMMdd").format(new Date());
+        // 2. 저장할 디렉토리 경로 구성 (NAS_ROOT + Flight_ID)
+        // String today = new SimpleDateFormat("yyyyMMdd").format(new Date());
 
-        // 최종 폴더 경로: /nas/drone/raw/20251205/1762143142238/
-        String saveDirPath = String.format("%s%s/%s/", NAS_ROOT_PATH, today, flightId);
+        // ServletContext를 사용하여 실제 경로 가져오기 (RegionServiceImpl 참조)
+        String realRootPath = servletContext.getRealPath(NAS_ROOT_PATH);
+        Path rootPath = Paths.get(realRootPath);
 
-        File dir = new File(saveDirPath);
-        if (!dir.exists()) {
-            dir.mkdirs(); // 해당 Flight ID 폴더가 없으면 생성
+        // 최종 폴더 경로: .../orginal/1762143142238/
+        Path saveDirPath = rootPath.resolve(flightId);
+
+        if (!Files.exists(saveDirPath)) {
+            Files.createDirectories(saveDirPath); // 해당 Flight ID 폴더가 없으면 생성
         }
 
         // 3. 파일 저장
-        File file = new File(dir, fileName);
+        Path filePath = saveDirPath.resolve(fileName);
+        File file = filePath.toFile();
 
         // 이미 파일이 존재하면 덮어쓸지, 건너뛸지 결정 (여기선 덮어쓰기 로직)
         try (InputStream in = new URL(imageUrl).openStream();
@@ -250,9 +264,23 @@ public class DroneMigrationServiceImpl implements DroneMigrationService {
      */
     private DroneRawPhotoVO extractExif(File file) throws Exception {
         DroneRawPhotoVO vo = new DroneRawPhotoVO();
-        vo.setFilePath(file.getAbsolutePath());
+
+        // 절대 경로에서 웹 루트 경로를 제거하여 상대 경로 추출
+        String absolutePath = file.getAbsolutePath();
+        String rootPath = servletContext.getRealPath("/");
+        String relativePath = absolutePath;
+
+        if (rootPath != null && absolutePath.startsWith(rootPath)) {
+            relativePath = absolutePath.substring(rootPath.length());
+        }
+
+        if (!relativePath.startsWith(File.separator)) {
+            relativePath = File.separator + relativePath;
+        }
+
+        vo.setFilePath(relativePath);
         vo.setFileNm(file.getName());
-        vo.setShootDt(new Date()); // 기본값
+        vo.setShootDt(new Date(0)); // 기본값: 1970-01-01 (Flight ID 파싱 실패 시 식별 불가 표시)
 
         try {
             Metadata metadata = ImageMetadataReader.readMetadata(file);
@@ -295,10 +323,17 @@ public class DroneMigrationServiceImpl implements DroneMigrationService {
                 }
 
                 // 4. 촬영 날짜 추출
-                Date gpsDate = gpsDirectory.getGpsDate();
-                if (gpsDate != null) {
-                    vo.setShootDt(gpsDate);
+                // (Flight ID가 Timestamp임)
+                try {
+                    String flightId = file.getParentFile().getName();
+                    long timestamp = Long.parseLong(flightId);
+                    vo.setShootDt(new Date(timestamp));
+                    System.out.println("   -> [성공] Flight ID 기반 날짜 설정: " + vo.getShootDt());
+                } catch (NumberFormatException e) {
+                    System.err.println(
+                            "   -> [실패] Flight ID 파싱 실패 (" + file.getParentFile().getName() + "): " + e.getMessage());
                 }
+
             }
         } catch (Exception e) {
             System.err.println(">> [Meta] EXIF 추출 중 에러 발생: " + e.getMessage());

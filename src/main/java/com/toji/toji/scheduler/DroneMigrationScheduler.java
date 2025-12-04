@@ -29,23 +29,23 @@ public class DroneMigrationScheduler {
     @Autowired
     private DroneMigrationService droneMigrationService;
 
-    @PostConstruct
-    public void testRunOnStartup() {
-        // 별도 스레드에서 실행하여 서버 부팅 지연 방지
-        new Thread(() -> {
-            System.out.println(">> [TEST] 서버 시작 감지: 드론 데이터 이관 작업 즉시 실행");
-            try {
-                // 서버가 완전히 뜰 시간을 3초 정도 벌어줌 (선택사항)
-                Thread.sleep(3000);
+    // @PostConstruct
+    // public void testRunOnStartup() {
+    // // 별도 스레드에서 실행하여 서버 부팅 지연 방지
+    // new Thread(() -> {
+    // System.out.println(">> [TEST] 서버 시작 감지: 드론 데이터 이관 작업 즉시 실행");
+    // try {
+    // // 서버가 완전히 뜰 시간을 3초 정도 벌어줌 (선택사항)
+    // Thread.sleep(3000);
 
-                // 서비스 호출
-                droneMigrationService.executeMigration();
+    // // 서비스 호출
+    // droneMigrationService.executeMigration();
 
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
-    }
+    // } catch (Exception e) {
+    // e.printStackTrace();
+    // }
+    // }).start();
+    // }
 
     /**
      * 스케줄링된 마이그레이션 작업을 수행합니다.

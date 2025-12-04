@@ -29,4 +29,19 @@ public interface DroneRawPhotoMapper {
      * @return 해당 날짜의 드론 사진 정보 리스트
      */
     List<DroneRawPhotoVO> selectRawPhotosByDate(String date);
+
+    /**
+     * 촬영된 날짜 목록을 중복 없이 조회합니다.
+     * 
+     * @return 날짜 문자열 리스트 (YYYY-MM-DD)
+     */
+    List<String> selectDistinctDates();
+
+    /**
+     * ID로 사진 정보를 조회합니다.
+     * 
+     * @param photoSeq 사진 ID
+     * @return 사진 정보 객체
+     */
+    DroneRawPhotoVO selectRawPhotoById(Long photoSeq);
 }

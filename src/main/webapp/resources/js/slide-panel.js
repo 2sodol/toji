@@ -97,6 +97,15 @@
       if (this.$searchClearBtn.length) {
         this.$searchClearBtn.on("click", this.clearSearch.bind(this));
       }
+
+      // 드론 촬영 이미지 다운로드 버튼 클릭 이벤트
+      $("#drone-image-download-btn").on("click", function () {
+        if (typeof window.openDrpModal === "function") {
+          window.openDrpModal();
+        } else {
+          console.error("openDrpModal function is not defined");
+        }
+      });
     },
 
     /**
