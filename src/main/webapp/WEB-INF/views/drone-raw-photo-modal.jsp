@@ -38,7 +38,7 @@
 
         .drp-modal-title {
             margin: 0;
-            font-size: 1.25rem;
+            font-size: 20px;
             font-weight: 600;
             color: #333;
         }
@@ -53,7 +53,7 @@
             padding: 6px 12px;
             border: 1px solid #ced4da;
             border-radius: 4px;
-            font-size: 1rem;
+            font-size: 16px;
             color: #495057;
         }
 
@@ -152,11 +152,11 @@
             font-weight: 600;
             margin-bottom: 5px;
             color: #333;
-            font-size: 0.95rem;
+            font-size: 15px;
         }
 
         .drp-photo-meta {
-            font-size: 0.85rem;
+            font-size: 14px;
             color: #777;
         }
 
@@ -167,7 +167,7 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 14px;
             align-self: center;
             margin-left: 10px;
         }
@@ -463,25 +463,42 @@
                     var $li = $('<li>').addClass('drp-photo-item');
 
                     // Thumbnail placeholder or actual URL
-                    // Assuming photo.filePath is available. 
-                    // If you have a thumbnail API, use it. Otherwise, maybe just an icon.
-                    var thumbSrc = '<%=request.getContextPath()%>/resources/images/no-image.png'; // Fallback
-                    // If you have a real thumbnail endpoint:
-                    // var thumbSrc = '/api/drone/thumbnail?id=' + photo.photoSeq;
-
+                    var thumbSrc = '/api/drone/thumbnail/' + photo.photoSeq;
                     var $img = $('<img>').addClass('drp-photo-thumb').attr('src', thumbSrc).attr('alt', 'Photo');
+
+                    // Add error handler for image
+                    $img.on('error', function () {
+                        $(this).attr('src', '<%=request.getContextPath()%>/resources/images/no-image.png');
+                    });
 
                     var $info = $('<div>').addClass('drp-photo-info');
                     var $name = $('<div>').addClass('drp-photo-name').text(photo.fileNm || 'Unknown');
-                    var $meta = $('<div>').addClass('drp-photo-meta').text(photo.shootDt || '-');
+
+                    // Date formatting logic
+                    var displayDate = '촬영일 정보 없음';
+                    if (photo.shootDt) {
+                        var dateStr = String(photo.shootDt);
+                        // Check for 1970 epoch (unknown date)
+                        if (dateStr.indexOf('1970-01-01') === -1 && dateStr.indexOf('19700101') === -1) {
+                            var dateObj = new Date(dateStr);
+                            if (!isNaN(dateObj.getTime())) {
+                                var year = dateObj.getFullYear();
+                                var month = ('0' + (dateObj.getMonth() + 1)).slice(-2);
+                                var day = ('0' + dateObj.getDate()).slice(-2);
+                                displayDate = '촬영일 : ' + year + '-' + month + '-' + day;
+                            } else {
+                                displayDate = '촬영일 : ' + dateStr.substring(0, 10);
+                            }
+                        }
+                    }
+
+                    var $meta = $('<div>').addClass('drp-photo-meta').text(displayDate);
 
                     $info.append($name).append($meta);
 
                     var $btn = $('<button>').addClass('drp-download-btn').text('다운로드');
                     $btn.on('click', function (e) {
                         e.stopPropagation();
-                        // Trigger download
-                        // Assuming download endpoint
                         window.location.href = '/api/drone/download/' + photo.photoSeq;
                     });
 

@@ -87,4 +87,39 @@ public class DroneRawPhotoController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedFilename + "\"")
                 .body(resource);
     }
+
+    /**
+     * 사진 미리보기 (썸네일)
+     */
+    @GetMapping("/thumbnail/{id}")
+    @SuppressWarnings("null")
+    public ResponseEntity<Resource> viewPhoto(@PathVariable("id") Long photoSeq) {
+        DroneRawPhotoVO photo = droneRawPhotoService.getPhotoById(photoSeq);
+
+        if (photo == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String relativePath = photo.getFilePath();
+        String rootPath = servletContext.getRealPath("/");
+        File file = new File(rootPath, relativePath);
+
+        if (!file.exists()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Resource resource = new FileSystemResource(file);
+
+        MediaType mediaType = MediaType.IMAGE_JPEG;
+        String filename = photo.getFileNm().toLowerCase();
+        if (filename.endsWith(".png")) {
+            mediaType = MediaType.IMAGE_PNG;
+        } else if (filename.endsWith(".gif")) {
+            mediaType = MediaType.IMAGE_GIF;
+        }
+
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .body(resource);
+    }
 }
