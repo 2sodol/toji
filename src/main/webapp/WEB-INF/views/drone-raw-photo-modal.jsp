@@ -316,6 +316,7 @@
 
             // Load Photos API
             function loadPhotos(date) {
+                // console.log('[DRP] loadPhotos called for date:', date);
                 $.ajax({
                     url: '/api/drone/photos',
                     method: 'GET',
@@ -332,6 +333,7 @@
 
             // Initialize Map
             function initMap() {
+                // console.log('[DRP] initMap called');
                 // VWorld Base Layer
                 var baseLayer = new ol.layer.Tile({
                     source: new ol.source.XYZ({
@@ -384,7 +386,7 @@
                     view: new ol.View({
                         //center: ol.proj.fromLonLat([127.0, 37.5]), // Default center
                         center: [14213121.711211301, 4338175.153863268],
-                        zoom: 7
+                        zoom: 6
                     })
                 });
 
@@ -403,7 +405,7 @@
                                 features.forEach(function (f) {
                                     ol.extent.extend(extent, f.getGeometry().getExtent());
                                 });
-                                doneRawMap.getView().fit(extent, { duration: 500, padding: [50, 50, 50, 50] });
+                                doneRawMap.getView().fit(extent, { duration: 500, padding: [50, 50, 50, 50], maxZoom: 12 });
                             }
 
                             // Update list to show only these photos
@@ -421,8 +423,8 @@
                 if (!photos || photos.length === 0) return;
 
                 var features = [];
-                var extent = ol.extent.createEmpty();
                 var hasValidGeo = false;
+                var firstCoordinate = null;
 
                 photos.forEach(function (photo) {
                     if (!photo) return; // Skip null objects
@@ -434,15 +436,20 @@
                             photoData: photo
                         });
                         features.push(feature);
-                        ol.extent.extend(extent, feature.getGeometry().getExtent());
                         hasValidGeo = true;
+
+                        if (!firstCoordinate) {
+                            firstCoordinate = coordinate;
+                        }
                     }
                 });
 
                 clusterSource.addFeatures(features);
 
-                if (hasValidGeo) {
-                    doneRawMap.getView().fit(extent, { duration: 500, padding: [50, 50, 50, 50] });
+                if (hasValidGeo && firstCoordinate) {
+                    // Set view to the first photo's location with zoom 18, as requested
+                    doneRawMap.getView().setCenter(firstCoordinate);
+                    doneRawMap.getView().setZoom(18);
                 }
             }
 

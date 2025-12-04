@@ -92,7 +92,6 @@ public class DroneRawPhotoController {
      * 사진 미리보기 (썸네일)
      */
     @GetMapping("/thumbnail/{id}")
-    @SuppressWarnings("null")
     public ResponseEntity<Resource> viewPhoto(@PathVariable("id") Long photoSeq) {
         DroneRawPhotoVO photo = droneRawPhotoService.getPhotoById(photoSeq);
 
