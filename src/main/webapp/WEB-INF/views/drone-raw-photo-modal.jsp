@@ -403,12 +403,19 @@
                         if (features && features.length > 0) {
                             // Zoom to cluster if multiple
                             if (features.length > 1) {
-                                var extent = ol.extent.createEmpty();
-                                features.forEach(function (f) {
-                                    ol.extent.extend(extent, f.getGeometry().getExtent());
+                                // extent 대신 현재 클러스터 중심좌표로 일정 레벨만 확대
+                                var center = feature.getGeometry().getCoordinates();
+                                var currentZoom = doneRawMap.getView().getZoom();
+                                var newZoom = currentZoom + 2; // 현재 줌에서 2단계 더 확대
+
+                                // 최대 줌 레벨 제한을 22로 늘려 더 깊게 확대 가능하도록 함
+                                if (newZoom > 22) newZoom = 22;
+
+                                doneRawMap.getView().animate({
+                                    center: center,
+                                    zoom: newZoom,
+                                    duration: 500
                                 });
-                                var targetMaxZoom = 18;
-                                doneRawMap.getView().fit(extent, { duration: 500, padding: [50, 50, 50, 50], maxZoom: targetMaxZoom });
                             }
 
                             // Update list to show only these photos
