@@ -234,9 +234,14 @@
                             </div>
                         </div>
                         <div class="drp-list-controls">
-                            <label style="cursor:pointer; display:flex; align-items:center;">
-                                <input type="checkbox" id="drp-select-all" class="drp-checkbox"> 전체 선택
-                            </label>
+                            <div style="display:flex; align-items:center;">
+                                <label style="cursor:pointer; display:flex; align-items:center; margin-bottom:0;">
+                                    <input type="checkbox" id="drp-select-all" class="drp-checkbox"> 전체 선택
+                                </label>
+                                <span style="margin-left: 10px; font-size: 11px; color: #999; letter-spacing: -0.5px;">
+                                    ※ GPS 오차 주의
+                                </span>
+                            </div>
                             <button id="drp-download-selected-btn" class="drp-download-btn" 
                                 style="display:none; margin-left:auto; font-size:12px; padding:4px 10px;">
                                 선택 다운로드
@@ -261,6 +266,7 @@
             var clusterSource;
             var vectorLayer;
             var isMapInitialized = false;
+            var VWORLD_GEOCODER_KEY = "F0529714-44EF-31EC-BCD3-9BB544307DDB"; // 주소 검색용 키
 
             // Initialize Modal
             function initDrpModal() {
@@ -450,10 +456,11 @@
                     if (feature) {
                         var features = feature.get('features');
                         if (features && features.length > 0) {
+                            var center = feature.getGeometry().getCoordinates();
+
                             // Zoom to cluster if multiple
                             if (features.length > 1) {
                                 // extent 대신 현재 클러스터 중심좌표로 일정 레벨만 확대
-                                var center = feature.getGeometry().getCoordinates();
                                 var currentZoom = doneRawMap.getView().getZoom();
                                 var newZoom = currentZoom + 2; // 현재 줌에서 2단계 더 확대
 
@@ -465,12 +472,13 @@
                                     zoom: newZoom,
                                     duration: 500
                                 });
+                            } else {
+                                // 단일 마커(사진 1장)인 경우에도 중앙으로 이동
+                                doneRawMap.getView().animate({
+                                    center: center,
+                                    duration: 500
+                                });
                             }
-
-                            // Update list to show only these photos
-                            // var clusterPhotos = features.map(function (f) { return f.get('photoData'); });
-                            // updateList(clusterPhotos);
-                            // -> 클릭 시 리스트 갱신은 moveend 이벤트에서 처리하도록 위 코드는 주석 처리 또는 삭제
                         }
                     }
                 });
@@ -606,8 +614,16 @@
                     }
 
                     var $meta = $('<div>').addClass('drp-photo-meta').text(displayDate);
+                    var $address = $('<div>').addClass('drp-photo-meta').css('margin-top', '2px').text('주소 로딩중...');
 
-                    $info.append($name).append($meta);
+                    $info.append($name).append($meta).append($address);
+
+                    // Fetch Address if GPS is available
+                    if (photo.gpsLon && photo.gpsLat) {
+                         getAddressFromCoords(photo.gpsLon, photo.gpsLat, $address);
+                    } else {
+                        $address.text('위치 정보 없음');
+                    }
 
                     var $btn = $('<button>').addClass('drp-download-btn').text('다운로드');
                     $btn.on('click', function (e) {
@@ -663,6 +679,55 @@
                 } else {
                     $btn.hide();
                 }
+            }
+
+            // Helper: Reverse Geocoding (VWorld API)
+            function getAddressFromCoords(lon, lat, $element) {
+                // GPS 오차 보정: 소수점 4자리(약 11m)로 반올림하여 미세한 위치 차이를 무시하고 동일 주소로 유도
+                var fixedLon = parseFloat(lon).toFixed(4);
+                var fixedLat = parseFloat(lat).toFixed(4);
+
+                var url = "https://api.vworld.kr/req/address";
+                var params = {
+                    service: "address",
+                    request: "getaddress",
+                    version: "2.0",
+                    crs: "epsg:4326",
+                    point: fixedLon + "," + fixedLat,
+                    format: "json",
+                    type: "both",
+                    zipcode: "false",
+                    simple: "false",
+                    key: VWORLD_GEOCODER_KEY
+                };
+
+                $.ajax({
+                    url: url,
+                    data: params,
+                    dataType: "jsonp",
+                    success: function (result) {
+                        if (result.response && result.response.status === "OK") {
+                            // 도로명 주소 우선, 없으면 지번 주소
+                            var addr = "";
+                            if (result.response.result[0].text) {
+                                addr = result.response.result[0].text;
+                            } else {
+                                // 구조가 다를 수 있으므로 확인
+                                var items = result.response.result[0].structure;
+                                if(items) {
+                                     // 필요시 상세 파싱
+                                     addr = "주소 정보 확인 필요"; 
+                                }
+                            }
+                            $element.text("주소 : " + addr);
+                        } else {
+                            $element.text("주소 정보 없음");
+                        }
+                    },
+                    error: function () {
+                        $element.text("주소 조회 실패");
+                    }
+                });
             }
 
             // Action: Download selected photos as ZIP (Backend)
