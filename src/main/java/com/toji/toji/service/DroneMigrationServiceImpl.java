@@ -11,29 +11,18 @@ import com.toji.toji.mapper.DroneRawPhotoMapper;
 import jakarta.servlet.ServletContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.http.HttpHeaders;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URL;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -99,74 +88,6 @@ public class DroneMigrationServiceImpl implements DroneMigrationService {
     private List<String> fetchImageUrls() {
         List<String> urls = new ArrayList<>();
 
-        // // 1. 어제 날짜 구하기 (예: 오늘이 5일이면 yesterday는 4일)
-        // LocalDate yesterday = LocalDate.now().minusDays(1);
-
-        // // 2. Start Timestamp 계산 (어제 00:00:00)
-        // LocalDateTime startDateTime = yesterday.atStartOfDay();
-        // long startTimestamp =
-        // startDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-
-        // // 3. End Timestamp 계산 (어제 23:59:59.999...)
-        // LocalDateTime endDateTime = LocalDateTime.of(yesterday, LocalTime.MAX);
-        // long endTimestamp =
-        // endDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-
-        // // 4. URL 생성 (기존 코드)
-        // String requestUrl = String.format("%s?start_timestamp=%d&end_timestamp=%d",
-        // EXTERNAL_API_URL, startTimestamp, endTimestamp);
-
-        // System.out.println(">> 외부 API 요청 시작: " + requestUrl);
-
-        // try {
-        // RestTemplate restTemplate = new RestTemplate();
-
-        // // ---------------------------------------------------------
-        // // [수정] 1. 헤더(HttpHeaders) 생성 및 인증 정보 세팅
-        // // ---------------------------------------------------------
-        // HttpHeaders headers = new HttpHeaders();
-
-        // // Case A: Bearer Token 방식 (가장 흔함)
-        // // headers.set("Authorization", "Bearer " + "여기에_발급받은_토큰값");
-
-        // // Case B: 일반 API Key 방식
-        // // headers.set("Authorization", "여기에_인증키값");
-
-        // // ---------------------------------------------------------
-        // // [수정] 2. 헤더를 담은 HttpEntity 생성
-        // // ---------------------------------------------------------
-        // // GET 요청이라 Body는 null입니다.
-        // HttpEntity<String> entity = new HttpEntity<String>(headers);
-
-        // // ---------------------------------------------------------
-        // // [수정] 3. exchange() 메서드로 요청 (헤더 포함 전송)
-        // // ---------------------------------------------------------
-        // // param 1: url
-        // // param 2: method (GET)
-        // // param 3: entity (헤더 포함됨)
-        // // param 4: return type (String[].class)
-        // ResponseEntity<String[]> response = restTemplate.exchange(
-        // requestUrl,
-        // HttpMethod.GET,
-        // entity,
-        // String[].class);
-
-        // // 4. 결과 꺼내기 (getBody)
-        // String[] responseArray = response.getBody();
-
-        // if (responseArray != null) {
-        // urls = Arrays.asList(responseArray);
-        // System.out.println(">> 조회 성공: 총 " + urls.size() + "건");
-        // } else {
-        // System.out.println(">> 조회 결과 없음 (NULL)");
-        // }
-
-        // } catch (Exception e) {
-        // System.err.println(">> 외부 API 호출 중 오류 발생: " + e.getMessage());
-        // e.printStackTrace();
-        // return Collections.emptyList();
-        // }
-
         // 로컬 테스트용 이미지 경로
         // String localImagePath =
         // "/Users/wooseok/Desktop/toji/src/main/webapp/resources/static/images"; //MAC
@@ -195,7 +116,7 @@ public class DroneMigrationServiceImpl implements DroneMigrationService {
      * * [저장 로직]
      * 1. URL: .../flight/1762143142238/images/camera_131402.png
      * 2. Flight ID 추출: 1762143142238
-     * 3. 최종 경로: /nas/drone/raw/{오늘날짜}/{1762143142238}/camera_131402.png
+     * 3. 최종 경로: /nas/drone/raw/{1762143142238}/camera_131402.png
      * * @param imageUrl 개별 이미지 다운로드 주소
      * 
      * @return 저장된 File 객체
@@ -284,6 +205,18 @@ public class DroneMigrationServiceImpl implements DroneMigrationService {
 
         try {
             Metadata metadata = ImageMetadataReader.readMetadata(file);
+
+            // 1. 촬영 날짜 추출 (Flight ID가 Timestamp임) - GPS 유무와 상관없이 실행
+            try {
+                String flightId = file.getParentFile().getName();
+                long timestamp = Long.parseLong(flightId);
+                vo.setShootDt(new Date(timestamp));
+                System.out.println("   -> [성공] Flight ID 기반 날짜 설정: " + vo.getShootDt());
+            } catch (NumberFormatException e) {
+                System.err.println(
+                        "   -> [실패] Flight ID 파싱 실패 (" + file.getParentFile().getName() + "): " + e.getMessage());
+            }
+
             GpsDirectory gpsDirectory = metadata.getFirstDirectoryOfType(GpsDirectory.class);
 
             if (gpsDirectory != null) {
@@ -321,19 +254,6 @@ public class DroneMigrationServiceImpl implements DroneMigrationService {
                 } else {
                     System.err.println("   -> [실패] GPS 태그가 없거나 파싱 불가");
                 }
-
-                // 4. 촬영 날짜 추출
-                // (Flight ID가 Timestamp임)
-                try {
-                    String flightId = file.getParentFile().getName();
-                    long timestamp = Long.parseLong(flightId);
-                    vo.setShootDt(new Date(timestamp));
-                    System.out.println("   -> [성공] Flight ID 기반 날짜 설정: " + vo.getShootDt());
-                } catch (NumberFormatException e) {
-                    System.err.println(
-                            "   -> [실패] Flight ID 파싱 실패 (" + file.getParentFile().getName() + "): " + e.getMessage());
-                }
-
             }
         } catch (Exception e) {
             System.err.println(">> [Meta] EXIF 추출 중 에러 발생: " + e.getMessage());

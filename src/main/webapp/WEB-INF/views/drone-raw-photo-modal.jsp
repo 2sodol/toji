@@ -472,7 +472,17 @@
 
                     // Add error handler for image
                     $img.on('error', function () {
-                        $(this).attr('src', '<%=request.getContextPath()%>/resources/images/no-image.png');
+                        $(this).off('error');
+                        // 이미지가 없을 경우 텍스트로 대체
+                        var $placeholder = $('<div>').addClass('drp-photo-thumb').css({
+                            'display': 'flex',
+                            'align-items': 'center',
+                            'justify-content': 'center',
+                            'color': '#aaa',
+                            'font-size': '11px',
+                            'background-color': '#f0f0f0'
+                        }).text('No Image');
+                        $(this).replaceWith($placeholder);
                     });
 
                     var $info = $('<div>').addClass('drp-photo-info');
