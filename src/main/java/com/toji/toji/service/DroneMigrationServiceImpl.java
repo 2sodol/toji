@@ -65,6 +65,74 @@ public class DroneMigrationServiceImpl implements DroneMigrationService {
         // 1. 이미지 URL 리스트 조회 (현재는 더미 데이터)
         List<String> imageUrls = fetchImageUrls();
 
+        // // 1. 어제 날짜 구하기 (예: 오늘이 5일이면 yesterday는 4일)
+        // LocalDate yesterday = LocalDate.now().minusDays(1);
+
+        // // 2. Start Timestamp 계산 (어제 00:00:00)
+        // LocalDateTime startDateTime = yesterday.atStartOfDay();
+        // long startTimestamp =
+        // startDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+
+        // // 3. End Timestamp 계산 (어제 23:59:59.999...)
+        // LocalDateTime endDateTime = LocalDateTime.of(yesterday, LocalTime.MAX);
+        // long endTimestamp =
+        // endDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+
+        // // 4. URL 생성 (기존 코드)
+        // String requestUrl = String.format("%s?start_timestamp=%d&end_timestamp=%d",
+        // EXTERNAL_API_URL, startTimestamp, endTimestamp);
+
+        // System.out.println(">> 외부 API 요청 시작: " + requestUrl);
+
+        // try {
+        // RestTemplate restTemplate = new RestTemplate();
+
+        // // ---------------------------------------------------------
+        // // [수정] 1. 헤더(HttpHeaders) 생성 및 인증 정보 세팅
+        // // ---------------------------------------------------------
+        // HttpHeaders headers = new HttpHeaders();
+
+        // // Case A: Bearer Token 방식 (가장 흔함)
+        // // headers.set("Authorization", "Bearer " + "여기에_발급받은_토큰값");
+
+        // // Case B: 일반 API Key 방식
+        // // headers.set("Authorization", "여기에_인증키값");
+
+        // // ---------------------------------------------------------
+        // // [수정] 2. 헤더를 담은 HttpEntity 생성
+        // // ---------------------------------------------------------
+        // // GET 요청이라 Body는 null입니다.
+        // HttpEntity<String> entity = new HttpEntity<String>(headers);
+
+        // // ---------------------------------------------------------
+        // // [수정] 3. exchange() 메서드로 요청 (헤더 포함 전송)
+        // // ---------------------------------------------------------
+        // // param 1: url
+        // // param 2: method (GET)
+        // // param 3: entity (헤더 포함됨)
+        // // param 4: return type (String[].class)
+        // ResponseEntity<String[]> response = restTemplate.exchange(
+        // requestUrl,
+        // HttpMethod.GET,
+        // entity,
+        // String[].class);
+
+        // // 4. 결과 꺼내기 (getBody)
+        // String[] responseArray = response.getBody();
+
+        // if (responseArray != null) {
+        // urls = Arrays.asList(responseArray);
+        // System.out.println(">> 조회 성공: 총 " + urls.size() + "건");
+        // } else {
+        // System.out.println(">> 조회 결과 없음 (NULL)");
+        // }
+
+        // } catch (Exception e) {
+        // System.err.println(">> 외부 API 호출 중 오류 발생: " + e.getMessage());
+        // e.printStackTrace();
+        // return Collections.emptyList();
+        // }
+
         for (String imageUrl : imageUrls) {
             // 2. 이미지 다운로드 (여기서 에러 나면 롤백)
             File downloadedFile = downloadImage(imageUrl);
