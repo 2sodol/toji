@@ -209,6 +209,53 @@
             text-align: center;
             color: #999;
         }
+
+        /* Image Viewer Styles */
+        .drp-image-viewer {
+            display: none;
+            position: fixed;
+            z-index: 2100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .drp-viewer-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+
+        .drp-viewer-img {
+            max-width: 100%;
+            max-height: 90vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            border-radius: 4px;
+        }
+
+        .drp-viewer-close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+            z-index: 2200;
+        }
+
+        .drp-viewer-close:hover,
+        .drp-viewer-close:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
 
     <div id="drp-modal" class="drp-modal">
@@ -259,6 +306,14 @@
         </div>
     </div>
 
+    <!-- Image Viewer Modal -->
+    <div id="drp-image-viewer" class="drp-image-viewer">
+        <span id="drp-viewer-close" class="drp-viewer-close">&times;</span>
+        <div class="drp-viewer-content">
+            <img id="drp-viewer-img" class="drp-viewer-img" src="" alt="Original Photo">
+        </div>
+    </div>
+
     <script>
         (function ($) {
             // Global variables for this module
@@ -295,7 +350,28 @@
                     if (event.target == document.getElementById('drp-modal')) {
                         closeDrpModal();
                     }
+                    // Close viewer on background click
+                    if (event.target == document.getElementById('drp-image-viewer')) {
+                        closeImageViewer();
+                    }
                 });
+                
+                // Image Viewer Close Button
+                $('#drp-viewer-close').on('click', closeImageViewer);
+            }
+
+            // Open Image Viewer
+            function openImageViewer(photoSeq) {
+                var imgSrc = '/api/drone/thumbnail/' + photoSeq; // Use existing endpoint as it returns full image
+                
+                $('#drp-viewer-img').attr('src', imgSrc);
+                $('#drp-image-viewer').css('display', 'flex');
+            }
+
+            // Close Image Viewer
+            function closeImageViewer() {
+                $('#drp-image-viewer').hide();
+                $('#drp-viewer-img').attr('src', ''); // Clear src to stop memory usage
             }
 
             // Open Modal
@@ -582,7 +658,12 @@
 
                     // Thumbnail placeholder or actual URL
                     var thumbSrc = '/api/drone/thumbnail/' + photo.photoSeq;
-                    var $img = $('<img>').addClass('drp-photo-thumb').attr('src', thumbSrc).attr('alt', 'Photo');
+                    var $img = $('<img>').addClass('drp-photo-thumb').attr('src', thumbSrc).attr('alt', 'Photo')
+                        .css('cursor', 'zoom-in') // 커서 변경으로 클릭 가능함 암시
+                        .on('click', function(e) {
+                            e.stopPropagation(); // 리스트 클릭 이벤트 전파 방지
+                            openImageViewer(photo.photoSeq);
+                        });
 
                     // Add error handler for image
                     $img.on('error', function () {
