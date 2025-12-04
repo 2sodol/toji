@@ -407,7 +407,8 @@
                                 features.forEach(function (f) {
                                     ol.extent.extend(extent, f.getGeometry().getExtent());
                                 });
-                                doneRawMap.getView().fit(extent, { duration: 500, padding: [50, 50, 50, 50], maxZoom: 12 });
+                                var targetMaxZoom = 18;
+                                doneRawMap.getView().fit(extent, { duration: 500, padding: [50, 50, 50, 50], maxZoom: targetMaxZoom });
                             }
 
                             // Update list to show only these photos
