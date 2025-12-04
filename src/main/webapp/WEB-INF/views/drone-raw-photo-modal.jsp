@@ -82,7 +82,7 @@
         }
 
         .drp-map-container {
-            width: 60%;
+            width: 75%;
             height: 100%;
             background-color: #e9ecef;
             position: relative;
@@ -90,7 +90,7 @@
         }
 
         .drp-list-container {
-            width: 40%;
+            width: 25%;
             height: 100%;
             overflow-y: auto;
             background-color: #fff;
@@ -107,6 +107,9 @@
             position: sticky;
             top: 0;
             z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .drp-photo-list {
@@ -162,7 +165,7 @@
 
         .drp-download-btn {
             padding: 6px 12px;
-            background-color: #28a745;
+            background-color: #6c757d;
             color: white;
             border: none;
             border-radius: 4px;
@@ -173,7 +176,7 @@
         }
 
         .drp-download-btn:hover {
-            background-color: #218838;
+            background-color: #5a6268;
         }
 
         .drp-empty-state {
@@ -188,9 +191,6 @@
             <div class="drp-modal-header">
                 <h2 class="drp-modal-title">드론 원본 사진 탐색</h2>
                 <div class="drp-header-controls">
-                    <select id="drp-date-selector" class="drp-date-selector">
-                        <option value="">날짜 선택</option>
-                    </select>
                     <button id="drp-close-btn" class="drp-close-btn">&times;</button>
                 </div>
             </div>
@@ -198,7 +198,11 @@
                 <div id="drp-map" class="drp-map-container"></div>
                 <div id="drp-list" class="drp-list-container">
                     <div class="drp-list-header">
-                        사진 목록 <span id="drp-photo-count">(0)</span>
+                        <span>사진 목록 <span id="drp-photo-count">(0)</span></span>
+                        <select id="drp-date-selector" class="drp-date-selector"
+                            style="padding: 4px 8px; font-size: 14px;">
+                            <option value="">날짜 선택</option>
+                        </select>
                     </div>
                     <ul id="drp-photo-list-ul" class="drp-photo-list">
                         <!-- Photo items will be appended here -->
