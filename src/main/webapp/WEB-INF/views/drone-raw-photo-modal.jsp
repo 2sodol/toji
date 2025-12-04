@@ -267,6 +267,7 @@
             var vectorLayer;
             var isMapInitialized = false;
             var VWORLD_GEOCODER_KEY = "F0529714-44EF-31EC-BCD3-9BB544307DDB"; // 주소 검색용 키
+            var isListClickMove = false; // 리스트 클릭에 의한 지도 이동인지 확인하는 플래그
 
             // Initialize Modal
             function initDrpModal() {
@@ -485,6 +486,12 @@
 
                 // 지도 이동/줌 종료 시 현재 화면에 보이는 마커만 리스트에 표시
                 doneRawMap.on('moveend', function () {
+                    // 리스트 아이템 클릭으로 인한 이동인 경우 리스트 갱신 건너뜀 (깜빡임 방지)
+                    if (isListClickMove) {
+                        isListClickMove = false;
+                        return;
+                    }
+
                     var extent = doneRawMap.getView().calculateExtent(doneRawMap.getSize());
                     var visiblePhotos = [];
                     
@@ -639,6 +646,9 @@
                         $(this).addClass('active');
 
                         if (photo.gpsLon && photo.gpsLat) {
+                            // 리스트 클릭에 의한 이동임을 표시 (리스트 갱신 방지)
+                            isListClickMove = true;
+
                             var coordinate = ol.proj.fromLonLat([photo.gpsLon, photo.gpsLat]);
                             var currentZoom = doneRawMap.getView().getZoom();
                             if (currentZoom > 18) {
