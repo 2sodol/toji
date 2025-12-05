@@ -26,6 +26,23 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+// [추가된 Import]
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.Collections;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpEntity;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+
 /**
  * 드론 원본 사진(Raw Image) 이관 및 관리 자동화 서비스 구현체
  * 
@@ -81,82 +98,79 @@ public class DroneMigrationServiceImpl implements DroneMigrationService {
 
     /**
      * 외부 API를 호출하여 다운로드할 이미지 URL 리스트를 가져옵니다.
-     * (현재는 테스트를 위한 더미 데이터를 반환합니다.)
      * 
      * @return 이미지 URL 리스트
      */
     private List<String> fetchImageUrls() {
         List<String> urls = new ArrayList<>();
 
-        // // 1. 어제 날짜 구하기 (예: 오늘이 5일이면 yesterday는 4일)
-        // LocalDate yesterday = LocalDate.now().minusDays(1);
+        // 1. 날짜 계산
+        LocalDate yesterday = LocalDate.now().minusDays(1);
 
-        // // 2. Start Timestamp 계산 (어제 00:00:00)
-        // LocalDateTime startDateTime = yesterday.atStartOfDay();
-        // long startTimestamp =
-        // startDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        LocalDateTime startDateTime = yesterday.atStartOfDay();
+        long startTimestamp = startDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
-        // // 3. End Timestamp 계산 (어제 23:59:59.999...)
-        // LocalDateTime endDateTime = LocalDateTime.of(yesterday, LocalTime.MAX);
-        // long endTimestamp =
-        // endDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        LocalDateTime endDateTime = LocalDateTime.of(yesterday, LocalTime.MAX);
+        long endTimestamp = endDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
-        // // 4. URL 생성 (기존 코드)
-        // String requestUrl = String.format("%s?start_timestamp=%d&end_timestamp=%d",
-        // EXTERNAL_API_URL, startTimestamp, endTimestamp);
+        // 2. URL 생성
+        String requestUrl = String.format("%s?start_timestamp=%d&end_timestamp=%d",
+                EXTERNAL_API_URL, startTimestamp, endTimestamp);
 
-        // System.out.println(">> 외부 API 요청 시작: " + requestUrl);
+        System.out.println(">> 외부 API 요청 시작: " + requestUrl);
 
-        // try {
-        // RestTemplate restTemplate = new RestTemplate();
+        try {
+            // [설정] 타임아웃 및 프록시 설정을 위한 Factory 생성
+            SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+            factory.setConnectTimeout(10000); // 연결 타임아웃 10초
+            factory.setReadTimeout(10000); // 읽기 타임아웃 10초
 
-        // // ---------------------------------------------------------
-        // // [수정] 1. 헤더(HttpHeaders) 생성 및 인증 정보 세팅
-        // // ---------------------------------------------------------
-        // HttpHeaders headers = new HttpHeaders();
+            // [중요] 내부망 환경일 경우 프록시 설정이 필요할 수 있습니다.
+            // 필요시 아래 주석을 해제하고 프록시 IP와 포트를 입력하세요.
+            // Proxy proxy = new Proxy(Proxy.Type.HTTP, new
+            // InetSocketAddress("YOUR_PROXY_IP", 8080));
+            // factory.setProxy(proxy);
 
-        // // Case A: Bearer Token 방식 (가장 흔함)
-        // // headers.set("Authorization", "Bearer " + "여기에_발급받은_토큰값");
+            RestTemplate restTemplate = new RestTemplate(factory);
 
-        // // Case B: 일반 API Key 방식
-        // // headers.set("Authorization", "여기에_인증키값");
+            HttpHeaders headers = new HttpHeaders();
+            // [추가] 서버에서 봇(Java) 요청을 차단하는 것을 막기 위해 브라우저인 척 User-Agent 설정
+            headers.add("User-Agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+            headers.add("Accept", "application/json, text/plain, */*");
+            // headers.set("Authorization", "Bearer YOUR_TOKEN"); // 인증 필요시
 
-        // // ---------------------------------------------------------
-        // // [수정] 2. 헤더를 담은 HttpEntity 생성
-        // // ---------------------------------------------------------
-        // // GET 요청이라 Body는 null입니다.
-        // HttpEntity<String> entity = new HttpEntity<String>(headers);
+            HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        // // ---------------------------------------------------------
-        // // [수정] 3. exchange() 메서드로 요청 (헤더 포함 전송)
-        // // ---------------------------------------------------------
-        // // param 1: url
-        // // param 2: method (GET)
-        // // param 3: entity (헤더 포함됨)
-        // // param 4: return type (String[].class)
-        // ResponseEntity<String[]> response = restTemplate.exchange(
-        // requestUrl,
-        // HttpMethod.GET,
-        // entity,
-        // String[].class);
+            // 3. 요청 전송
+            ResponseEntity<String[]> response = restTemplate.exchange(
+                    requestUrl,
+                    HttpMethod.GET,
+                    entity,
+                    String[].class);
 
-        // // 4. 결과 꺼내기 (getBody)
-        // String[] responseArray = response.getBody();
+            String[] responseArray = response.getBody();
+            if (responseArray != null) {
+                urls = Arrays.asList(responseArray);
+                System.out.println(">> 조회 성공: 총 " + urls.size() + "건");
+                return urls; // 성공 시 바로 리턴
+            } else {
+                System.out.println(">> 조회 결과 없음 (NULL)");
+            }
 
-        // if (responseArray != null) {
-        // urls = Arrays.asList(responseArray);
-        // System.out.println(">> 조회 성공: 총 " + urls.size() + "건");
-        // } else {
-        // System.out.println(">> 조회 결과 없음 (NULL)");
-        // }
+        } catch (ResourceAccessException e) {
+            System.err.println(">> [네트워크 에러] 외부 API 접근 실패 (I/O Error).");
+            System.err.println(">> 원인: 방화벽 차단, 프록시 미설정, 또는 연결 타임아웃");
+            System.err.println(">> 상세 메시지: " + e.getMessage());
+            // e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println(">> 외부 API 호출 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+        }
 
-        // } catch (Exception e) {
-        // System.err.println(">> 외부 API 호출 중 오류 발생: " + e.getMessage());
-        // e.printStackTrace();
-        // return Collections.emptyList();
-        // }
+        // 4. 실패 시 로컬 파일 스캔 (백업 로직)
+        System.out.println(">> 외부 API 호출 실패 또는 결과 없음. 로컬 테스트 경로를 스캔합니다.");
 
-        // 로컬 테스트용 이미지 경로
         // String localImagePath =
         // "/Users/wooseok/Desktop/toji/src/main/webapp/resources/static/images"; //MAC
         String localImagePath = "C:\\toji\\src\\main\\webapp\\resources\\static\\images"; // Windows
