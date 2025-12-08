@@ -216,7 +216,8 @@
     async function loadImagesForDate(ymd) {
         // UI 초기화
         $('#drp-empty-state').hide();
-        $('#drp-photo-list-ul').hide();
+        var $ul = $('#drp-photo-list-ul');
+        $ul.empty().hide(); // 리스트 초기화
         $('#drp-loading-state').show();
         $('#drp-download-bar').hide();
         $('#drp-select-all-btn').removeClass('active').find('i').attr('class', 'fa fa-check-circle-o');
@@ -233,96 +234,141 @@
 
             // 1. 외부 API 호출 (실제 로직 - 주석 처리)
             /*
-            let response = await $.ajax({ 
-                url: EXTERNAL_API_URL, 
+            let response = await $.ajax({
+                url: EXTERNAL_API_URL,
                 method: 'GET',
                 data: {
                     start_timestamp: startTimestamp,
                     end_timestamp: endTimestamp
                 }
             });
-            let targetUrls = JSON.parse(response.replace(/'/g, '"')); 
-            */
 
-            // 2. Mock Data 사용 (테스트 로직)
+            let targetUrls = [];
+            if (typeof response === 'string') {
+                try {
+                    targetUrls = JSON.parse(response.replace(/'/g, '"'));
+                } catch (e) {
+                    console.error("Failed to parse API response", e);
+                    targetUrls = [];
+                }
+            } else if (Array.isArray(response)) {
+                targetUrls = response;
+            }
+
+            console.log("Fetched Target URLs:", targetUrls);
+            */
+            let targetUrls = [];
+
+            // MOCK DATA Logic (테스트 로직)
             let mockUrls = MOCK_IMAGE_MAP[ymd] || [];
             if (mockUrls.length === 0) {
-                // 매핑 안된 날짜는 기본적으로 몇개 넣어줌 (테스트 편의상)
                 mockUrls = [
                     '/resources/static/images/camera_105807.png',
                     '/resources/static/images/camera_105810.png'
                 ];
             }
-            let targetUrls = mockUrls;
+            targetUrls = mockUrls;
 
+            if (targetUrls.length === 0) {
+                $('#drp-loading-state').hide();
+                $('#drp-empty-state').show().text("해당 날짜에 촬영된 사진이 없습니다.");
+                return;
+            }
 
             $('#drp-photo-count').text("(" + targetUrls.length + ")");
+            $('#drp-photo-list-ul').show();
 
-            // 3. 각 URL을 처리하여 GPS 및 주소 추출
-            let features = [];
+            // 2. 청크 단위로 이미지 처리 (Chunk Processing)
+            const BATCH_SIZE = 15;
             let processed = 0;
+            let hasCenteredMap = false;
 
-            const promises = targetUrls.map(async (url) => {
-                try {
-                    // (1) exifr로 Metadata (GPS) 추출
-                    let gps = await exifr.gps(url);
+            for (let i = 0; i < targetUrls.length; i += BATCH_SIZE) {
+                let chunkUrls = targetUrls.slice(i, i + BATCH_SIZE);
+                let chunkAllFeatures = [];
+                let chunkMapFeatures = [];
 
-                    if (isValidGPS(gps)) {
-                        // (2) V-World API로 주소 조회 (Reverse Geocoding)
-                        let addressInfo = await getAddressFromCoords(gps.latitude, gps.longitude);
-                        let finalAddress = addressInfo || "주소 미확인";
+                let promises = chunkUrls.map(async (url) => {
+                    try {
+                        let gps = await exifr.gps(url);
+                        let hasGPS = isValidGPS(gps);
+                        let finalAddress = "위치 정보 없음";
+                        let geometry = null;
+                        let lat = null, lon = null;
 
-                        // (3) 지도 객체 생성
-                        let coord = ol.proj.fromLonLat([gps.longitude, gps.latitude]);
+                        if (hasGPS) {
+                            lat = gps.latitude;
+                            lon = gps.longitude;
+                            let addressInfo = await getAddressFromCoords(lat, lon);
+                            finalAddress = addressInfo || "주소 미확인";
+                            let coord = ol.proj.fromLonLat([lon, lat]);
+                            geometry = new ol.geom.Point(coord);
+                        }
+
                         let feature = new ol.Feature({
-                            geometry: new ol.geom.Point(coord),
+                            geometry: geometry, // GPS 없으면 null
                             data: {
                                 url: url,
                                 name: url.split('/').pop(),
-                                lat: gps.latitude,
-                                lon: gps.longitude,
+                                lat: lat,
+                                lon: lon,
                                 address: finalAddress
                             }
                         });
-                        features.push(feature);
-                    } else {
-                        console.warn("No GPS found in " + url);
+
+                        return { feature: feature, hasGPS: hasGPS };
+
+                    } catch (e) {
+                        console.warn("Processing error for " + url, e);
+                        // 에러 발생하더라도 리스트에 표시하고 싶다면 여기서 feature 리턴
+                        // 현재는 실패한 이미지는 건너뜀
+                        return null;
                     }
-                } catch (e) {
-                    console.warn("Processing error for " + url, e);
-                } finally {
-                    processed++;
-                    $('#drp-progress-text').text(`${processed} / ${targetUrls.length}`);
+                });
+
+                let results = await Promise.all(promises);
+
+                // 결과 분류
+                results.forEach(res => {
+                    if (res) {
+                        chunkAllFeatures.push(res.feature);
+                        if (res.hasGPS) {
+                            chunkMapFeatures.push(res.feature);
+                        }
+                    }
+                });
+
+                // UI 업데이트 (부분 렌더링)
+                if (chunkAllFeatures.length > 0) {
+                    appendToList(chunkAllFeatures, processed);
                 }
-            });
 
-            await Promise.all(promises);
+                if (chunkMapFeatures.length > 0) {
+                    clusterSource.addFeatures(chunkMapFeatures);
 
-            // 4. 지도 및 리스트 업데이트
-            $('#drp-loading-state').hide();
-
-            if (features.length > 0) {
-                $('#drp-photo-list-ul').show();
-                clusterSource.addFeatures(features);
-                updateList(features);
-
-                // extent fit 대신 중심좌표 계산 후 setCenter/setZoom 사용
-                if (features.length > 0) {
-                    var sumLat = 0, sumLon = 0;
-                    features.forEach(f => {
-                        var coords = f.getGeometry().getCoordinates();
-                        // Web Mercator -> LonLat 변환 불필요 (이미 Web Mercator 좌표임)
-                        sumLat += coords[1];
-                        sumLon += coords[0];
-                    });
-                    var center = [sumLon / features.length, sumLat / features.length];
-
-                    droneMap.getView().setCenter(center);
-                    droneMap.getView().setZoom(16); // 고정 줌 레벨 사용
+                    // 첫 번째로 유효한 좌표가 들어왔을 때 지도 중심 이동
+                    if (!hasCenteredMap) {
+                        var sumLat = 0, sumLon = 0;
+                        chunkMapFeatures.forEach(f => {
+                            var coords = f.getGeometry().getCoordinates();
+                            sumLat += coords[1];
+                            sumLon += coords[0];
+                        });
+                        var center = [sumLon / chunkMapFeatures.length, sumLat / chunkMapFeatures.length];
+                        droneMap.getView().setCenter(center);
+                        droneMap.getView().setZoom(16);
+                        hasCenteredMap = true;
+                    }
                 }
-            } else {
-                $('#drp-empty-state').show().text("해당 날짜에 표출할 사진(GPS 포함)이 없습니다.");
+
+                processed += chunkUrls.length;
+                $('#drp-progress-text').text(`${Math.min(processed, targetUrls.length)} / ${targetUrls.length}`);
+
+                // UI 렌더링을 위해 약간의 지연
+                await new Promise(r => setTimeout(r, 50));
             }
+
+            $('#drp-loading-state').hide();
 
         } catch (err) {
             console.error(err);
@@ -393,14 +439,15 @@
         return new Date(y, m, d);
     }
 
-    function updateList(features) {
+    function appendToList(features, startIndex) {
         var $ul = $('#drp-photo-list-ul');
-        $ul.empty();
+        // $ul.empty(); // 제거: 추가 모드
 
         features.forEach((f, index) => {
+            var globalIndex = startIndex + index;
             var d = f.get('data');
 
-            var $li = $('<li>').addClass('drp-photo-item').attr('data-id', index);
+            var $li = $('<li>').addClass('drp-photo-item').attr('data-id', globalIndex);
 
             var $checkIcon = $('<i>').addClass('drp-item-check');
             // 체크박스 클릭 시에만 선택 토글
@@ -440,16 +487,22 @@
 
             // 로우 클릭 시 지도 이동 (선택 토글 X)
             $li.on('click', function () {
-                var coord = f.getGeometry().getCoordinates();
-                var currentZoom = droneMap.getView().getZoom();
-                // 클러스터가 1개로 풀릴 때까지 충분히 확대 (최대 22)
-                var targetZoom = (currentZoom >= 22) ? currentZoom : 22;
+                var geometry = f.getGeometry();
+                if (geometry) {
+                    var coord = geometry.getCoordinates();
+                    var currentZoom = droneMap.getView().getZoom();
+                    // 클러스터가 1개로 풀릴 때까지 충분히 확대 (최대 22)
+                    var targetZoom = (currentZoom >= 22) ? currentZoom : 22;
 
-                droneMap.getView().animate({ center: coord, zoom: targetZoom });
-                highlightFeature(f);
+                    droneMap.getView().animate({ center: coord, zoom: targetZoom });
+                    highlightFeature(f);
+                } else {
+                    // GPS 없는 경우
+                    console.log("No geometry for this image.");
+                }
             });
 
-            f.set('listIndex', index);
+            f.set('listIndex', globalIndex);
 
             $ul.append($li);
         });
