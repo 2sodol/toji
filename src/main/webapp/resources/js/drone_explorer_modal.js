@@ -6,7 +6,7 @@
     const INTERNAL_API_SCHEDULE = "http://localhost:8080/api/drone/schedule"; // 필요시 호스트 조정
     const VWORLD_API_KEY = window.VWORLD_API_KEY || "B13ADD16-4164-347A-A733-CD9022E8FB3B";
 
-    var map;
+    var droneMap;
     var clusterSource;
     var vectorLayer;
     var availableDates = []; // YYYYMMDD 목록
@@ -52,7 +52,7 @@
             initMap();
             isMapInitialized = true;
         } else {
-            setTimeout(() => map.updateSize(), 200);
+            setTimeout(() => droneMap.updateSize(), 200);
         }
 
         // 동기화 후 일정 로드 시작
@@ -317,8 +317,8 @@
                     });
                     var center = [sumLon / features.length, sumLat / features.length];
 
-                    map.getView().setCenter(center);
-                    map.getView().setZoom(16); // 고정 줌 레벨 사용
+                    droneMap.getView().setCenter(center);
+                    droneMap.getView().setZoom(16); // 고정 줌 레벨 사용
                 }
             } else {
                 $('#drp-empty-state').show().text("해당 날짜에 표출할 사진(GPS 포함)이 없습니다.");
@@ -390,7 +390,21 @@
                 toggleItemSelection($li);
             });
 
+            // 썸네일 레퍼 및 스피너 생성
+            var $thumbWrapper = $('<div>').addClass('drp-thumb-wrapper');
+            var $spinner = $('<i>').addClass('fa fa-spinner fa-spin drp-thumb-spinner');
             var $img = $('<img>').addClass('drp-photo-thumb').attr('src', d.url);
+
+            $img.on('load', function () {
+                $(this).addClass('loaded');
+                $spinner.hide();
+            });
+
+            $img.on('error', function () {
+                $spinner.hide();
+            });
+
+            $thumbWrapper.append($spinner).append($img);
 
             var $info = $('<div>').addClass('drp-photo-info');
             $info.append($('<div>').addClass('drp-photo-name').text(d.name));
@@ -403,16 +417,16 @@
                 $('#drp-viewer-img').attr('src', d.url);
                 $('#drp-image-viewer').css('display', 'flex');
             });
-            $li.append($checkIcon).append($img).append($info).append($zoomBtn);
+            $li.append($checkIcon).append($thumbWrapper).append($info).append($zoomBtn);
 
             // 로우 클릭 시 지도 이동 (선택 토글 X)
             $li.on('click', function () {
                 var coord = f.getGeometry().getCoordinates();
-                var currentZoom = map.getView().getZoom();
+                var currentZoom = droneMap.getView().getZoom();
                 // 클러스터가 1개로 풀릴 때까지 충분히 확대 (최대 22)
                 var targetZoom = (currentZoom >= 22) ? currentZoom : 22;
 
-                map.getView().animate({ center: coord, zoom: targetZoom });
+                droneMap.getView().animate({ center: coord, zoom: targetZoom });
                 highlightFeature(f);
             });
 
@@ -623,7 +637,7 @@
             }
         });
 
-        map = new ol.Map({
+        droneMap = new ol.Map({
             target: 'drp-map',
             layers: [raster, vectorLayer],
             view: new ol.View({
@@ -633,15 +647,15 @@
             })
         });
 
-        map.on('click', function (evt) {
-            var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature) { return feature; });
+        droneMap.on('click', function (evt) {
+            var feature = droneMap.forEachFeatureAtPixel(evt.pixel, function (feature) { return feature; });
             if (feature) {
                 var features = feature.get('features');
                 if (features.length > 1) {
                     // extent 대신 현재 중심에서 2단계 줌인 (너무 급격한 확대 방지)
                     var clusterCoord = feature.getGeometry().getCoordinates();
-                    var currentZoom = map.getView().getZoom();
-                    map.getView().animate({ center: clusterCoord, zoom: currentZoom + 2, duration: 500 });
+                    var currentZoom = droneMap.getView().getZoom();
+                    droneMap.getView().animate({ center: clusterCoord, zoom: currentZoom + 2, duration: 500 });
                 } else {
                     // 단일 피처 클릭 시 리스트 연동
                     var targetFeature = features[0];
