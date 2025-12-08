@@ -306,8 +306,20 @@
                 clusterSource.addFeatures(features);
                 updateList(features);
 
-                let extent = vectorLayer.getSource().getExtent();
-                if (extent) map.getView().fit(extent, { padding: [50, 50, 50, 50], maxZoom: 18 });
+                // extent fit 대신 중심좌표 계산 후 setCenter/setZoom 사용
+                if (features.length > 0) {
+                    var sumLat = 0, sumLon = 0;
+                    features.forEach(f => {
+                        var coords = f.getGeometry().getCoordinates();
+                        // Web Mercator -> LonLat 변환 불필요 (이미 Web Mercator 좌표임)
+                        sumLat += coords[1];
+                        sumLon += coords[0];
+                    });
+                    var center = [sumLon / features.length, sumLat / features.length];
+
+                    map.getView().setCenter(center);
+                    map.getView().setZoom(16); // 고정 줌 레벨 사용
+                }
             } else {
                 $('#drp-empty-state').show().text("해당 날짜에 표출할 사진(GPS 포함)이 없습니다.");
             }
@@ -572,9 +584,10 @@
             if (feature) {
                 var features = feature.get('features');
                 if (features.length > 1) {
-                    var extent = ol.extent.createEmpty();
-                    features.forEach(function (f) { ol.extent.extend(extent, f.getGeometry().getExtent()); });
-                    map.getView().fit(extent, { duration: 500, padding: [50, 50, 50, 50] });
+                    // extent 대신 현재 중심에서 2단계 줌인 (너무 급격한 확대 방지)
+                    var clusterCoord = feature.getGeometry().getCoordinates();
+                    var currentZoom = map.getView().getZoom();
+                    map.getView().animate({ center: clusterCoord, zoom: currentZoom + 2, duration: 500 });
                 } else {
                     // 단일 피처 클릭 시 리스트 연동
                     var targetFeature = features[0];
