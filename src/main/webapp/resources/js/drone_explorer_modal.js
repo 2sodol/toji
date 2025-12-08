@@ -371,7 +371,13 @@
 
             var $li = $('<li>').addClass('drp-photo-item').attr('data-id', index);
 
-            var $checkIcon = $('<i>').addClass('drp-item-check fa fa-circle-o');
+            var $checkIcon = $('<i>').addClass('drp-item-check');
+            // 체크박스 클릭 시에만 선택 토글
+            $checkIcon.on('click', function (e) {
+                e.stopPropagation();
+                toggleItemSelection($li);
+            });
+
             var $img = $('<img>').addClass('drp-photo-thumb').attr('src', d.url);
 
             var $info = $('<div>').addClass('drp-photo-info');
@@ -388,11 +394,18 @@
 
             $li.append($checkIcon).append($img).append($info).append($zoomBtn);
 
+            // 로우 클릭 시 지도 이동 (선택 토글 X)
             $li.on('click', function () {
-                toggleItemSelection($(this));
                 var coord = f.getGeometry().getCoordinates();
-                map.getView().animate({ center: coord, zoom: 19 });
+                var currentZoom = map.getView().getZoom();
+                var targetZoom = (currentZoom >= 19) ? currentZoom : 19;
+
+                map.getView().animate({ center: coord, zoom: targetZoom });
+                highlightFeature(f);
             });
+
+            // 지도 -> 리스트 연동을 위해 피처에 인덱스 저장
+            f.set('listIndex', index);
 
             $ul.append($li);
         });
@@ -403,12 +416,7 @@
     // =========================================================================
     function toggleItemSelection($li) {
         $li.toggleClass('selected');
-        var $icon = $li.find('.drp-item-check');
-        if ($li.hasClass('selected')) {
-            $icon.removeClass('fa-circle-o').addClass('fa-check-circle');
-        } else {
-            $icon.removeClass('fa-check-circle').addClass('fa-circle-o');
-        }
+        // CSS로 스타일 제어하므로 아이콘 클래스 조작 불필요
         updateFooterState();
     }
 
@@ -427,6 +435,7 @@
         var $selectAllBtn = $('#drp-select-all-btn');
         if (totalCount > 0 && selectedCount === totalCount) {
             $selectAllBtn.addClass('active');
+            // 버튼 아이콘은 FA 유지 (만약 안보이면 CSS로 대체 필요하나 우선 유지)
             $selectAllBtn.find('i').removeClass('fa-check-circle-o').addClass('fa-check-circle');
         } else {
             $selectAllBtn.removeClass('active');
@@ -442,12 +451,12 @@
 
         if (isAllSelected) {
             $('.drp-photo-item').removeClass('selected');
-            $('.drp-item-check').removeClass('fa-check-circle').addClass('fa-circle-o');
             $this.removeClass('active');
+            $this.find('i').removeClass('fa-check-circle').addClass('fa-check-circle-o');
         } else {
             $('.drp-photo-item').addClass('selected');
-            $('.drp-item-check').removeClass('fa-circle-o').addClass('fa-check-circle');
             $this.addClass('active');
+            $this.find('i').removeClass('fa-check-circle-o').addClass('fa-check-circle');
         }
         updateFooterState();
     });
@@ -461,6 +470,13 @@
     // =========================================================================
     // 6. 지도 초기화 (Map Initialization)
     // =========================================================================
+    var highlightedFeature = null; // 현재 하이라이트된 피처
+
+    function highlightFeature(feature) {
+        highlightedFeature = feature;
+        vectorLayer.changed(); // 스타일 다시 적용
+    }
+
     function initMap() {
         var raster = new ol.layer.Tile({
             source: new ol.source.XYZ({
@@ -476,20 +492,62 @@
         });
 
         var styleCache = {};
+
+        // 하이라이트 스타일 (빨간색)
+        var highlightStyle = new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 15,
+                stroke: new ol.style.Stroke({ color: '#fff', width: 2 }),
+                fill: new ol.style.Fill({ color: '#e74c3c' }) // Red
+            }),
+            zIndex: 999
+        });
+
         vectorLayer = new ol.layer.Vector({
             source: clusterSourceWrap,
             style: function (feature) {
-                var size = feature.get('features').length;
+                var features = feature.get('features');
+                var size = features.length;
+
+                var isHighlighted = false;
+                if (highlightedFeature) {
+                    isHighlighted = features.some(f => f === highlightedFeature);
+                }
+
+                // 1. 하이라이트된 피처가 포함된 경우
+                if (isHighlighted) {
+                    // 단일 피처인 경우 -> 기존 하이라이트 스타일 사용
+                    if (size === 1) {
+                        return highlightStyle;
+                    }
+                    // 클러스터(여러개)인 경우 -> 빨간색 클러스터 스타일 생성
+                    return new ol.style.Style({
+                        image: new ol.style.Circle({
+                            radius: 13 + Math.min(size, 22),
+                            stroke: new ol.style.Stroke({ color: '#fff', width: 3 }),
+                            fill: new ol.style.Fill({ color: '#e74c3c' }) // Red (Highlight)
+                        }),
+                        text: new ol.style.Text({
+                            text: size.toString(),
+                            font: 'bold 15px sans-serif',
+                            fill: new ol.style.Fill({ color: '#fff' })
+                        }),
+                        zIndex: 999
+                    });
+                }
+
+                // 2. 일반 스타일 (캐시 사용)
                 var style = styleCache[size];
                 if (!style) {
                     style = new ol.style.Style({
                         image: new ol.style.Circle({
-                            radius: 10 + Math.min(size, 20),
-                            stroke: new ol.style.Stroke({ color: '#fff' }),
-                            fill: new ol.style.Fill({ color: '#3399CC' })
+                            radius: 13 + Math.min(size, 22),
+                            stroke: new ol.style.Stroke({ color: '#fff', width: 3 }),
+                            fill: new ol.style.Fill({ color: '#005fcc' }) // Blue
                         }),
                         text: new ol.style.Text({
                             text: size.toString(),
+                            font: 'bold 15px sans-serif',
                             fill: new ol.style.Fill({ color: '#fff' })
                         })
                     });
@@ -517,6 +575,27 @@
                     var extent = ol.extent.createEmpty();
                     features.forEach(function (f) { ol.extent.extend(extent, f.getGeometry().getExtent()); });
                     map.getView().fit(extent, { duration: 500, padding: [50, 50, 50, 50] });
+                } else {
+                    // 단일 피처 클릭 시 리스트 연동
+                    var targetFeature = features[0];
+                    highlightFeature(targetFeature);
+
+                    var listIndex = targetFeature.get('listIndex');
+                    if (listIndex !== undefined) {
+                        var $li = $('.drp-photo-item[data-id="' + listIndex + '"]');
+                        if ($li.length) {
+                            // 스크롤 이동
+                            var $ul = $('#drp-photo-list-ul');
+                            // 선택된 아이템이 리스트의 중앙에 오도록 스크롤
+                            var scrollTop = $ul.scrollTop() + $li.position().top - ($ul.height() / 2) + ($li.height() / 2);
+                            $ul.animate({ scrollTop: scrollTop }, 300);
+
+                            // 기존 선택 초기화 및 해당 아이템 선택
+                            $('.drp-photo-item').removeClass('selected');
+                            $li.addClass('selected');
+                            updateFooterState();
+                        }
+                    }
                 }
             }
         });
