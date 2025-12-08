@@ -403,20 +403,19 @@
                 $('#drp-viewer-img').attr('src', d.url);
                 $('#drp-image-viewer').css('display', 'flex');
             });
-
             $li.append($checkIcon).append($img).append($info).append($zoomBtn);
 
             // 로우 클릭 시 지도 이동 (선택 토글 X)
             $li.on('click', function () {
                 var coord = f.getGeometry().getCoordinates();
                 var currentZoom = map.getView().getZoom();
-                var targetZoom = (currentZoom >= 19) ? currentZoom : 19;
+                // 클러스터가 1개로 풀릴 때까지 충분히 확대 (최대 22)
+                var targetZoom = (currentZoom >= 22) ? currentZoom : 22;
 
                 map.getView().animate({ center: coord, zoom: targetZoom });
                 highlightFeature(f);
             });
 
-            // 지도 -> 리스트 연동을 위해 피처에 인덱스 저장
             f.set('listIndex', index);
 
             $ul.append($li);
