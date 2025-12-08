@@ -1,0 +1,370 @@
+/* 드론 탐색 모달 스타일 */
+.drp-modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.6);
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+.drp-modal-content {
+    background-color: #fefefe;
+    margin: 2% auto;
+    padding: 0;
+    border-radius: 8px;
+    width: 95%;
+    height: 92%;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    max-width: 1600px;
+}
+
+.drp-modal-header {
+    padding: 15px 20px;
+    background-color: #fff;
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+.drp-modal-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.drp-close-btn {
+    color: #999;
+    font-size: 28px;
+    font-weight: bold;
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.drp-close-btn:hover {
+    color: #333;
+}
+
+.drp-modal-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+/* 지도 영역 */
+.drp-map-container {
+    flex: 2;
+    height: 100%;
+    background-color: #eee;
+    position: relative;
+    border-bottom-left-radius: 8px;
+}
+
+/* 목록 영역 */
+.drp-list-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid #ddd;
+    background-color: #fff;
+    min-width: 400px;
+    max-width: 500px;
+    position: relative;
+}
+
+/* 리스트 헤더 */
+.drp-list-header {
+    padding: 20px;
+    background-color: #fff;
+    border-bottom: 1px solid #eee;
+}
+
+.drp-list-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.drp-list-title {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.drp-list-title span {
+    color: #3498db;
+}
+
+.drp-date-group {
+    display: flex;
+    align-items: center;
+}
+
+.drp-date-label {
+    font-size: 13px;
+    color: #666;
+    margin-right: 8px;
+}
+
+.drp-date-selector {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #333;
+}
+
+.drp-list-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 전체 선택 버튼 스타일 */
+.drp-select-all-btn {
+    display: flex;
+    align-items: center;
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    color: #333;
+    transition: all 0.2s;
+}
+
+.drp-select-all-btn i {
+    margin-right: 6px;
+    color: #ccc;
+    font-size: 16px;
+}
+
+.drp-select-all-btn.active {
+    background-color: #e8f6fd;
+    border-color: #3498db;
+    color: #3498db;
+}
+
+.drp-select-all-btn.active i {
+    color: #3498db;
+}
+
+.drp-disclaimer {
+    font-size: 11px;
+    color: #999;
+}
+
+/* 리스트 영역 */
+.drp-photo-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    background-color: #f7f8fa;
+    /* 연한 회색 배경 */
+}
+
+/* 스크롤바 커스텀 */
+.drp-photo-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.drp-photo-list::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 3px;
+}
+
+/* 리스트 아이템 */
+.drp-photo-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #fff;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    position: relative;
+    margin: 10px 15px;
+    /* 카드형 느낌을 위한 마진 */
+    border-radius: 8px;
+    /* 둥근 모서리 */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.drp-photo-item:hover {
+    background-color: #fcfcfc;
+}
+
+.drp-photo-item.selected {
+    border: 1px solid #3498db;
+    /* 선택 시 테두리 파란색 */
+}
+
+/* 체크박스 커스텀 */
+.drp-item-check {
+    margin-right: 15px;
+    font-size: 20px;
+    color: #ddd;
+}
+
+.drp-photo-item.selected .drp-item-check {
+    color: #3498db;
+    /* 선택 시 체크 아이콘 파란색 */
+}
+
+.drp-photo-thumb {
+    width: 70px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 15px;
+    background-color: #eee;
+}
+
+.drp-photo-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    /* 텍스트 말줄임 처리를 위해 필요 */
+}
+
+.drp-photo-name {
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+    /* 짙은 파란색 계열 */
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.drp-photo-meta {
+    font-size: 12px;
+    color: #888;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.drp-item-zoom {
+    color: #bbb;
+    font-size: 16px;
+    padding: 5px;
+    margin-left: 10px;
+}
+
+.drp-item-zoom:hover {
+    color: #3498db;
+}
+
+/* Empty/Loading State */
+.drp-empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: #999;
+    font-size: 14px;
+}
+
+/* 하단 다운로드 바 */
+.drp-download-bar {
+    padding: 15px 20px;
+    background-color: #fff;
+    border-top: 1px solid #ddd;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    display: none;
+    /* 기본 숨김 */
+    flex-direction: column;
+}
+
+.drp-download-info {
+    font-size: 13px;
+    color: #3498db;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.drp-download-btn-full {
+    width: 100%;
+    padding: 12px;
+    background-color: #2962ff;
+    /* 쨍한 파란색 */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.drp-download-btn-full i {
+    margin-right: 8px;
+}
+
+.drp-download-btn-full:hover {
+    background-color: #1e4bd1;
+}
+
+/* Datepicker에 존재하는 일정 하이라이트 */
+.ui-datepicker td.has-schedule a {
+    background-color: #e6ffe6 !important;
+    border: 1px solid #27ae60 !important;
+    color: #27ae60 !important;
+    font-weight: bold;
+}
+
+/* 이미지 뷰어 */
+.drp-image-viewer {
+    display: none;
+    position: fixed;
+    z-index: 3000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    justify-content: center;
+    align-items: center;
+}
+
+.drp-viewer-content {
+    max-width: 90%;
+    max-height: 90%;
+}
+
+.drp-viewer-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.drp-viewer-close {
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+}
