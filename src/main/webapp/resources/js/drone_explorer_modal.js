@@ -267,7 +267,7 @@
                     // (1) exifr로 Metadata (GPS) 추출
                     let gps = await exifr.gps(url);
 
-                    if (gps && gps.latitude && gps.longitude) {
+                    if (isValidGPS(gps)) {
                         // (2) V-World API로 주소 조회 (Reverse Geocoding)
                         let addressInfo = await getAddressFromCoords(gps.latitude, gps.longitude);
                         let finalAddress = addressInfo || "주소 미확인";
@@ -329,6 +329,25 @@
             $('#drp-loading-state').hide();
             $('#drp-empty-state').show().text("사진을 불러오는데 실패했습니다.");
         }
+    }
+
+    function isValidGPS(gps) {
+        if (!gps) return false;
+        var lat = gps.latitude;
+        var lon = gps.longitude;
+
+        // 1. 숫자 타입 체크
+        if (typeof lat !== 'number' || typeof lon !== 'number') return false;
+        if (isNaN(lat) || isNaN(lon)) return false;
+
+        // 2. 유효 범위 체크
+        if (lat < -90 || lat > 90) return false;
+        if (lon < -180 || lon > 180) return false;
+
+        // 3. 0,0 좌표 제외 (GPS 미수신 시 0으로 오는 경우 방지)
+        if (Math.abs(lat) < 0.000001 && Math.abs(lon) < 0.000001) return false;
+
+        return true;
     }
 
     // V-World 주소 조회 함수

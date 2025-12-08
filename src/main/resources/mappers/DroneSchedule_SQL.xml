@@ -12,7 +12,7 @@
     </update>
 
     <select id="selectAllScheduleDates" resultType="String">
-        SELECT SCHED_YMD
+        SELECT DISTINCT SCHED_YMD
         FROM DTJ_MAIN.T_DRONE_FLIGHT_SCHEDULE
         ORDER BY SCHED_YMD ASC
     </select>
