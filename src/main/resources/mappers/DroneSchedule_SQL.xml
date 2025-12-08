@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.toji.toji.mapper.DroneScheduleMapper">
+
+    <update id="mergeScheduleDate" parameterType="String">
+        MERGE INTO T_DRONE_FLIGHT_SCHEDULE A
+        USING DUAL
+        ON (A.SCHED_YMD = #{schedYmd})
+        WHEN NOT MATCHED THEN
+            INSERT (SCHED_YMD, REG_DT)
+            VALUES (#{schedYmd}, SYSDATE)
+    </update>
+
+    <select id="selectAllScheduleDates" resultType="String">
+        SELECT SCHED_YMD
+        FROM T_DRONE_FLIGHT_SCHEDULE
+        ORDER BY SCHED_YMD ASC
+    </select>
+
+</mapper>

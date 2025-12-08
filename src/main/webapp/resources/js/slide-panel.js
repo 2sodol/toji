@@ -100,10 +100,10 @@
 
       // 드론 촬영 이미지 다운로드 버튼 클릭 이벤트
       $("#drone-image-download-btn").on("click", function () {
-        if (typeof window.openDrpModal === "function") {
-          window.openDrpModal();
+        if (typeof window.openDroneExplorer === "function") {
+          window.openDroneExplorer();
         } else {
-          console.error("openDrpModal function is not defined");
+          console.error("openDroneExplorer function is not defined");
         }
       });
     },

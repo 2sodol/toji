@@ -65,7 +65,7 @@
     <jsp:include page="inquiry-modal.jsp" />
 
     <!-- 드론 원본 사진 탐색 모달 JSP 포함 -->
-    <jsp:include page="drone-raw-photo-modal.jsp" />
+    <jsp:include page="drone_explorer_modal.jsp" />
 
     <!-- 주소 검색 모달 iframe -->
     <iframe id="addressSearchModalFrame" src="<%=request.getContextPath()%>/address-search-modal"
