@@ -7,6 +7,8 @@
         <!-- 라이브러리: jQuery와 OpenLayers CSS/JS는 부모 페이지나 여기서 로드된다고 가정 -->
         <!-- 요청대로 exifr CDN 사용 -->
         <script src="https://cdn.jsdelivr.net/npm/exifr/dist/full.umd.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     </head>
 
     <body>

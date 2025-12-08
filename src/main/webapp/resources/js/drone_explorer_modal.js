@@ -472,10 +472,65 @@
         updateFooterState();
     });
 
-    $('#drp-download-btn').on('click', function () {
-        var selectedCount = $('.drp-photo-item.selected').length;
+    $('#drp-download-btn').on('click', async function () {
+        var $btn = $(this);
+        var originalText = $btn.html();
+        var $selectedItems = $('.drp-photo-item.selected');
+        var selectedCount = $selectedItems.length;
+
         if (selectedCount === 0) return;
-        alert(selectedCount + "개의 사진을 다운로드합니다 (구현 예정).");
+
+        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> 다운로드 중...');
+
+        try {
+            if (selectedCount === 1) {
+                // 1개일 경우: 단일 파일 다운로드
+                var $item = $selectedItems.first();
+                var fileName = $item.find('.drp-photo-name').text().trim();
+                var url = $item.find('.drp-photo-thumb').attr('src');
+
+                const response = await fetch(url);
+                const blob = await response.blob();
+                saveAs(blob, fileName);
+            } else {
+                // 2개 이상일 경우: ZIP 압축 다운로드 (JSZip 사용)
+                var zip = new JSZip();
+                var folder = zip.folder("drone_images");
+
+                // Promise.all로 병렬 처리하여 속도 향상
+                var promises = [];
+
+                $selectedItems.each(function (index) {
+                    var $item = $(this);
+                    var fileName = $item.find('.drp-photo-name').text().trim();
+                    var url = $item.find('.drp-photo-thumb').attr('src');
+
+                    var promise = fetch(url)
+                        .then(response => response.blob())
+                        .then(blob => {
+                            // 파일명 중복 방지 (단순 인덱스 활용)
+                            // 실제로는 확장자 체크 등이 필요할 수 있음
+                            if (folder.file(fileName)) {
+                                var ext = fileName.split('.').pop();
+                                var base = fileName.substring(0, fileName.lastIndexOf('.'));
+                                fileName = base + '_' + index + '.' + ext;
+                            }
+                            folder.file(fileName, blob);
+                        });
+                    promises.push(promise);
+                });
+
+                await Promise.all(promises);
+
+                const content = await zip.generateAsync({ type: "blob" });
+                saveAs(content, "drone_images.zip");
+            }
+        } catch (err) {
+            console.error("Download failed", err);
+            alert("다운로드 중 오류가 발생했습니다: " + err.message);
+        } finally {
+            $btn.prop('disabled', false).html(originalText);
+        }
     });
 
     // =========================================================================
