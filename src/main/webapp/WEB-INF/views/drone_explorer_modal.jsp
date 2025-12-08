@@ -28,13 +28,15 @@
                                 <span class="drp-list-title">사진 목록 <span id="drp-photo-count">(0)</span></span>
                                 <div class="drp-date-group">
                                     <span class="drp-date-label">촬영일 :</span>
-                                    <input type="text" id="drp-datepicker" placeholder="날짜 선택"
-                                        class="drp-date-selector">
+                                    <select id="drp-date-select" class="drp-date-selector">
+                                        <option value="">날짜 로딩중...</option>
+                                    </select>
                                 </div>
                             </div>
 
                             <div class="drp-list-controls">
-                                <button id="drp-select-all-btn" class="drp-select-all-btn"><span>전체 선택</span>
+                                <button id="drp-select-all-btn" class="drp-select-all-btn">
+                                    <span>전체 선택</span>
                                 </button>
                                 <span class="drp-disclaimer">GPS 오차로 주소가 다를 수 있습니다</span>
                             </div>

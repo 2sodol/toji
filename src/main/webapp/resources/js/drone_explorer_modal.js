@@ -20,8 +20,6 @@
         $('#drp-loading-state').hide();
         $('#drp-download-bar').hide();
 
-        // 날짜 선택 초기화 등은 필요 시 추가
-
         if (!isMapInitialized) {
             initMap();
             isMapInitialized = true;
@@ -43,83 +41,50 @@
     function loadScheduleFromDB() {
         $.get("/api/drone/schedule", function (dates) {
             availableDates = dates || []; // ['20251204', ...]
-            initDatepicker();
-        });
-    }
+            var $select = $('#drp-date-select');
+            $select.empty();
 
-    $('#drp-sync-btn').on('click', function () {
-        if (!confirm("외부 API에서 비행 일정을 동기화하시겠습니까? (Sync flight schedule from External API?)")) return;
+            if (availableDates.length > 0) {
+                // 내림차순 정렬 (최신 날짜가 위로)
+                availableDates.sort(function (a, b) { return b - a; }); // Assuming string YYYYMMDD comparison works
 
-        // 외부 API에서 전체 목록 조회
-        $.ajax({
-            url: EXTERNAL_API_URL,
-            method: 'GET',
-            success: function (response) {
-                // 배열이 비어있는 경우 모의 응답 사용 (테스트용)
-                // response = ["http://.../images/20251204_000000.png", ...];
+                // 기본 옵션 (선택 안함)
+                $select.append($('<option>', { value: '', text: '날짜 선택' }));
 
-                var uniqueDates = new Set();
-                var urlList = (typeof response === 'string') ? JSON.parse(response) : response;
-
-                urlList.forEach(function (url) {
-                    // URL 또는 파일명에서 날짜 추출
-                    // 패턴: .../images/20241115_155843.png
-                    // 정규식으로 YYYYMMDD 추출
-                    var match = url.match(/(\d{8})_\d{6}/);
-                    if (match && match[1]) {
-                        uniqueDates.add(match[1]);
-                    } else {
-                        // 경로 내 타임스탬프로 폴백 시도
-                        // .../flight/1731653711981/...
-                        var tsMatch = url.match(/\/flight\/(\d+)\//);
-                        if (tsMatch && tsMatch[1]) {
-                            var date = new Date(parseInt(tsMatch[1]));
-                            var yyyy = date.getFullYear();
-                            var mm = String(date.getMonth() + 1).padStart(2, '0');
-                            var dd = String(date.getDate()).padStart(2, '0');
-                            uniqueDates.add(yyyy + mm + dd);
-                        }
+                availableDates.forEach(function (dateStr) {
+                    // dateStr format expected: YYYYMMDD
+                    var formatted = dateStr;
+                    if (dateStr.length === 8) {
+                        formatted = dateStr.substring(0, 4) + '-' + dateStr.substring(4, 6) + '-' + dateStr.substring(6, 8);
                     }
+                    $select.append($('<option>', { value: dateStr, text: formatted }));
                 });
-
-                var dateArray = Array.from(uniqueDates);
-
-                // 내부 DB로 전송
-                $.ajax({
-                    url: '/api/drone/schedule/sync',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(dateArray),
-                    success: function () {
-                        alert("동기화 완료! " + dateArray.length + "개의 날짜가 발견되었습니다.");
-                        loadScheduleFromDB();
-                    },
-                    error: function () { alert("일정을 DB에 저장하는데 실패했습니다."); }
-                });
-            },
-            error: function () { alert("외부 API 연동에 실패했습니다."); }
-        });
-    });
-
-    function initDatepicker() {
-        $('#drp-datepicker').datepicker('destroy').datepicker({
-            dateFormat: 'yymmdd',
-            beforeShowDay: function (date) {
-                var y = date.getFullYear();
-                var m = String(date.getMonth() + 1).padStart(2, '0');
-                var d = String(date.getDate()).padStart(2, '0');
-                var ymd = y + m + d;
-
-                if (availableDates.includes(ymd)) {
-                    return [true, "has-schedule", "Photos Available"]; // Class for highlighting
-                }
-                return [true, "", ""];
-            },
-            onSelect: function (dateText) {
-                loadImagesForDate(dateText); // dateText is YYYYMMDD
+            } else {
+                $select.append($('<option>', { value: '', text: '촬영일 없음', disabled: true, selected: true }));
+                $('#drp-empty-state').show().text("조회된 촬영일이 없습니다.");
             }
+        }).fail(function () {
+            var $select = $('#drp-date-select');
+            $select.empty();
+            $select.append($('<option>', { value: '', text: '로드 실패' }));
+            $('#drp-empty-state').show().text("일정을 불러오는데 실패했습니다.");
         });
     }
+
+    // 날짜 선택 이벤트
+    $('#drp-date-select').on('change', function () {
+        var selectedDate = $(this).val();
+        if (selectedDate) {
+            loadImagesForDate(selectedDate);
+        } else {
+            // Reset UI if 'Select Date' is chosen or empty
+            $('#drp-photo-list-ul').hide();
+            $('#drp-empty-state').show().text("사진을 보려면 날짜를 선택하세요.");
+            $('#drp-download-bar').hide();
+            $('#drp-photo-count').text("(0)");
+            clusterSource.clear();
+        }
+    });
 
     // --- 3. 이미지 로딩 및 GPS 추출 ---
     async function loadImagesForDate(ymd) {
@@ -278,27 +243,32 @@
             $selectAllBtn.find('i').removeClass('fa-check-circle-o').addClass('fa-check-circle');
         } else {
             $selectAllBtn.removeClass('active');
-            $selectAllBtn.find('i').removeClass('fa-check-circle').addClass('fa-check-circle-o');
+            $selectAllBtn.find('i').removeClass('fa-check-circle').addClass('fa-check-circle-o'); // Fixed logic: inactive state usually just circle-o or check-circle with gray? Keeping circle-o for inactive.
         }
     }
 
     // Select All Event
     $('#drp-select-all-btn').on('click', function () {
         var $this = $(this);
-        var isAllSelected = $this.hasClass('active');
+        // Better logic for select all toggle:
+        // If not all selected -> Select All
+        // If all selected -> Deselect All
+        var totalCount = $('.drp-photo-item').length;
+        var selectedCount = $('.drp-photo-item.selected').length;
+        var isAllSelected = (totalCount > 0 && totalCount === selectedCount);
 
         if (isAllSelected) {
             // Deselect All
             $('.drp-photo-item').removeClass('selected');
             $('.drp-item-check').removeClass('fa-check-circle').addClass('fa-circle-o');
             $this.removeClass('active');
-            $this.find('i').removeClass('fa-check-circle').addClass('fa-check-circle-o');
+            // $this.find('i').removeClass('fa-check-circle').addClass('fa-check-circle-o'); // Assuming button icon logic
         } else {
             // Select All
             $('.drp-photo-item').addClass('selected');
             $('.drp-item-check').removeClass('fa-circle-o').addClass('fa-check-circle');
             $this.addClass('active');
-            $this.find('i').removeClass('fa-check-circle-o').addClass('fa-check-circle');
+            // $this.find('i').removeClass('fa-check-circle-o').addClass('fa-check-circle');
         }
         updateFooterState();
     });
