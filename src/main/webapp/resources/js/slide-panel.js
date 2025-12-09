@@ -527,6 +527,11 @@
       if (typeof window.clearImageLayer === "function") {
         window.clearImageLayer();
       }
+
+      // 검색 결과가 없을 때 지도 선택 해제 (팝업 및 하이라이트 제거)
+      if (typeof window.clearSelection === "function") {
+        window.clearSelection();
+      }
     },
 
     /**

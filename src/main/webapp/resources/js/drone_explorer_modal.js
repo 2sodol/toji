@@ -11,6 +11,7 @@
     var vectorLayer;
     var availableDates = []; // YYYYMMDD 목록
     var isMapInitialized = false;
+    var currentRequestId = 0; // 요청 취소를 위한 ID
 
     // 테스트용 Mock Data (Sync용 - 날짜 추출을 위한 더미 URL 포함)
     // 20241203, 20251022, 20241115, 20241226, 20251028, 20251030
@@ -216,6 +217,7 @@
     async function loadImagesForDate(ymd) {
         // UI 초기화
         $('#drp-empty-state').hide();
+        $('#drp-date-select').prop('disabled', true); // 로딩 중 선택 방지
         var $ul = $('#drp-photo-list-ul');
         $ul.empty().hide(); // 리스트 초기화
         $('#drp-loading-state').show();
@@ -224,6 +226,8 @@
         clusterSource.clear();
 
         try {
+            var requestId = ++currentRequestId; // 새로운 요청 ID 발급
+
             var listDate = parseYMD(ymd); // Date Object
             if (!listDate) throw new Error("Invalid Date Format");
 
@@ -284,6 +288,9 @@
             let hasCenteredMap = false;
 
             for (let i = 0; i < targetUrls.length; i += BATCH_SIZE) {
+                // 추가 요청 들어왔으면 중단
+                if (requestId !== currentRequestId) return;
+
                 let chunkUrls = targetUrls.slice(i, i + BATCH_SIZE);
                 let chunkAllFeatures = [];
                 let chunkMapFeatures = [];
@@ -320,9 +327,18 @@
 
                     } catch (e) {
                         console.warn("Processing error for " + url, e);
-                        // 에러 발생하더라도 리스트에 표시하고 싶다면 여기서 feature 리턴
-                        // 현재는 실패한 이미지는 건너뜀
-                        return null;
+                        // 에러가 나도 이미지는 보여주기 (GPS 없음으로 처리)
+                        let feature = new ol.Feature({
+                            geometry: null,
+                            data: {
+                                url: url,
+                                name: url.split('/').pop(),
+                                lat: null,
+                                lon: null,
+                                address: "정보 확인 불가"
+                            }
+                        });
+                        return { feature: feature, hasGPS: false };
                     }
                 });
 
@@ -369,11 +385,17 @@
             }
 
             $('#drp-loading-state').hide();
+            $('#drp-progress-text').text(''); // 진행 메시지 초기화
 
         } catch (err) {
             console.error(err);
             $('#drp-loading-state').hide();
             $('#drp-empty-state').show().text("사진을 불러오는데 실패했습니다.");
+        } finally {
+            // 현재 요청이 마지막 요청일(취소되지 않았을) 때만 활성화
+            if (requestId === currentRequestId) {
+                $('#drp-date-select').prop('disabled', false);
+            }
         }
     }
 
