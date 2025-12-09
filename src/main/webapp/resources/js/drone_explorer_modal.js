@@ -62,6 +62,45 @@
 
     function closeDrpModal() {
         $('#drp-modal').hide();
+        resetModalState();
+    }
+
+    // 모달 닫기 시 상태 초기화 및 진행 중인 요청 취소
+    function resetModalState() {
+        // 1. 진행 중인 이미지 로딩 루프 중단 (ID 증가로 기존 요청 무효화)
+        currentRequestId++;
+
+        // 2. UI 요소 초기화
+        $('#drp-photo-list-ul').empty().hide();
+        $('#drp-loading-state').hide();
+        $('#drp-progress-text').text('');
+
+        // 3. 지도 데이터 초기화
+        if (clusterSource) {
+            clusterSource.clear();
+        }
+        highlightedFeature = null;
+        if (typeof vectorLayer !== 'undefined' && vectorLayer) {
+            vectorLayer.changed();
+        }
+
+        // 4. 다운로드 바 및 선택 상태 리셋
+        $('#drp-download-bar').hide();
+        $('#drp-selected-count').text('0');
+        $('.drp-photo-item').removeClass('selected');
+
+        var $selectAllBtn = $('#drp-select-all-btn');
+        $selectAllBtn.removeClass('active');
+        $selectAllBtn.find('i').removeClass('fa-check-circle').addClass('fa-check-circle-o');
+
+        // 5. 날짜 선택바 상태 복구
+        $('#drp-date-select').val('').prop('disabled', false);
+
+        // 6. 카운트 및 안내 문구 초기화
+        $('#drp-photo-count').text('(0)');
+        // openDroneExplorer에서 "데이터 동기화 중..."으로 덮어씌우지만, 
+        // 닫힌 상태에서의 깔끔한 초기화를 위해 기본 메시지 설정
+        $('#drp-empty-state').show().text("사진을 보려면 날짜를 선택하세요.");
     }
 
     $('#drp-close-btn').on('click', closeDrpModal);
