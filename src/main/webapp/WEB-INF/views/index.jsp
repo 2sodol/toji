@@ -816,10 +816,23 @@
           zIndex: 10, // 이미지 위에 표시되도록 높은 zIndex
         });
 
+        // 고정 하이라이트 (리스트용) 소스 및 레이어
+        window.fixedHighlightSource = new ol.source.Vector();
+        window.fixedHighlightLayer = new ol.layer.Vector({
+          source: window.fixedHighlightSource,
+          style: new ol.style.Style({
+            stroke: new ol.style.Stroke({
+              color: "rgba(255, 0, 0, 0.8)", // 붉은색 테두리
+              width: 2,
+            }),
+          }),
+          zIndex: 11, // 가장 위에 표시
+        });
+
         // 지도 객체 생성 (전역 변수로 선언)
         window.map = new ol.Map({
           target: "map",
-          layers: [baseLayer, window.cadastralLayer, highlightLayer],
+          layers: [baseLayer, window.cadastralLayer, highlightLayer, window.fixedHighlightLayer],
           view: view,
           pixelRatio: window.devicePixelRatio || 1,
         });
@@ -829,11 +842,91 @@
         window.loadedImages = {}; // imageUrl -> { centerX, centerY, layer }
 
         /**
-         * 이미지 레이어 업데이트 (추가)
-         * @param {Number} centerX - 중심 X 좌표 (EPSG:3857)
-         * @param {Number} centerY - 중심 Y 좌표 (EPSG:3857)
-         * @param {String} imagePath - 이미지 파일 경로 (상대 경로 또는 URL)
+         * 여러 PNU에 대한 경계선 하이라이트 추가 (Batch 요청)
+         * @param {Array} pnuList - PNU 문자열 배열
          */
+        window.addBoundaryHighlights = function (pnuList) {
+          if (!pnuList || pnuList.length === 0) return;
+
+          // 중복 및 이미 그려진 것 필터링
+          var targetPnus = [];
+          var existingFeatures = window.fixedHighlightSource.getFeatures();
+
+          pnuList.forEach(function (pnu) {
+            var exists = false;
+            for (var i = 0; i < existingFeatures.length; i++) {
+              if (existingFeatures[i].get('pnu') == pnu) {
+                exists = true;
+                break;
+              }
+            }
+            if (!exists) targetPnus.push(pnu);
+          });
+
+          if (targetPnus.length === 0) return;
+
+          // XML 필터 생성 (OR 조건)
+          var filterXml = '<Filter>';
+          if (targetPnus.length > 1) {
+            filterXml += '<Or>';
+          }
+          targetPnus.forEach(function (pnu) {
+            filterXml += '<PropertyIsEqualTo>';
+            filterXml += '<PropertyName>pnu</PropertyName>';
+            filterXml += '<Literal>' + String(pnu).trim() + '</Literal>';
+            filterXml += '</PropertyIsEqualTo>';
+          });
+          if (targetPnus.length > 1) {
+            filterXml += '</Or>';
+          }
+          filterXml += '</Filter>';
+
+          var wfsUrl = "https://api.vworld.kr/req/wfs?" +
+            "SERVICE=WFS" +
+            "&VERSION=1.1.0" +
+            "&REQUEST=GetFeature" +
+            "&KEY=" + VWORLD_API_KEY +
+            "&TYPENAME=" + LAYER_NAME +
+            "&OUTPUT=text/javascript" +
+            "&srsname=EPSG:3857" +
+            "&maxfeatures=100" +
+            "&filter=" + encodeURIComponent(filterXml) +
+            "&format_options=parseResponse";
+
+          $.ajax({
+            url: wfsUrl,
+            dataType: "jsonp",
+            jsonpCallback: "parseResponse"
+          })
+            .done(function (json) {
+              // 응답이 FeatureCollection 형태일 수 있음
+              var features = [];
+              if (json && json.features) {
+                features = json.features;
+              } else if (json && json.response && json.response.result &&
+                json.response.result.featureCollection &&
+                json.response.result.featureCollection.features) {
+                features = json.response.result.featureCollection.features;
+              }
+
+              if (features && features.length > 0) {
+                var format = new ol.format.GeoJSON();
+                features.forEach(function (featureData) {
+                  var feature = format.readFeature(featureData, {
+                    dataProjection: "EPSG:3857",
+                    featureProjection: "EPSG:3857",
+                  });
+                  // PNU 정보 저장 (properties에서 추출)
+                  var props = featureData.properties || {};
+                  var pnu = props.pnu || props.PNU || props.pnu_code;
+                  feature.set('pnu', pnu);
+
+                  window.fixedHighlightSource.addFeature(feature);
+                });
+              }
+            });
+        };
+
         /**
          * 이미지 경로를 절대 경로로 변환
          */
@@ -884,28 +977,14 @@
 
         /**
          * 이미지 레이어 업데이트 (추가)
-         * @param {Number} centerX - 중심 X 좌표 (EPSG:3857)
-         * @param {Number} centerY - 중심 Y 좌표 (EPSG:3857)
-         * @param {String} imagePath - 이미지 파일 경로 (상대 경로 또는 URL)
          */
         window.updateImageLayer = function (centerX, centerY, imagePath) {
           if (!centerX || !centerY || !imagePath) {
-            console.warn("updateImageLayer: 필수 파라미터 누락", {
-              centerX,
-              centerY,
-              imagePath,
-            });
+            console.warn("updateImageLayer: 필수 파라미터 누락", { centerX, centerY, imagePath });
             return;
           }
 
           var imageUrl = resolveImageUrl(imagePath);
-
-          // 이미 로드된 이미지인지 확인 (캐싱)
-          if (window.loadedImages[imageUrl]) {
-            return;
-          }
-
-          // 레이어 생성 및 추가
           var imageExtent = calculateImageExtent(centerX, centerY);
           var newImageLayer = createImageLayer(imageUrl, imageExtent);
 
@@ -918,8 +997,7 @@
 
           // 체크박스 상태 확인하여 레이어 표시 여부 결정
           var $imageToggle = $("#slide-panel-image-toggle");
-          var isChecked =
-            $imageToggle.length > 0 ? $imageToggle.is(":checked") : true;
+          var isChecked = $imageToggle.length > 0 ? $imageToggle.is(":checked") : true;
 
           if (isChecked) {
             window.map.addLayer(newImageLayer);
@@ -927,35 +1005,34 @@
         };
 
         /**
-         * 이미지 레이어 표시/숨김 토글
-         * @param {Boolean} show - true면 표시, false면 숨김
+         * 이미지 및 경계선 레이어 표시/숨김 토글
          */
         window.toggleImageLayer = function (show) {
+          // 1. 이미지 레이어 토글
           if (window.imageLayers && window.imageLayers.length > 0) {
             window.imageLayers.forEach(function (layer) {
               if (show) {
-                // 레이어가 이미 맵에 있는지 확인
+                // 중복 추가 방지
                 var layers = window.map.getLayers();
                 var found = false;
-                layers.forEach(function (mapLayer) {
-                  if (mapLayer === layer) {
-                    found = true;
-                  }
-                });
-                if (!found) {
-                  window.map.addLayer(layer);
-                }
+                layers.forEach(function (l) { if (l === layer) found = true; });
+                if (!found) window.map.addLayer(layer);
               } else {
                 window.map.removeLayer(layer);
               }
             });
           }
+          // 2. 고정 하이라이트 레이어 토글
+          if (window.fixedHighlightLayer) {
+            window.fixedHighlightLayer.setVisible(show);
+          }
         };
 
         /**
-         * 이미지 레이어 제거 (전체 초기화)
+         * 이미지 및 경계선 레이어 제거 (전체 초기화)
          */
         window.clearImageLayer = function () {
+          // 이미지 제거
           if (window.imageLayers && window.imageLayers.length > 0) {
             window.imageLayers.forEach(function (layer) {
               window.map.removeLayer(layer);
@@ -963,6 +1040,11 @@
           }
           window.imageLayers = [];
           window.loadedImages = {};
+
+          // 경계선 제거
+          if (window.fixedHighlightSource) {
+            window.fixedHighlightSource.clear();
+          }
         };
 
         // 팝업 관련 DOM 요소 레퍼런스 (전역 변수로 등록)

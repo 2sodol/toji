@@ -270,6 +270,9 @@
 
       this.clearListItems();
 
+      // 고정 하이라이트 레이어 초기화 (새 페이지 로드 시 기존 것 제거)
+      if (window.fixedHighlightSource) window.fixedHighlightSource.clear();
+
       // 지도상의 이미지 레이어 초기화
       if (typeof window.clearImageLayer === "function") {
         window.clearImageLayer();
@@ -279,6 +282,8 @@
         this.showEmpty();
         return;
       }
+
+      var pnuListForHighlight = [];
 
       list.forEach(function (item, index) {
         var sequenceNumber = (self.currentPage - 1) * self.pageSize + index + 1;
@@ -315,7 +320,17 @@
         if (imagePath && imagePath.trim().length > 0 && gpsLgtd && gpsLttd && typeof window.updateImageLayer === "function") {
           window.updateImageLayer(parseFloat(gpsLgtd), parseFloat(gpsLttd), imagePath);
         }
+
+        // PNU 수집
+        if (item.lndsUnqNo) {
+          pnuListForHighlight.push(item.lndsUnqNo);
+        }
       });
+
+      // 일괄 경계선 하이라이트 요청
+      if (pnuListForHighlight.length > 0 && typeof window.addBoundaryHighlights === "function") {
+        window.addBoundaryHighlights(pnuListForHighlight);
+      }
     },
 
     /**
@@ -434,18 +449,18 @@
       // 지도 이동
       this.moveMapToLocation(geotiffCenterX, geotiffCenterY);
 
-      // 이미지 레이어 업데이트 (이미지 경로가 있는 경우에만)
-      if (imagePath && imagePath.trim && imagePath.trim().length > 0 && typeof window.updateImageLayer === "function") {
-        window.updateImageLayer(geotiffCenterX, geotiffCenterY, imagePath);
-      }
+      // 이미지 레이어 업데이트 (리스트 로드 시 이미 추가되므로 클릭 시 중복 추가 방지)
+      // if (imagePath && imagePath.trim && imagePath.trim().length > 0 && typeof window.updateImageLayer === "function") {
+      //   window.updateImageLayer(geotiffCenterX, geotiffCenterY, imagePath);
+      // }
 
-      // 클릭된 아이템 하이라이트
+      // 클릭된 아이템 하이라이트 (리스트 UI)
       this.highlightItem($item);
 
-      // 지도 이동 애니메이션 완료 후 팝업 표시
-      setTimeout(function () {
-        self.showMapPopup(geotiffCenterX, geotiffCenterY, lndsUnqNo, hasData);
-      }, 1000);
+      // 지도 이동 애니메이션 완료 후 팝업 표시 (사용자 요청으로 제거)
+      // setTimeout(function () {
+      //   self.showMapPopup(geotiffCenterX, geotiffCenterY, lndsUnqNo, hasData);
+      // }, 1000);
 
       // 이벤트 발생
       $(document).trigger("slidePanel:itemClicked", {
