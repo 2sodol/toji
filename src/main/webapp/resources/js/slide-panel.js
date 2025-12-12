@@ -67,11 +67,21 @@
 
       // 리스트 아이템 클릭 이벤트
       this.$listContainer.on("click", ".slide-panel-list-item", this.handleItemClick.bind(this));
-
       // 이미지 표시 체크박스 이벤트
       var $imageToggle = $("#slide-panel-image-toggle");
       if ($imageToggle.length) {
         $imageToggle.on("change", this.handleImageToggle.bind(this));
+      }
+
+      // 지적도 표시 체크박스 이벤트
+      var $cadastralToggle = $("#slide-panel-cadastral-toggle");
+      if ($cadastralToggle.length) {
+        $cadastralToggle.on("change", function () {
+          var isChecked = $(this).is(":checked");
+          if (window.cadastralLayer) {
+            window.cadastralLayer.setVisible(isChecked);
+          }
+        });
       }
 
       // 검색 이벤트

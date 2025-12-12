@@ -879,7 +879,6 @@
           return new ol.layer.Image({
             source: source,
             zIndex: 6,
-            opacity: 0.8,
           });
         }
 

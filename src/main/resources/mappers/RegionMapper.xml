@@ -6,9 +6,9 @@
 
   <insert id="insertBasicInfo" parameterType="BasicInfo">
     <selectKey keyProperty="ilglPrvuInfoSeq" resultType="Long" order="BEFORE">
-      SELECT DTJ_MAIN.SEQ_ILGL_PRVU_INFO.NEXTVAL FROM DUAL
+      SELECT SEQ_ILGL_PRVU_INFO.NEXTVAL FROM DUAL
     </selectKey>
-    INSERT INTO DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1 (
+    INSERT INTO T_LNDS_ILGL_PRVU_INFO01M1 (
       ILGL_PRVU_INFO_SEQ,
       GPS_LGTD,
       GPS_LTTD,
@@ -65,9 +65,9 @@
 
   <insert id="insertActionHistory" parameterType="ActionHistory">
     <selectKey keyProperty="ilglActnCtntSeq" resultType="Long" order="BEFORE">
-      SELECT DTJ_MAIN.SEQ_ILGL_ACTN_CTNT.NEXTVAL FROM DUAL
+      SELECT SEQ_ILGL_ACTN_CTNT.NEXTVAL FROM DUAL
     </selectKey>
-    INSERT INTO DTJ_MAIN.T_LNDS_ILGL_ACTN_CTNT01M1 (
+    INSERT INTO T_LNDS_ILGL_ACTN_CTNT01M1 (
       ILGL_ACTN_CTNT_SEQ,
       ILGL_PRVU_INFO_SEQ,
       ACTN_DTTM,
@@ -92,9 +92,9 @@
 
   <insert id="insertAttachment" parameterType="Attachment">
     <selectKey keyProperty="ilglAttflSeq" resultType="Long" order="BEFORE">
-      SELECT DTJ_MAIN.SEQ_ILGL_ATTFL.NEXTVAL FROM DUAL
+      SELECT SEQ_ILGL_ATTFL.NEXTVAL FROM DUAL
     </selectKey>
-    INSERT INTO DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 (
+    INSERT INTO T_LNDS_ILGL_ATTFL01M1 (
       ILGL_ATTFL_SEQ,
       ILGL_PRVU_ADDR_SEQ,
       ATTFL_NM,
@@ -125,7 +125,7 @@
           MAX(GPS_LGTD) as gpsLgtd,
           MAX(GPS_LTTD) as gpsLttd,
           MAX(OCRN_DATES) as ocrnDates
-        FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
+        FROM T_LNDS_ILGL_PRVU_INFO01M1
         WHERE USE_YN = 'Y'
         GROUP BY LNDS_UNQ_NO
         ORDER BY MAX(OCRN_DATES) DESC NULLS LAST, MAX(ILGL_PRVU_INFO_SEQ) DESC
@@ -167,7 +167,7 @@
             MAX(p.GPS_LGTD) as gpsLgtd,
             MAX(p.GPS_LTTD) as gpsLttd,
             MAX(p.OCRN_DATES) as ocrnDates
-          FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1 p
+          FROM T_LNDS_ILGL_PRVU_INFO01M1 p
           WHERE p.USE_YN = 'Y'
           <if test="keyword != null and keyword != ''">
             AND p.LNDS_LDNO_ADDR LIKE '%' || #{keyword} || '%'
@@ -183,7 +183,7 @@
               ELSE '/' || a.ATTFL_NM
             END as imagePath,
             ROW_NUMBER() OVER (PARTITION BY a.ILGL_PRVU_ADDR_SEQ ORDER BY a.ILGL_ATTFL_SEQ DESC) as rn
-          FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 a
+          FROM T_LNDS_ILGL_ATTFL01M1 a
         ) img ON img.ILGL_PRVU_ADDR_SEQ = main.ilglPrvuInfoSeq AND img.rn = 1
         ORDER BY main.ocrnDates DESC NULLS LAST, main.ilglPrvuInfoSeq DESC
       ) t
@@ -200,7 +200,7 @@
         a.ATTFL_PATH as attflPath,
         a.ATTFL_CPCT as attflCpct,
         a.OCRN_DATES as ocrnDates
-      FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 a
+      FROM T_LNDS_ILGL_ATTFL01M1 a
       WHERE a.ILGL_PRVU_ADDR_SEQ = #{ilglPrvuInfoSeq}
       ORDER BY a.ILGL_ATTFL_SEQ DESC
     ) WHERE ROWNUM = 1
@@ -211,7 +211,7 @@
     FROM (
       SELECT
         LNDS_UNQ_NO
-      FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
+      FROM T_LNDS_ILGL_PRVU_INFO01M1
       WHERE USE_YN = 'Y'
       <if test="keyword != null and keyword != ''">
         AND LNDS_LDNO_ADDR LIKE '%' || #{keyword} || '%'
@@ -221,7 +221,7 @@
   </select>
 
   <update id="updateBasicInfo" parameterType="BasicInfo">
-    UPDATE DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
+    UPDATE T_LNDS_ILGL_PRVU_INFO01M1
     SET
       GPS_LGTD = #{gpsLgtd},
       GPS_LTTD = #{gpsLttd},
@@ -258,26 +258,26 @@
       LSTTM_MODFR_ID as lsttmModfrId,
       LSTTM_ALTR_DTTM as lsttmAltrDttm,
       USE_YN as useYn
-    FROM DTJ_MAIN.T_LNDS_ILGL_ACTN_CTNT01M1
+    FROM T_LNDS_ILGL_ACTN_CTNT01M1
     WHERE ILGL_PRVU_INFO_SEQ = #{basicInfoId}
       AND USE_YN = 'Y'
     ORDER BY ACTN_DTTM DESC
   </select>
 
   <delete id="deleteActionHistoriesByBasicInfoId" parameterType="Long">
-    UPDATE DTJ_MAIN.T_LNDS_ILGL_ACTN_CTNT01M1
+    UPDATE T_LNDS_ILGL_ACTN_CTNT01M1
     SET USE_YN = 'N',
         LSTTM_ALTR_DTTM = SYSDATE
     WHERE ILGL_PRVU_INFO_SEQ = #{basicInfoId}
   </delete>
 
   <delete id="deleteAttachmentsByBasicInfoId" parameterType="Long">
-    DELETE FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1
+    DELETE FROM T_LNDS_ILGL_ATTFL01M1
     WHERE ILGL_PRVU_ADDR_SEQ = #{basicInfoId}
   </delete>
 
   <update id="deleteBasicInfo" parameterType="BasicInfo">
-    UPDATE DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
+    UPDATE T_LNDS_ILGL_PRVU_INFO01M1
     SET USE_YN = 'N',
         LSTTM_MODFR_ID = #{lsttmModfrId},
         LSTTM_ALTR_DTTM = SYSDATE
@@ -286,7 +286,7 @@
   </update>
 
   <delete id="deleteAttachment" parameterType="Long">
-    DELETE FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1
+    DELETE FROM T_LNDS_ILGL_ATTFL01M1
     WHERE ILGL_ATTFL_SEQ = #{ilglAttflSeq}
   </delete>
 
@@ -298,7 +298,7 @@
       OCRN_DATES AS ocrnDates,
       PRCH_EMNO AS prchEmno,
       ILGL_PRVU_INFO_SEQ AS ilglPrvuInfoSeq
-    FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
+    FROM T_LNDS_ILGL_PRVU_INFO01M1
     WHERE LNDS_UNQ_NO = #{lndsUnqNo}
       AND USE_YN = 'Y'
     ORDER BY OCRN_DATES DESC, ILGL_PRVU_INFO_SEQ DESC
@@ -313,8 +313,8 @@
       p.PRCH_EMNO AS prchEmno,
       a.ATTFL_NM AS attflNm,
       a.ATTFL_PATH AS attflPath
-    FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 a
-    INNER JOIN DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1 p 
+    FROM T_LNDS_ILGL_ATTFL01M1 a
+    INNER JOIN T_LNDS_ILGL_PRVU_INFO01M1 p 
       ON a.ILGL_PRVU_ADDR_SEQ = p.ILGL_PRVU_INFO_SEQ
     WHERE p.LNDS_UNQ_NO = #{lndsUnqNo}
       AND p.USE_YN = 'Y'
@@ -325,7 +325,7 @@
   <!-- 특정 토지번호로 데이터 존재 여부 확인 (카운트) -->
   <select id="hasDataByLndsUnqNo" parameterType="String" resultType="int">
     SELECT COUNT(*)
-    FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
+    FROM T_LNDS_ILGL_PRVU_INFO01M1
     WHERE LNDS_UNQ_NO = #{lndsUnqNo}
       AND USE_YN = 'Y'
   </select>
@@ -358,7 +358,7 @@
       LSTTM_MODFR_ID as lsttmModfrId,
       LSTTM_ALTR_DTTM as lsttmAltrDttm,
       USE_YN as useYn
-    FROM DTJ_MAIN.T_LNDS_ILGL_PRVU_INFO01M1
+    FROM T_LNDS_ILGL_PRVU_INFO01M1
     WHERE ILGL_PRVU_INFO_SEQ = #{ilglPrvuInfoSeq}
       AND USE_YN = 'Y'
   </select>
@@ -372,7 +372,7 @@
       a.ATTFL_PATH as attflPath,
       a.ATTFL_CPCT as attflCpct,
       a.OCRN_DATES as ocrnDates
-    FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 a
+    FROM T_LNDS_ILGL_ATTFL01M1 a
     WHERE a.ILGL_PRVU_ADDR_SEQ = #{ilglPrvuInfoSeq}
     ORDER BY a.ILGL_ATTFL_SEQ DESC
   </select>
@@ -386,7 +386,7 @@
       a.ATTFL_PATH as attflPath,
       a.ATTFL_CPCT as attflCpct,
       a.OCRN_DATES as ocrnDates
-    FROM DTJ_MAIN.T_LNDS_ILGL_ATTFL01M1 a
+    FROM T_LNDS_ILGL_ATTFL01M1 a
     WHERE a.ILGL_ATTFL_SEQ = #{ilglAttflSeq}
   </select>
 
