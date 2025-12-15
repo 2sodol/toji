@@ -24,6 +24,7 @@
     pageSize: 5,
     totalPages: 0,
     totalCount: 0,
+    hasMovedToFirstItem: false, // [추가] 자동 이동 여부 플래그
 
     /**
      * 초기화
@@ -307,17 +308,23 @@
           })
           .html(
             '<div class="slide-panel-list-item__cell slide-panel-list-item__cell--sequence">' +
-            sequenceNumber +
-            "</div>" +
-            '<div class="slide-panel-list-item__cell slide-panel-list-item__cell--address">' +
-            self.escapeHtml(address) +
-            "</div>"
+              sequenceNumber +
+              "</div>" +
+              '<div class="slide-panel-list-item__cell slide-panel-list-item__cell--address">' +
+              self.escapeHtml(address) +
+              "</div>"
           );
 
         self.$listItems.append($item);
 
         // 이미지 레이어 추가 (리스트 로드 시 모든 이미지 표시)
-        if (imagePath && imagePath.trim().length > 0 && gpsLgtd && gpsLttd && typeof window.updateImageLayer === "function") {
+        if (
+          imagePath &&
+          imagePath.trim().length > 0 &&
+          gpsLgtd &&
+          gpsLttd &&
+          typeof window.updateImageLayer === "function"
+        ) {
           window.updateImageLayer(parseFloat(gpsLgtd), parseFloat(gpsLttd), imagePath);
         }
 
@@ -457,6 +464,16 @@
       // 클릭된 아이템 하이라이트 (리스트 UI)
       this.highlightItem($item);
 
+      // [추가] 아이템 클릭 시 이미지 표시가 꺼져있다면 자동으로 켜기
+      var $imageToggle = $("#slide-panel-image-toggle");
+      if ($imageToggle.length && !$imageToggle.is(":checked")) {
+        $imageToggle.prop("checked", true);
+        // 토글 이벤트 트리거 대신 직접 레이어 제어 호출 (이벤트 루프 방지)
+        if (typeof window.toggleImageLayer === "function") {
+          window.toggleImageLayer(true);
+        }
+      }
+
       // 지도 이동 애니메이션 완료 후 팝업 표시 (사용자 요청으로 제거)
       // setTimeout(function () {
       //   self.showMapPopup(geotiffCenterX, geotiffCenterY, lndsUnqNo, hasData);
@@ -557,6 +574,10 @@
       if (typeof window.clearSelection === "function") {
         window.clearSelection();
       }
+
+      // [추가] 리스트가 초기화되면 자동 이동 플래그도 초기화하여,
+      // 다음 검색 시 다시 첫 번째 항목으로 이동할 수 있게 함.
+      this.hasMovedToFirstItem = false;
     },
 
     /**
@@ -602,8 +623,46 @@
      */
     handleImageToggle: function (e) {
       var isChecked = $(e.target).is(":checked");
+
+      // 1. 이미지 레이어 토글
       if (typeof window.toggleImageLayer === "function") {
         window.toggleImageLayer(isChecked);
+      }
+
+      // 2. [UX 개선 최종]
+      // 사용자가 현재 보고 있는 화면(View) 안에 리스트의 필지(이미지)가 하나라도 포함되어 있다면
+      // 이동하지 않고, 만약 아예 엉뚱한 곳을 보고 있다면 첫 번째 필지로 이동한다.
+      if (isChecked) {
+        var mapObj = window.map || map;
+        var extent = mapObj.getView().calculateExtent(mapObj.getSize()); // 현재 보고 있는 지도 영역
+        var isAnyItemVisible = false;
+
+        // 리스트의 모든 아이템을 순회하며 현재 화면 안에 있는지 검사
+        this.$listItems.find(".slide-panel-list-item").each(function () {
+          var gpsLgtd = parseFloat($(this).data("gps-lgtd"));
+          var gpsLttd = parseFloat($(this).data("gps-lttd"));
+
+          if (!isNaN(gpsLgtd) && !isNaN(gpsLttd)) {
+            // 해당 좌표가 현재 지도 영역(extent)에 포함되는지 확인 (OpenLayers 함수 활용)
+            if (ol.extent.containsCoordinate(extent, [gpsLgtd, gpsLttd])) {
+              isAnyItemVisible = true;
+              return false; // 하나라도 찾으면 루프 종료
+            }
+          }
+        });
+
+        // 현재 화면에 보이는 필지가 하나도 없다면 -> 첫 번째 필지로 이동
+        if (!isAnyItemVisible) {
+          var $firstItem = this.$listItems.find(".slide-panel-list-item").first();
+          if ($firstItem.length > 0) {
+            var gpsLgtd = $firstItem.data("gps-lgtd");
+            var gpsLttd = $firstItem.data("gps-lttd");
+
+            if (gpsLgtd && gpsLttd && !isNaN(gpsLgtd) && !isNaN(gpsLttd)) {
+              this.moveMapToLocation(parseFloat(gpsLgtd), parseFloat(gpsLttd));
+            }
+          }
+        }
       }
     },
 

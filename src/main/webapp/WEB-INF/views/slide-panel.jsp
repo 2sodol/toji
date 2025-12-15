@@ -13,7 +13,7 @@
       <h2 class="slide-panel__title">불법점용 리스트</h2>
       <div class="slide-panel__header-actions">
         <label class="slide-panel__checkbox-label">
-          <input type="checkbox" id="slide-panel-image-toggle" class="slide-panel__checkbox" checked />
+          <input type="checkbox" id="slide-panel-image-toggle" class="slide-panel__checkbox" />
           <span class="slide-panel__checkbox-text">이미지 표시</span>
         </label>
         <label class="slide-panel__checkbox-label" style="margin-left: 10px;">
