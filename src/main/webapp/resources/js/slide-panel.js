@@ -634,35 +634,77 @@
       // 이동하지 않고, 만약 아예 엉뚱한 곳을 보고 있다면 첫 번째 필지로 이동한다.
       if (isChecked) {
         var mapObj = window.map || map;
-        var extent = mapObj.getView().calculateExtent(mapObj.getSize()); // 현재 보고 있는 지도 영역
-        var isAnyItemVisible = false;
+        var self = this;
 
-        // 리스트의 모든 아이템을 순회하며 현재 화면 안에 있는지 검사
-        this.$listItems.find(".slide-panel-list-item").each(function () {
-          var gpsLgtd = parseFloat($(this).data("gps-lgtd"));
-          var gpsLttd = parseFloat($(this).data("gps-lttd"));
+        // [수정] 지도 크기가 잡히지 않았을 경우를 대비해 100ms 지연 후 실행
+        setTimeout(function () {
+          var size = mapObj.getSize();
+          if (!size) {
+            mapObj.updateSize();
+            size = mapObj.getSize();
+          }
 
-          if (!isNaN(gpsLgtd) && !isNaN(gpsLttd)) {
-            // 해당 좌표가 현재 지도 영역(extent)에 포함되는지 확인 (OpenLayers 함수 활용)
-            if (ol.extent.containsCoordinate(extent, [gpsLgtd, gpsLttd])) {
-              isAnyItemVisible = true;
-              return false; // 하나라도 찾으면 루프 종료
+          if (!size) {
+            // 끝까지 사이즈를 못 가져오면 그냥 이동 (안전책)
+            var $firstItem = self.$listItems.find(".slide-panel-list-item").first();
+            if ($firstItem.length > 0) {
+              var gpsLgtd = $firstItem.data("gps-lgtd");
+              var gpsLttd = $firstItem.data("gps-lttd");
+              if (gpsLgtd && gpsLttd && !isNaN(gpsLgtd) && !isNaN(gpsLttd)) {
+                self.moveMapToLocation(parseFloat(gpsLgtd), parseFloat(gpsLttd));
+              }
+            }
+            return;
+          }
+
+          // [핵심 수정] 줌 레벨이 너무 낮으면(멀리서 보면) extent 검사를 하지 않고 그냥 이동시킨다.
+          // 이유: 줌 레벨이 낮으면 화면 전체(extent)가 엄청 넓어서,
+          //       아주 작게 보이는 점(필지) 하나만 걸쳐도 "화면 안에 있다"고 판단해버려 이동을 안 함.
+          //       하지만 사용자 눈에는 너무 작아서 안 보이는 상태임.
+          var currentZoom = mapObj.getView().getZoom();
+          if (currentZoom < 15) {
+            // 15레벨 미만(시/군/구 단위)이면 무조건 이동
+            var $firstItem = self.$listItems.find(".slide-panel-list-item").first();
+            if ($firstItem.length > 0) {
+              var gpsLgtd = $firstItem.data("gps-lgtd");
+              var gpsLttd = $firstItem.data("gps-lttd");
+              if (gpsLgtd && gpsLttd && !isNaN(gpsLgtd) && !isNaN(gpsLttd)) {
+                self.moveMapToLocation(parseFloat(gpsLgtd), parseFloat(gpsLttd));
+              }
+            }
+            return;
+          }
+
+          var extent = mapObj.getView().calculateExtent(size); // 현재 보고 있는 지도 영역
+          var isAnyItemVisible = false;
+
+          // 리스트의 모든 아이템을 순회하며 현재 화면 안에 있는지 검사
+          self.$listItems.find(".slide-panel-list-item").each(function () {
+            var gpsLgtd = parseFloat($(this).data("gps-lgtd"));
+            var gpsLttd = parseFloat($(this).data("gps-lttd"));
+
+            if (!isNaN(gpsLgtd) && !isNaN(gpsLttd)) {
+              // 해당 좌표가 현재 지도 영역(extent)에 포함되는지 확인 (OpenLayers 함수 활용)
+              if (ol.extent.containsCoordinate(extent, [gpsLgtd, gpsLttd])) {
+                isAnyItemVisible = true;
+                return false; // 하나라도 찾으면 루프 종료
+              }
+            }
+          });
+
+          // 현재 화면에 보이는 필지가 하나도 없다면 -> 첫 번째 필지로 이동
+          if (!isAnyItemVisible) {
+            var $firstItem = self.$listItems.find(".slide-panel-list-item").first();
+            if ($firstItem.length > 0) {
+              var gpsLgtd = $firstItem.data("gps-lgtd");
+              var gpsLttd = $firstItem.data("gps-lttd");
+
+              if (gpsLgtd && gpsLttd && !isNaN(gpsLgtd) && !isNaN(gpsLttd)) {
+                self.moveMapToLocation(parseFloat(gpsLgtd), parseFloat(gpsLttd));
+              }
             }
           }
-        });
-
-        // 현재 화면에 보이는 필지가 하나도 없다면 -> 첫 번째 필지로 이동
-        if (!isAnyItemVisible) {
-          var $firstItem = this.$listItems.find(".slide-panel-list-item").first();
-          if ($firstItem.length > 0) {
-            var gpsLgtd = $firstItem.data("gps-lgtd");
-            var gpsLttd = $firstItem.data("gps-lttd");
-
-            if (gpsLgtd && gpsLttd && !isNaN(gpsLgtd) && !isNaN(gpsLttd)) {
-              this.moveMapToLocation(parseFloat(gpsLgtd), parseFloat(gpsLttd));
-            }
-          }
-        }
+        }, 100);
       }
     },
 
