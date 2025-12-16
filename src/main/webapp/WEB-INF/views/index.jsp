@@ -41,8 +41,10 @@
     </div>
 
     <!-- 지도 선택 결과를 보여주는 팝업 -->
-    <div id="ilgl-popup" class="ilgl-popup">
-      <a href="#" id="ilgl-popup-closer" class="ilgl-popup-closer"></a>
+    <div id="ilgl-popup" class="ilgl-popup" style="display: none;">
+      <a href="#" id="ilgl-popup-closer" class="ilgl-popup-closer">
+        <i class="fas fa-times"></i>
+      </a>
       <div id="ilgl-popup-header" class="ilgl-popup-header">
         <h3 class="ilgl-popup-title">불법점용점검</h3>
       </div>
@@ -400,6 +402,7 @@
         // 팝업 위치 결정 및 표시
         var popupCoordinate = getPopupCoordinate(coordinate, useOriginalCoordinate);
         window.popupOverlay.setPosition(popupCoordinate);
+        $("#ilgl-popup").show();
       }
 
       /**
@@ -407,6 +410,7 @@
        */
       function clearSelection() {
         window.popupOverlay.setPosition(undefined);
+        $("#ilgl-popup").hide();
         selectedFeature = null;
         selectedRegionData = null;
         window.highlightSource.clear();
@@ -420,6 +424,7 @@
         window.popupContent.innerHTML = "<span>선택한 위치의 지적 정보가 없습니다.</span>";
         resetPopupButtons();
         window.popupOverlay.setPosition(coordinate);
+        $("#ilgl-popup").show();
       }
 
       /**
@@ -1061,6 +1066,7 @@
         // 팝업 닫기 버튼 이벤트
         closer.onclick = function () {
           window.popupOverlay.setPosition(undefined);
+          $("#ilgl-popup").hide();
           resetPopupButtons();
           closer.blur();
           return false;

@@ -500,11 +500,25 @@
 
       try {
         var coordinate = [longitude, latitude];
-        mapObj.getView().animate({
-          center: coordinate,
-          zoom: 18,
-          duration: 1000,
-        });
+        var currentZoom = mapObj.getView().getZoom();
+        // 18 -> 17로 하향 조정
+        var targetZoom = currentZoom < 17 ? 17 : currentZoom;
+
+        // [수정] 애니메이션(animate) 사용 시 간혹 타일 로딩이 누락되는 현상이 있어,
+        // 즉시 이동(setCenter, setZoom) 방식으로 변경하여 렌더링 안정성을 확보함.
+        mapObj.getView().setCenter(coordinate);
+        mapObj.getView().setZoom(targetZoom);
+
+        // 이동 후 사이즈 갱신 및 WMS 레이어 리프레시 (확실한 로딩 보장)
+        setTimeout(function () {
+          mapObj.updateSize();
+          if (window.cadastralLayer) {
+            var source = window.cadastralLayer.getSource();
+            if (source && source.updateParams) {
+              source.updateParams({ t: Date.now() });
+            }
+          }
+        }, 100);
       } catch (error) {
         console.error("지도 이동 중 오류 발생:", error);
       }
@@ -704,7 +718,7 @@
               }
             }
           }
-        }, 100);
+        }, 300); // 300ms로 변경
       }
     },
 
