@@ -383,6 +383,9 @@
 
                 let results = await Promise.all(promises);
 
+                // [중요] 비동기 작업 후 현재 요청이 여전히 유효한지 확인 (날짜 변경 등)
+                if (requestId !== currentRequestId) return;
+
                 // 결과 분류
                 results.forEach(res => {
                     if (res) {
@@ -464,6 +467,7 @@
                 url: "https://api.vworld.kr/req/address",
                 type: "GET",
                 dataType: "jsonp", // VWorld는 JSONP 지원
+                timeout: 3000, // 3초 타임아웃 유지
                 data: {
                     service: "address",
                     request: "getAddress",
@@ -471,7 +475,7 @@
                     crs: "epsg:4326",
                     point: `${lon},${lat}`,
                     format: "json",
-                    type: "parcel", // 지번 주소 (도로명은 'road' 사용 가능)
+                    type: "parcel", // 지번 주소 전용으로 복구
                     zipcode: "false",
                     simple: "false",
                     key: VWORLD_API_KEY
