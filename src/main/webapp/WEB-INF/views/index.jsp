@@ -32,6 +32,12 @@
       <i class="fas fa-search"></i> 주소 검색
     </button>
 
+    <!-- 시설물 점검 관리 이동 버튼 -->
+    <button onclick="location.href='/inspection/list'"
+      style="position: fixed; top: 70px; right: 20px; z-index: 1000; padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+      <i class="fas fa-tasks"></i> 시설물 점검 관리
+    </button>
+
     <!-- 지도 렌더링 컨테이너 -->
     <div id="map"></div>
 

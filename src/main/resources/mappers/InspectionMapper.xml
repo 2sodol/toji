@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.toji.toji.mapper.InspectionMapper">
+
+    <select id="selectNextFileSeq" resultType="long">
+        SELECT NVL(MAX(FILE_SEQ), 0) + 1 FROM TOJI.T_EXML_FMS_JOB_PHTG01M1
+    </select>
+
+    <!-- eGovFrame: VO 타입 사용 -->
+    <insert id="insertInspection" parameterType="com.toji.toji.service.InspectionVO">
+        INSERT INTO TOJI.T_EXML_FMS_NSTP_ISPC01M1 (
+            ISPC_ID, HDQR_CD, MTNOF_CD, ROUTE_DRNM, ISPC_DTTM, 
+            FCLTS_NM, DEL_YN, FSTTM_RGSR_ID, FSTTM_RGST_DTTM, 
+            LSTTM_MODFR_ID, LSTTM_ALTR_DTTM
+        ) VALUES (
+            #{ispcId}, #{hdqrCd}, #{mtnofCd}, #{routeDrnm}, #{ispcDttm},
+            #{fcltsNm}, 'N', #{fsttmRgsrId}, SYSDATE,
+            #{lsttmModfrId}, SYSDATE
+        )
+    </insert>
+
+    <insert id="insertInspectionFile" parameterType="com.toji.toji.service.InspectionFileVO">
+        INSERT INTO TOJI.T_EXML_FMS_JOB_PHTG01M1 (
+            FILE_SEQ, ATTFL_NM, ATTFL_MG, ATTFL_PATH, ORTX_FLNM,
+            FCLTS_PTGR_DTTM, FSTTM_RGSR_ID, FSTTM_RGST_DTTM,
+            LSTTM_MODFR_ID, LSTTM_ALTR_DTTM
+        ) VALUES (
+            #{fileSeq}, #{attflNm}, #{attflMg}, #{attflPath}, #{ortxFlnm},
+            #{fcltsPtgrDttm}, #{fsttmRgsrId}, SYSDATE,
+            #{lsttmModfrId}, SYSDATE
+        )
+    </insert>
+
+    <insert id="insertInspectionFileMapping">
+        INSERT INTO TOJI.T_EXML_FMS_NSTP_ISPC01D1 (
+            ISPC_ID, FILE_SEQ, FSTTM_RGSR_ID, FSTTM_RGST_DTTM, 
+            LSTTM_MODFR_ID, LSTTM_ALTR_DTTM
+        ) VALUES (
+            #{ispcId}, #{fileSeq}, #{userId}, SYSDATE,
+            #{userId}, SYSDATE
+        )
+    </insert>
+
+    <!-- 목록 조회 -->
+    <select id="selectInspectionList" resultType="com.toji.toji.service.InspectionVO">
+        SELECT 
+            ISPC_ID, HDQR_CD, MTNOF_CD, ROUTE_DRNM, ISPC_DTTM, 
+            FCLTS_NM, FSTTM_RGST_DTTM
+        FROM TOJI.T_EXML_FMS_NSTP_ISPC01M1
+        WHERE DEL_YN = 'N'
+        ORDER BY ISPC_DTTM DESC, FSTTM_RGST_DTTM DESC
+    </select>
+
+    <!-- 상세 조회 -->
+    <select id="selectInspection" resultType="com.toji.toji.service.InspectionVO">
+        SELECT 
+            ISPC_ID, HDQR_CD, MTNOF_CD, ROUTE_DRNM, ISPC_DTTM, 
+            FCLTS_NM, FSTTM_RGST_DTTM
+        FROM TOJI.T_EXML_FMS_NSTP_ISPC01M1
+        WHERE ISPC_ID = #{ispcId}
+    </select>
+
+    <!-- 상세 파일 목록 조회 -->
+    <select id="selectInspectionFiles" resultType="com.toji.toji.service.InspectionFileVO">
+        SELECT 
+            F.FILE_SEQ, F.ATTFL_NM, F.ATTFL_MG, F.ATTFL_PATH, F.ORTX_FLNM
+        FROM TOJI.T_EXML_FMS_JOB_PHTG01M1 F
+        INNER JOIN TOJI.T_EXML_FMS_NSTP_ISPC01D1 M ON F.FILE_SEQ = M.FILE_SEQ
+        WHERE M.ISPC_ID = #{ispcId}
+        ORDER BY F.FILE_SEQ ASC
+    </select>
+
+    <!-- 파일 단건 조회 (다운로드용) -->
+    <select id="selectFileDetail" resultType="com.toji.toji.service.InspectionFileVO">
+        SELECT * FROM TOJI.T_EXML_FMS_JOB_PHTG01M1 WHERE FILE_SEQ = #{fileSeq}
+    </select>
+
+</mapper>
