@@ -14,6 +14,7 @@ public class InspectionVO {
     private String hdqrCd;          // 본부코드
     private String mtnofCd;         // 지사코드
     private String routeDrnm;       // 노선방향명
+    private String routeDstnc;      // 노선이정
     private Date ispcDttm;          // 점검일시
     private String fcltsNm;         // 시설물명
     private String delYn;           // 삭제여부

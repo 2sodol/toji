@@ -85,6 +85,17 @@
         });
       }
 
+      // 위성지도 표시 체크박스 이벤트
+      var $vworldToggle = $("#slide-panel-vworld-toggle");
+      if ($vworldToggle.length) {
+        $vworldToggle.on("change", function () {
+          var isChecked = $(this).is(":checked");
+          if (window.satelliteLayer) {
+            window.satelliteLayer.setVisible(isChecked);
+          }
+        });
+      }
+
       // 검색 이벤트
       if (this.$searchBtn.length) {
         this.$searchBtn.on("click", this.search.bind(this));
@@ -325,7 +336,7 @@
           gpsLttd &&
           typeof window.updateImageLayer === "function"
         ) {
-          window.updateImageLayer(parseFloat(gpsLgtd), parseFloat(gpsLttd), imagePath);
+          window.updateImageLayer(parseFloat(gpsLgtd), parseFloat(gpsLttd), imagePath, address);
         }
 
         // PNU 수집

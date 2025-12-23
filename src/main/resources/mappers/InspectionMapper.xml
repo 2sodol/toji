@@ -9,11 +9,11 @@
     <!-- eGovFrame: VO 타입 사용 -->
     <insert id="insertInspection" parameterType="com.toji.toji.service.InspectionVO">
         INSERT INTO TOJI.T_EXML_FMS_NSTP_ISPC01M1 (
-            ISPC_ID, HDQR_CD, MTNOF_CD, ROUTE_DRNM, ISPC_DTTM, 
+            ISPC_ID, HDQR_CD, MTNOF_CD, ROUTE_DRNM, ROUTE_DSTNC, ISPC_DTTM, 
             FCLTS_NM, DEL_YN, FSTTM_RGSR_ID, FSTTM_RGST_DTTM, 
             LSTTM_MODFR_ID, LSTTM_ALTR_DTTM
         ) VALUES (
-            #{ispcId}, #{hdqrCd}, #{mtnofCd}, #{routeDrnm}, #{ispcDttm},
+            #{ispcId}, #{hdqrCd}, #{mtnofCd}, #{routeDrnm}, #{routeDstnc}, #{ispcDttm},
             #{fcltsNm}, 'N', #{fsttmRgsrId}, SYSDATE,
             #{lsttmModfrId}, SYSDATE
         )
@@ -41,20 +41,56 @@
         )
     </insert>
 
-    <!-- 목록 조회 -->
-    <select id="selectInspectionList" resultType="com.toji.toji.service.InspectionVO">
-        SELECT 
-            ISPC_ID, HDQR_CD, MTNOF_CD, ROUTE_DRNM, ISPC_DTTM, 
-            FCLTS_NM, FSTTM_RGST_DTTM
+    <!-- 목록 조회 (페이징) -->
+    <select id="selectInspectionList" parameterType="com.toji.toji.dto.InspectionSearchDTO" resultType="com.toji.toji.service.InspectionVO">
+        SELECT * FROM (
+            SELECT ROWNUM AS RNUM, A.* FROM (
+                SELECT 
+                    ISPC_ID, HDQR_CD, MTNOF_CD, ROUTE_DRNM, ISPC_DTTM, 
+                    FCLTS_NM, FSTTM_RGST_DTTM
+                FROM TOJI.T_EXML_FMS_NSTP_ISPC01M1
+                WHERE DEL_YN = 'N'
+                <if test="searchKeyword != null and searchKeyword != ''">
+                    AND (
+                        ROUTE_DRNM LIKE '%' || #{searchKeyword} || '%' 
+                        OR FCLTS_NM LIKE '%' || #{searchKeyword} || '%'
+                    )
+                </if>
+                ORDER BY 
+                <choose>
+                    <when test="orderColumn == 1">ROUTE_DRNM</when>
+                    <when test="orderColumn == 2">FCLTS_NM</when>
+                    <when test="orderColumn == 3">ISPC_DTTM</when>
+                    <when test="orderColumn == 4">FSTTM_RGST_DTTM</when>
+                    <otherwise>ISPC_DTTM</otherwise>
+                </choose>
+                <choose>
+                    <when test="orderDir == 'asc'">ASC</when>
+                    <otherwise>DESC</otherwise>
+                </choose>
+            ) A
+            WHERE ROWNUM &lt;= #{start} + #{length}
+        )
+        WHERE RNUM &gt; #{start}
+    </select>
+
+    <!-- 전체 카운트 (검색 포함) -->
+    <select id="countInspectionList" parameterType="com.toji.toji.dto.InspectionSearchDTO" resultType="long">
+        SELECT COUNT(*)
         FROM TOJI.T_EXML_FMS_NSTP_ISPC01M1
         WHERE DEL_YN = 'N'
-        ORDER BY ISPC_DTTM DESC, FSTTM_RGST_DTTM DESC
+        <if test="searchKeyword != null and searchKeyword != ''">
+            AND (
+                ROUTE_DRNM LIKE '%' || #{searchKeyword} || '%' 
+                OR FCLTS_NM LIKE '%' || #{searchKeyword} || '%'
+            )
+        </if>
     </select>
 
     <!-- 상세 조회 -->
     <select id="selectInspection" resultType="com.toji.toji.service.InspectionVO">
         SELECT 
-            ISPC_ID, HDQR_CD, MTNOF_CD, ROUTE_DRNM, ISPC_DTTM, 
+            ISPC_ID, HDQR_CD, MTNOF_CD, ROUTE_DRNM, ROUTE_DSTNC, ISPC_DTTM, 
             FCLTS_NM, FSTTM_RGST_DTTM
         FROM TOJI.T_EXML_FMS_NSTP_ISPC01M1
         WHERE ISPC_ID = #{ispcId}

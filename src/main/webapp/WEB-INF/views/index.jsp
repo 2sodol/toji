@@ -731,6 +731,16 @@
               "/Base/{z}/{y}/{x}.png",
           }),
         });
+        // VWorld 위성 레이어 (전역 변수로 등록)
+        window.satelliteLayer = new ol.layer.Tile({
+          source: new ol.source.XYZ({
+            url:
+              "https://api.vworld.kr/req/wmts/1.0.0/" +
+              VWORLD_API_KEY +
+              "/Satellite/{z}/{y}/{x}.jpeg",
+          }),
+          visible: false, // 기본 숨김
+        });
         // 지적편집도 레이어 (전역 변수로 등록)
         window.cadastralLayer = new ol.layer.Tile({
           source: new ol.source.TileWMS({
@@ -843,7 +853,7 @@
         // 지도 객체 생성 (전역 변수로 선언)
         window.map = new ol.Map({
           target: "map",
-          layers: [baseLayer, window.cadastralLayer, highlightLayer, window.fixedHighlightLayer],
+          layers: [baseLayer, window.satelliteLayer, window.cadastralLayer, highlightLayer, window.fixedHighlightLayer],
           view: view,
           pixelRatio: window.devicePixelRatio || 1,
         });
@@ -953,16 +963,76 @@
         }
 
         /**
-         * 이미지 표시 영역 계산 (중심점 기준 +/- 29m)
+         * 이미지 표시 영역 계산
          */
-        function calculateImageExtent(cx, cy) {
-          var HALF_SIZE = 29; // 미터 단위
-          return [
-            cx - HALF_SIZE,
-            cy - HALF_SIZE,
-            cx + HALF_SIZE,
-            cy + HALF_SIZE,
-          ];
+        function calculateImageExtent(cx, cy, address) {
+            // 1. 주소 기반 분기 처리 (우선순위 높음)
+            if (address && address.indexOf("충청북도 영동군 황간면 소계리 259-3") !== -1) {
+                console.log("Applying Fixed Extent by Address:", address);
+                return [
+                    14239310.23048812, // minX (좌측)
+                    4331234.17582189,  // minY (하단)
+                    14239350.71380624, // maxX (우측)
+                    4331257.55842805   // maxY (상단)
+                ];
+            }
+            if (address && address.indexOf("충청북도 영동군 황간면 소계리 243") !== -1) {
+                console.log("Applying Fixed Extent by Address (243):", address);
+                return [
+                    14239437.40206722, // minX (좌측)
+                    4331307.14138821,  // minY (하단)
+                    14239496.61118838, // maxX (우측)
+                    4331364.55266156   // maxY (상단)
+                ];
+            }
+            if (address && address.indexOf("충청북도 영동군 추풍령면 계룡리 362-2") !== -1) {
+                console.log("Applying Fixed Extent by Address (362-2):", address);
+                return [
+                    14243754.06192694, // minX (좌측)
+                    4329557.04009923,  // minY (하단)
+                    14243830.49477213, // maxX (우측)
+                    4329583.19540786   // maxY (상단)
+                ];
+            }
+
+            // 2. 좌표 기반 분기 처리 (백업용)
+            // 특정 좌표 3개(소계리 259-3, 소계리 243, 계룡리 362-2)에 대해서만 파노라마 4:1 비율 적용
+            var targets = [
+                { x: 14239333.998, y: 4331238.484 }, // 소계리 259-3
+                { x: 14239466.973, y: 4331335.766 }, // 소계리 243 (추정 중심점)
+                { x: 14243792.959, y: 4329570.257 }  // 계룡리 362-2 (추정 중심점)
+            ];
+
+            var isTarget = false;
+            // 좌표 비교 시 부동소수점 오차 및 미세한 차이를 고려하여 허용 범위(10m)를 둠
+            for (var i = 0; i < targets.length; i++) {
+                if (Math.abs(cx - targets[i].x) < 10 && Math.abs(cy - targets[i].y) < 10) {
+                    isTarget = true;
+                    break;
+                }
+            }
+
+            if (isTarget) {
+                console.log("Applying Panorama Ratio (4:1) by Coordinate");
+                // 4:1 비율 (가로 116m, 세로 29m)
+                var HALF_WIDTH = 58;
+                var HALF_HEIGHT = 14.5;
+                return [
+                    cx - HALF_WIDTH,
+                    cy - HALF_HEIGHT,
+                    cx + HALF_WIDTH,
+                    cy + HALF_HEIGHT,
+                ];
+            } else {
+                // 그 외 지역은 기본 정사각형 비율 (가로세로 58m)
+                var HALF_SIZE = 29;
+                return [
+                    cx - HALF_SIZE,
+                    cy - HALF_SIZE,
+                    cx + HALF_SIZE,
+                    cy + HALF_SIZE,
+                ];
+            }
         }
 
         /**
@@ -989,14 +1059,14 @@
         /**
          * 이미지 레이어 업데이트 (추가)
          */
-        window.updateImageLayer = function (centerX, centerY, imagePath) {
+        window.updateImageLayer = function (centerX, centerY, imagePath, address) {
           if (!centerX || !centerY || !imagePath) {
             console.warn("updateImageLayer: 필수 파라미터 누락", { centerX, centerY, imagePath });
             return;
           }
 
           var imageUrl = resolveImageUrl(imagePath);
-          var imageExtent = calculateImageExtent(centerX, centerY);
+          var imageExtent = calculateImageExtent(centerX, centerY, address);
           var newImageLayer = createImageLayer(imageUrl, imageExtent);
 
           window.imageLayers.push(newImageLayer);

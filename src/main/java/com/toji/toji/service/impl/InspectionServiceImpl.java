@@ -1,6 +1,7 @@
 package com.toji.toji.service.impl;
 
 import com.toji.toji.mapper.InspectionMapper;
+import com.toji.toji.dto.InspectionSearchDTO;
 import com.toji.toji.service.InspectionFileVO;
 import com.toji.toji.service.InspectionService;
 import com.toji.toji.service.InspectionVO;
@@ -94,8 +95,26 @@ public class InspectionServiceImpl implements InspectionService {
         inspectionVO.setHdqrCd("1000");
         inspectionVO.setMtnofCd("1100");
 
-        // B1의 위치 정보를 노선명 컬럼에 저장
-        inspectionVO.setRouteDrnm(locationInfo != null ? locationInfo : "위치정보 없음");
+        // B1의 위치 정보를 노선명/이정 컬럼에 저장
+        // 예: "대구외곽순환선 29.8k (시점)" -> routeDrnm="대구외곽순환선", routeDstnc="29.8"
+        String routeDrnm = "";
+        String routeDstnc = "";
+
+        if (locationInfo != null && !locationInfo.isEmpty()) {
+            String[] parts = locationInfo.split(" ");
+            if (parts.length >= 1) {
+                routeDrnm = parts[0];
+            }
+            if (parts.length >= 2) {
+                // "29.8k" -> "29.8" (숫자와 점만 남기고 제거)
+                routeDstnc = parts[1].replaceAll("[^0-9.]", "");
+            }
+        } else {
+            routeDrnm = "위치정보 없음";
+        }
+
+        inspectionVO.setRouteDrnm(routeDrnm);
+        inspectionVO.setRouteDstnc(routeDstnc);
         inspectionVO.setFcltsNm(fcltsNm != null ? fcltsNm : "시설물명 없음");
         inspectionVO.setIspcDttm(ispcDttm);
         inspectionVO.setFsttmRgsrId("ADMIN");
@@ -174,8 +193,13 @@ public class InspectionServiceImpl implements InspectionService {
     }
 
     @Override
-    public List<InspectionVO> selectInspectionList() {
-        return inspectionMapper.selectInspectionList();
+    public List<InspectionVO> selectInspectionList(InspectionSearchDTO searchDTO) {
+        return inspectionMapper.selectInspectionList(searchDTO);
+    }
+
+    @Override
+    public long countInspectionList(InspectionSearchDTO searchDTO) {
+        return inspectionMapper.countInspectionList(searchDTO);
     }
 
     @Override

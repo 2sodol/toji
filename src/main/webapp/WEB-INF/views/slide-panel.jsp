@@ -20,6 +20,10 @@
           <input type="checkbox" id="slide-panel-cadastral-toggle" class="slide-panel__checkbox" checked />
           <span class="slide-panel__checkbox-text">지적도 표시</span>
         </label>
+        <label class="slide-panel__checkbox-label" style="margin-left: 10px;">
+          <input type="checkbox" id="slide-panel-vworld-toggle" class="slide-panel__checkbox" />
+          <span class="slide-panel__checkbox-text">위성지도 표시</span>
+        </label>
         <button id="slide-panel-close-btn" class="slide-panel__close-btn" type="button">
           <i class="fas fa-times"></i>
         </button>

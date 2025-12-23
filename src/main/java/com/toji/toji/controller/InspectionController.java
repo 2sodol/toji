@@ -32,10 +32,39 @@ public class InspectionController {
 
     /** 목록 페이지 */
     @GetMapping("/list")
-    public String list(Model model) {
-        List<InspectionVO> list = inspectionService.selectInspectionList();
-        model.addAttribute("list", list);
+    public String list() {
         return "inspection/list";
+    }
+
+    /** 목록 조회 (DataTables Ajax) */
+    @GetMapping("/api/list")
+    @ResponseBody
+    public com.toji.toji.dto.DataTableResponse<InspectionVO> getList(
+            @RequestParam("draw") int draw,
+            @RequestParam("start") int start,
+            @RequestParam("length") int length,
+            @RequestParam(value = "search[value]", required = false) String searchKeyword,
+            @RequestParam(value = "order[0][column]", defaultValue = "3") int orderColumn,
+            @RequestParam(value = "order[0][dir]", defaultValue = "desc") String orderDir) {
+        
+        com.toji.toji.dto.InspectionSearchDTO searchDTO = new com.toji.toji.dto.InspectionSearchDTO();
+        searchDTO.setDraw(draw);
+        searchDTO.setStart(start);
+        searchDTO.setLength(length);
+        searchDTO.setSearchKeyword(searchKeyword);
+        searchDTO.setOrderColumn(orderColumn);
+        searchDTO.setOrderDir(orderDir);
+
+        List<InspectionVO> list = inspectionService.selectInspectionList(searchDTO);
+        long totalCount = inspectionService.countInspectionList(searchDTO);
+
+        com.toji.toji.dto.DataTableResponse<InspectionVO> response = new com.toji.toji.dto.DataTableResponse<>();
+        response.setDraw(draw);
+        response.setRecordsTotal(totalCount);
+        response.setRecordsFiltered(totalCount);
+        response.setData(list);
+        
+        return response;
     }
 
     /** 상세 정보 조회 (JSON) */

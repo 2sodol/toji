@@ -1,5 +1,6 @@
 package com.toji.toji.mapper;
 
+import com.toji.toji.dto.InspectionSearchDTO;
 import com.toji.toji.service.InspectionFileVO;
 import com.toji.toji.service.InspectionVO;
 import org.apache.ibatis.annotations.Mapper;
@@ -18,7 +19,9 @@ public interface InspectionMapper {
     Long selectNextFileSeq();
 
     // 조회용 메서드 추가
-    List<InspectionVO> selectInspectionList();
+    List<InspectionVO> selectInspectionList(InspectionSearchDTO searchDTO);
+    long countInspectionList(InspectionSearchDTO searchDTO);
+
     InspectionVO selectInspection(@Param("ispcId") String ispcId);
     List<InspectionFileVO> selectInspectionFiles(@Param("ispcId") String ispcId);
     InspectionFileVO selectFileDetail(@Param("fileSeq") Long fileSeq);
